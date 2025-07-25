@@ -9,10 +9,10 @@ const spin = keyframes`
 const SpinnerContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  height: 50vh;
-  gap: 1rem;
+  justify-content: center;
+  min-height: 200px;
+  padding: 2rem;
 `;
 
 const Spinner = styled.div`
@@ -22,19 +22,20 @@ const Spinner = styled.div`
   border-top: 4px solid #8B4513;
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
+  margin-bottom: 1rem;
 `;
 
-const LoadingText = styled.p`
-  font-size: 1.2rem;
-  color: #8B4513;
-  margin: 0;
+const LoadingText = styled.div`
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
 `;
 
 interface LoadingSpinnerProps {
   text?: string;
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ text = '🍞 Loading...' }) => {
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ text = 'Loading...' }) => {
   return (
     <SpinnerContainer>
       <Spinner />
