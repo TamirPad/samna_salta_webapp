@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Star, Clock, Filter } from 'lucide-react';
+import { ShoppingCart, Clock } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { selectLanguage } from '../features/language/languageSlice';
 import { addToCart } from '../features/cart/cartSlice';
-import { selectProducts, selectProductsLoading } from '../features/products/productsSlice';
-import { apiService } from '../utils/api';
+import { selectProductsLoading } from '../features/products/productsSlice';
+// import { apiService } from '../utils/api'; // TODO: Uncomment when backend API is ready
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const MenuContainer = styled.div`
@@ -148,7 +148,7 @@ const ProductCard = styled(motion.div)`
   }
 `;
 
-const ProductImage = styled.div<{ imageUrl?: string }>`
+const ProductImage = styled.div<{ imageUrl?: string; emoji?: string }>`
   width: 100%;
   height: 200px;
   background: ${props => props.imageUrl 
@@ -158,7 +158,7 @@ const ProductImage = styled.div<{ imageUrl?: string }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
+  font-size: ${props => props.emoji ? '4rem' : '3rem'};
   color: white;
   position: relative;
 `;
@@ -256,31 +256,32 @@ const EmptyState = styled.div`
 const MenuPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const language = useAppSelector(selectLanguage);
-  const products = useAppSelector(selectProducts);
   const isLoading = useAppSelector(selectProductsLoading);
   
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [categories, setCategories] = useState<Array<{ id: string; name: string; name_en?: string; name_he?: string }>>([]);
 
   // Fetch products and categories on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productsResponse, categoriesResponse] = await Promise.all([
-          apiService.getProducts(),
-          apiService.getCategories()
-        ]);
-        
-        // Handle the responses here when API is ready
-        console.log('Products:', productsResponse);
-        console.log('Categories:', categoriesResponse);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
+    // TODO: Uncomment when backend API is ready
+    // const fetchData = async () => {
+    //   try {
+    //     const [productsResponse, categoriesResponse] = await Promise.all([
+    //       apiService.getProducts(),
+    //       apiService.getCategories()
+    //     ]);
+    //     
+    //     // Handle the responses here when API is ready
+    //     console.log('Products:', productsResponse);
+    //     console.log('Categories:', categoriesResponse);
+    //   } catch (error) {
+    //     console.error('Error fetching data:', error);
+    //   }
+    // };
+    // fetchData();
+    
+    // Using mock data for now
+    console.log('Using mock data for products and categories');
   }, []);
 
   const translations = useMemo(() => ({
@@ -328,7 +329,8 @@ const MenuPage: React.FC = () => {
       category: 'breads',
       category_en: 'Breads',
       category_he: 'לחמים',
-      image: '/images/kubaneh.jpg',
+      image: null,
+      emoji: '🍞',
       preparation_time: 30,
       is_new: true,
       is_popular: true,
@@ -346,7 +348,8 @@ const MenuPage: React.FC = () => {
       category: 'dairy',
       category_en: 'Dairy',
       category_he: 'מוצרי חלב',
-      image: '/images/samneh.jpg',
+      image: null,
+      emoji: '🧈',
       preparation_time: 15,
       is_new: false,
       is_popular: true,
@@ -364,7 +367,8 @@ const MenuPage: React.FC = () => {
       category: 'spices',
       category_en: 'Spices',
       category_he: 'תבלינים',
-      image: '/images/red-bisbas.jpg',
+      image: null,
+      emoji: '🌶️',
       preparation_time: 5,
       is_new: false,
       is_popular: false,
@@ -382,7 +386,8 @@ const MenuPage: React.FC = () => {
       category: 'spices',
       category_en: 'Spices',
       category_he: 'תבלינים',
-      image: '/images/hilbeh.jpg',
+      image: null,
+      emoji: '🌿',
       preparation_time: 5,
       is_new: true,
       is_popular: false,
@@ -400,7 +405,8 @@ const MenuPage: React.FC = () => {
       category: 'pastries',
       category_en: 'Pastries',
       category_he: 'מאפים',
-      image: '/images/jachnun.jpg',
+      image: null,
+      emoji: '🥐',
       preparation_time: 45,
       is_new: false,
       is_popular: true,
@@ -418,7 +424,8 @@ const MenuPage: React.FC = () => {
       category: 'breads',
       category_en: 'Breads',
       category_he: 'לחמים',
-      image: '/images/malawach.jpg',
+      image: null,
+      emoji: '🥖',
       preparation_time: 25,
       is_new: false,
       is_popular: true,
@@ -463,7 +470,7 @@ const MenuPage: React.FC = () => {
       name: language === 'he' ? product.name_he : product.name_en || product.name,
       price: product.price,
       quantity: 1,
-      image: product.image,
+      image: product.image || undefined,
       category: language === 'he' ? product.category_he : product.category_en || product.category,
     }));
   };
@@ -524,7 +531,8 @@ const MenuPage: React.FC = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <ProductImage imageUrl={product.image}>
+                  <ProductImage imageUrl={product.image || undefined} emoji={product.emoji}>
+                    {product.emoji && <span style={{ fontSize: '4rem' }}>{product.emoji}</span>}
                     {product.is_new && <ProductBadge>{t.new}</ProductBadge>}
                     {product.is_popular && <ProductBadge>{t.popular}</ProductBadge>}
                   </ProductImage>

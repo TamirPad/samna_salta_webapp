@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useAppSelector } from '../hooks/redux';
 import { selectLanguage } from '../features/language/languageSlice';
-import { apiService } from '../utils/api';
+// import { apiService } from '../utils/api'; // TODO: Uncomment when backend API is ready
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const TrackingContainer = styled.div`

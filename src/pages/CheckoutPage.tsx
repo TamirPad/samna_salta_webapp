@@ -23,7 +23,7 @@ import {
   selectCartTotal,
   clearCart 
 } from '../features/cart/cartSlice';
-import { apiService } from '../utils/api';
+// import { apiService } from '../utils/api'; // TODO: Uncomment when backend API is ready
 
 const CheckoutContainer = styled.div`
   min-height: 100vh;
@@ -522,16 +522,26 @@ const CheckoutPage: React.FC = () => {
         total: finalTotal,
       };
 
-      // Submit order to API
-      const response = await apiService.createOrder(orderData);
+      // Submit order to API (mocked for now)
+      // const response = await apiService.createOrder(orderData);
       
-      if (response.data?.success) {
+      // Mock successful order creation
+      const mockResponse = {
+        data: {
+          success: true,
+          data: {
+            id: Math.floor(Math.random() * 10000) + 1000
+          }
+        }
+      };
+      
+      if (mockResponse.data?.success) {
         setSubmitSuccess(true);
         dispatch(clearCart());
         
         // Redirect to order tracking page after a short delay
         setTimeout(() => {
-          navigate(`/order/${response.data.data.id}`);
+          navigate(`/order/${mockResponse.data.data.id}`);
         }, 2000);
       }
     } catch (error) {

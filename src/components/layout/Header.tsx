@@ -223,6 +223,9 @@ const Header: React.FC = () => {
   const navItems = [
     { path: '/', label: language === 'he' ? 'בית' : 'Home' },
     { path: '/menu', label: language === 'he' ? 'תפריט' : 'Menu' },
+    { path: '/dashboard', label: language === 'he' ? 'ניהול' : 'Manage' },
+    { path: '/orders', label: language === 'he' ? 'הזמנות' : 'Orders' },
+    { path: '/analytics', label: language === 'he' ? 'ניתוח' : 'Analytics' },
   ];
 
   return (

@@ -85,12 +85,57 @@ const App: React.FC = () => {
                 </motion.div>
               } />
 
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/products" element={<AdminProducts />} />
-              <Route path="/admin/customers" element={<AdminCustomers />} />
-              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              {/* Management Routes */}
+              <Route path="/dashboard" element={
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AdminDashboard />
+                </motion.div>
+              } />
+              <Route path="/orders" element={
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AdminOrders />
+                </motion.div>
+              } />
+              <Route path="/products" element={
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AdminProducts />
+                </motion.div>
+              } />
+              <Route path="/customers" element={
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AdminCustomers />
+                </motion.div>
+              } />
+              <Route path="/analytics" element={
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AdminAnalytics />
+                </motion.div>
+              } />
 
               {/* 404 Page */}
               <Route path="*" element={<NotFoundPage />} />

@@ -182,6 +182,9 @@ const Footer: React.FC = () => {
               <Link to="/menu">{language === 'he' ? 'תפריט' : 'Menu'}</Link>
               <Link to="/cart">{language === 'he' ? 'עגלה' : 'Cart'}</Link>
               <Link to="/order/123">{language === 'he' ? 'מעקב הזמנה' : 'Track Order'}</Link>
+              <Link to="/dashboard">{language === 'he' ? 'ניהול' : 'Manage'}</Link>
+              <Link to="/orders">{language === 'he' ? 'הזמנות' : 'Orders'}</Link>
+              <Link to="/analytics">{language === 'he' ? 'ניתוח' : 'Analytics'}</Link>
             </FooterLinks>
           </FooterSection>
 
