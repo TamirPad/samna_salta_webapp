@@ -1,6 +1,7 @@
 services:
+  # Static Site Deployment (Recommended)
   - type: web
-    name: samna-salta-webapp
+    name: samna-salta-webapp-static
     env: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./build
@@ -14,4 +15,17 @@ services:
     routes:
       - type: rewrite
         source: /*
-        destination: /index.html 
+        destination: /index.html
+
+  # Web Service Deployment (Docker)
+  - type: web
+    name: samna-salta-webapp-docker
+    env: docker
+    dockerfilePath: ./Dockerfile.prod
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: REACT_APP_API_URL
+        value: https://your-backend-api.onrender.com/api
+      - key: REACT_APP_ENVIRONMENT
+        value: production 

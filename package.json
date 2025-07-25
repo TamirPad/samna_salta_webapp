@@ -32,8 +32,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "deploy:render": "npm run build && echo 'Build completed successfully'",
-    "postinstall": "npm run build"
+    "deploy:render": "npm run build && echo 'Build completed successfully'"
   },
   "eslintConfig": {
     "extends": [
