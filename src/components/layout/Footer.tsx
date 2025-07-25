@@ -168,10 +168,10 @@ const Footer: React.FC = () => {
             <h3>🍞 {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}</h3>
             <p>{t.aboutText}</p>
             <SocialLinks>
-              <a href="#" aria-label="Facebook">📘</a>
-              <a href="#" aria-label="Instagram">📷</a>
-              <a href="#" aria-label="Twitter">🐦</a>
-              <a href="#" aria-label="WhatsApp">📱</a>
+              <a href="https://facebook.com/samnasalta" target="_blank" rel="noopener noreferrer" aria-label="Facebook">📘</a>
+              <a href="https://instagram.com/samnasalta" target="_blank" rel="noopener noreferrer" aria-label="Instagram">📷</a>
+              <a href="https://twitter.com/samnasalta" target="_blank" rel="noopener noreferrer" aria-label="Twitter">🐦</a>
+              <a href="https://wa.me/97231234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">📱</a>
             </SocialLinks>
           </FooterSection>
 

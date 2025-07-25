@@ -191,10 +191,14 @@ The app is fully responsive and optimized for:
 
 ## 📊 Performance
 
-- **Code Splitting**: Automatic route-based code splitting
-- **Lazy Loading**: Components loaded on demand
+- **Code Splitting**: Automatic route-based code splitting with React.lazy()
+- **Lazy Loading**: Components loaded on demand with Suspense
+- **Memoization**: React.memo, useMemo, and useCallback for optimized re-renders
+- **Service Worker**: Offline support and caching for better performance
+- **Web Vitals**: Core Web Vitals monitoring and optimization
 - **Image Optimization**: Optimized images and lazy loading
 - **Caching**: Browser caching and service worker support
+- **Performance Monitoring**: Built-in performance tracking utilities
 
 ## 🎨 Design System
 
@@ -212,6 +216,15 @@ The app is fully responsive and optimized for:
 - Proper line heights and spacing
 
 ## 🔧 Development
+
+### **Performance Optimizations**
+- **React.memo**: Applied to Header component to prevent unnecessary re-renders
+- **useMemo**: Optimized translations and data arrays in HomePage
+- **useCallback**: Optimized event handlers in Header component
+- **Lazy Loading**: All page components are lazy-loaded for better initial load time
+- **Service Worker**: Added for offline support and caching
+- **Web Vitals**: Integrated Core Web Vitals monitoring
+- **Performance Utilities**: Created debounce, throttle, and performance tracking utilities
 
 ### **Code Quality**
 ```bash

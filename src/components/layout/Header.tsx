@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -210,15 +210,15 @@ const Header: React.FC = () => {
   const language = useAppSelector(selectLanguage);
   const cartItemsCount = useAppSelector(selectCartItemsCount);
 
-  const toggleLanguage = () => {
+  const toggleLanguage = useCallback(() => {
     dispatch(setLanguage(language === 'he' ? 'en' : 'he'));
-  };
+  }, [dispatch, language]);
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  }, [isMobileMenuOpen]);
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
 
   const navItems = [
     { path: '/', label: language === 'he' ? 'בית' : 'Home' },
@@ -281,4 +281,4 @@ const Header: React.FC = () => {
   );
 };
 
-export default Header; 
+export default memo(Header); 

@@ -8,6 +8,24 @@ import 'react-toastify/dist/ReactToastify.css';
 import App from './App';
 import { store } from './store';
 import { GlobalStyles } from './styles/GlobalStyles';
+import { reportWebVitals, monitorLongTasks } from './utils/webVitals';
+
+// Register service worker for offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('SW registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
+
+// Initialize performance monitoring
+reportWebVitals();
+monitorLongTasks();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

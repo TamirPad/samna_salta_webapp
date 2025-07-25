@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -244,7 +244,7 @@ const CTAButton = styled(Link)`
 const HomePage: React.FC = () => {
   const language = useAppSelector(selectLanguage);
 
-  const translations = {
+  const translations = useMemo(() => ({
     he: {
       heroTitle: 'ברוכים הבאים לסמנה סלטה',
       heroSubtitle: 'המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים',
@@ -291,11 +291,11 @@ const HomePage: React.FC = () => {
       hilbehDesc: 'Traditional Yemenite spice',
       price: '$',
     }
-  };
+  }), []);
 
-  const t = translations[language as keyof typeof translations];
+  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
 
-  const features = [
+  const features = useMemo(() => [
     {
       icon: '🍞',
       title: t.freshBread,
@@ -311,9 +311,9 @@ const HomePage: React.FC = () => {
       title: t.fastDelivery,
       description: t.fastDeliveryDesc,
     },
-  ];
+  ], [t]);
 
-  const products = [
+  const products = useMemo(() => [
     {
       icon: '🍞',
       name: t.kubaneh,
@@ -338,7 +338,7 @@ const HomePage: React.FC = () => {
       description: t.hilbehDesc,
       price: '10',
     },
-  ];
+  ], [t]);
 
   return (
     <HomeContainer>
