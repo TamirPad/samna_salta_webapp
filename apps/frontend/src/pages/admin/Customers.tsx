@@ -467,7 +467,7 @@ const AdminCustomers: React.FC = () => {
     }
   };
 
-  const handleEditCustomer = async (customerId: string) => {
+  const handleEditCustomer = async (_customerId: string) => {
     if (!isAuthenticated) return;
     
     // TODO: Navigate to edit page or open edit modal

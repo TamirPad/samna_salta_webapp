@@ -22,6 +22,10 @@ COPY apps/frontend/public ./apps/frontend/public
 COPY apps/frontend/tsconfig.json ./apps/frontend/
 COPY apps/backend/src ./apps/backend/src
 COPY packages/common/src ./packages/common/src
+COPY packages/common/tsconfig.json ./packages/common/
+
+# Build common package first (required by frontend)
+RUN npm run build --workspace=packages/common
 
 # Build frontend
 RUN npm run build:frontend

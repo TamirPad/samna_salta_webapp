@@ -422,11 +422,11 @@ const HomePage: React.FC = () => {
   ], [t]);
 
   // Memoized handlers with useCallback
-  const handleFeatureClick = useCallback((feature: Feature): void => {
+  const handleFeatureClick = useCallback((_feature: Feature): void => {
     // TODO: Implement analytics tracking or navigation logic
   }, []);
 
-  const handleProductClick = useCallback((product: Product): void => {
+  const handleProductClick = useCallback((_product: Product): void => {
     // TODO: Navigate to menu or product detail
   }, []);
 

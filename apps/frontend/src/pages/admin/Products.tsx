@@ -573,7 +573,7 @@ const AdminProducts: React.FC = () => {
     }
   }, [t.errorOccurred]);
 
-  const handleViewProduct = useCallback((productId: string) => {
+  const handleViewProduct = useCallback((_productId: string) => {
     try {
       // TODO: Implement view product functionality
     } catch (err) {
@@ -581,7 +581,7 @@ const AdminProducts: React.FC = () => {
     }
   }, [t.errorOccurred]);
 
-  const handleEditProduct = useCallback((productId: string) => {
+  const handleEditProduct = useCallback((_productId: string) => {
     try {
       // TODO: Implement edit product functionality
     } catch (err) {
@@ -589,7 +589,7 @@ const AdminProducts: React.FC = () => {
     }
   }, [t.errorOccurred]);
 
-  const handleDeleteProduct = useCallback((productId: string) => {
+  const handleDeleteProduct = useCallback((_productId: string) => {
     try {
       if (window.confirm(t.confirmDelete)) {
         // TODO: Implement delete product functionality

@@ -3,7 +3,7 @@ services:
   - type: web
     name: samna-salta-frontend
     env: static
-    buildCommand: npm install && npm run build:frontend
+    buildCommand: npm install && npm run build:common && npm run build:frontend
     staticPublishPath: ./apps/frontend/build
     envVars:
       - key: NODE_VERSION
@@ -25,7 +25,7 @@ services:
   - type: web
     name: samna-salta-backend
     env: node
-    buildCommand: npm install && npm run build:backend
+    buildCommand: npm install && npm run build:common && npm run build:backend
     startCommand: npm run start --workspace=apps/backend
     envVars:
       - key: NODE_VERSION
