@@ -1,9 +1,32 @@
 require('dotenv').config();
-const { query, getClient } = require('../config/database');
+const { Pool } = require('pg');
 const logger = require('../utils/logger');
 
+// Create a direct database connection for migrations
+const getMigrationClient = () => {
+  // Check if using Supabase
+  if (process.env.SUPABASE_CONNECTION_STRING) {
+    return new Pool({
+      connectionString: process.env.SUPABASE_CONNECTION_STRING,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
+  }
+
+  // Fallback to local PostgreSQL
+  return new Pool({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || 'samna_salta',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
+};
+
 const createTables = async () => {
-  const client = await getClient();
+  const client = await getMigrationClient().connect();
   
   try {
     await client.query('BEGIN');
@@ -98,8 +121,9 @@ const createTables = async () => {
         status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'preparing', 'ready', 'delivering', 'delivered', 'cancelled')),
         subtotal DECIMAL(10,2) NOT NULL,
         delivery_charge DECIMAL(10,2) DEFAULT 0,
+        tax_amount DECIMAL(10,2) DEFAULT 0,
         total DECIMAL(10,2) NOT NULL,
-        estimated_delivery_time TIMESTAMP,
+        stripe_payment_intent_id VARCHAR(255),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
@@ -120,51 +144,25 @@ const createTables = async () => {
       )
     `);
 
-    // Create order_status_updates table
+    // Create analytics table
     await client.query(`
-      CREATE TABLE IF NOT EXISTS order_status_updates (
+      CREATE TABLE IF NOT EXISTS analytics (
         id SERIAL PRIMARY KEY,
-        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
-        status VARCHAR(20) NOT NULL,
-        description TEXT,
+        event_type VARCHAR(50) NOT NULL,
+        event_data JSONB,
+        user_id INTEGER REFERENCES users(id),
+        session_id VARCHAR(255),
+        ip_address INET,
+        user_agent TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
 
-    // Create business_settings table
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS business_settings (
-        id SERIAL PRIMARY KEY,
-        business_name VARCHAR(200) NOT NULL,
-        business_description TEXT,
-        business_address TEXT,
-        business_phone VARCHAR(20),
-        business_email VARCHAR(255),
-        business_website VARCHAR(255),
-        business_hours TEXT,
-        delivery_charge DECIMAL(10,2) DEFAULT 15.00,
-        currency VARCHAR(3) DEFAULT 'ILS',
-        default_language VARCHAR(5) DEFAULT 'he',
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // Create indexes for better performance
-    await client.query('CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
-
     await client.query('COMMIT');
     logger.info('Database tables created successfully');
-
   } catch (error) {
     await client.query('ROLLBACK');
-    logger.error('Database migration failed:', error);
+    logger.error('Error creating tables:', error);
     throw error;
   } finally {
     client.release();
@@ -176,7 +174,7 @@ const createAdminUser = async () => {
     const bcrypt = require('bcryptjs');
     
     // Check if admin user already exists
-    const existingAdmin = await query(
+    const existingAdmin = await getMigrationClient().query(
       'SELECT id FROM users WHERE email = $1',
       ['admin@sammasalta.com']
     );
@@ -189,7 +187,7 @@ const createAdminUser = async () => {
     // Create admin user
     const hashedPassword = await bcrypt.hash('admin123', 12);
     
-    await query(
+    await getMigrationClient().query(
       `INSERT INTO users (name, email, password_hash, phone, is_admin, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
       ['Admin User', 'admin@sammasalta.com', hashedPassword, '+972-50-123-4567', true]
@@ -215,7 +213,7 @@ const insertDefaultData = async () => {
     ];
 
     for (const category of categories) {
-      await query(
+      await getMigrationClient().query(
         `INSERT INTO categories (name, name_en, name_he, sort_order, created_at, updated_at)
          VALUES ($1, $2, $3, $4, NOW(), NOW())
          ON CONFLICT (name) DO NOTHING`,
@@ -279,7 +277,7 @@ const insertDefaultData = async () => {
     ];
 
     for (const product of products) {
-      await query(
+      await getMigrationClient().query(
         `INSERT INTO products (name, name_en, name_he, description, description_en, description_he, 
          price, category_id, emoji, preparation_time, is_new, is_popular, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
@@ -294,7 +292,7 @@ const insertDefaultData = async () => {
     }
 
     // Insert default business settings
-    await query(
+    await getMigrationClient().query(
       `INSERT INTO business_settings (business_name, business_description, business_address, 
        business_phone, business_email, business_hours, delivery_charge, currency, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())

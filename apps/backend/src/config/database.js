@@ -24,47 +24,73 @@ const getDatabaseConfig = () => {
   };
 };
 
-const pool = new Pool({
-  ...getDatabaseConfig(),
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
-  // Add connection retry logic
-  connectionRetryAttempts: 3,
-  connectionRetryDelay: 1000,
-});
+let pool = null;
+let isConnected = false;
 
-// Test the connection
-pool.on('connect', () => {
-  logger.info('Connected to PostgreSQL database');
-});
+const createPool = () => {
+  if (!pool) {
+    pool = new Pool({
+      ...getDatabaseConfig(),
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+      // Add connection retry logic
+      connectionRetryAttempts: 3,
+      connectionRetryDelay: 1000,
+    });
 
-pool.on('error', (err) => {
-  logger.error('Unexpected error on idle client', err);
-  // Don't exit process in production, let it handle reconnection
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(-1);
+    // Test the connection
+    pool.on('connect', () => {
+      logger.info('Connected to PostgreSQL database');
+      isConnected = true;
+    });
+
+    pool.on('error', (err) => {
+      logger.error('Unexpected error on idle client', err);
+      isConnected = false;
+      // Don't exit process in production, let it handle reconnection
+      if (process.env.NODE_ENV !== 'production') {
+        logger.warn('Database connection error in development mode, continuing without database');
+      }
+    });
   }
-});
+  return pool;
+};
 
 const connectDB = async () => {
   try {
+    createPool();
     const client = await pool.connect();
     logger.info('Database connection established successfully');
     client.release();
+    isConnected = true;
   } catch (error) {
     logger.error('Database connection failed:', error);
+    isConnected = false;
+    
+    // In development mode, allow the server to start without database
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Database connection failed in development mode, server will start without database');
+      logger.warn('To fix this, start PostgreSQL or run: docker-compose up db redis -d');
+      return;
+    }
+    
     // In production, don't throw immediately, allow retry
     if (process.env.NODE_ENV === 'production') {
       logger.warn('Database connection failed, will retry on next request');
       return;
     }
+    
     throw error;
   }
 };
 
 // Helper function to run queries with retry logic
 const query = async (text, params) => {
+  if (!isConnected) {
+    throw new Error('Database not connected. Please ensure PostgreSQL is running.');
+  }
+  
   const start = Date.now();
   const maxRetries = 3;
   let lastError;
@@ -96,27 +122,31 @@ const query = async (text, params) => {
 
 // Helper function to get a client for transactions
 const getClient = () => {
+  if (!isConnected) {
+    throw new Error('Database not connected. Please ensure PostgreSQL is running.');
+  }
   return pool.connect();
 };
 
-// Graceful shutdown
-const closePool = async () => {
-  try {
-    await pool.end();
-    logger.info('Database pool closed successfully');
-  } catch (error) {
-    logger.error('Error closing database pool:', error);
-  }
+// Check if database is connected
+const isDBConnected = () => {
+  return isConnected;
 };
 
-// Handle graceful shutdown
-process.on('SIGTERM', closePool);
-process.on('SIGINT', closePool);
+// Close the pool
+const closePool = async () => {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    isConnected = false;
+    logger.info('Database pool closed');
+  }
+};
 
 module.exports = {
   connectDB,
   query,
   getClient,
-  pool,
-  closePool
+  closePool,
+  isDBConnected
 }; 

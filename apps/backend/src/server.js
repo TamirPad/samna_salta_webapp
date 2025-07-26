@@ -159,13 +159,20 @@ app.use((req, res, next) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const { isDBConnected } = require('./config/database');
+  const { isRedisConnected } = require('./config/redis');
+  
   res.status(200).json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
-    memory: process.memoryUsage()
+    memory: process.memoryUsage(),
+    services: {
+      database: isDBConnected ? 'connected' : 'disconnected',
+      redis: isRedisConnected ? 'connected' : 'disconnected'
+    }
   });
 });
 
@@ -215,9 +222,26 @@ const PORT = process.env.PORT || 3001;
 // Start server
 const startServer = async () => {
   try {
-    // Connect to databases
-    await connectDB();
-    await connectRedis();
+    // Connect to databases (but don't fail if they're not available in development)
+    try {
+      await connectDB();
+    } catch (dbError) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Database connection failed, starting server without database');
+      } else {
+        throw dbError;
+      }
+    }
+    
+    try {
+      await connectRedis();
+    } catch (redisError) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Redis connection failed, starting server without Redis');
+      } else {
+        throw redisError;
+      }
+    }
     
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);

@@ -59,6 +59,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip chrome-extension and other unsupported schemes
+  if (url.protocol === 'chrome-extension:' || 
+      url.protocol === 'moz-extension:' || 
+      url.protocol === 'ms-browser-extension:') {
+    return;
+  }
+
   // Handle API requests differently
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(request));
@@ -85,34 +92,56 @@ async function handleApiRequest(request) {
   try {
     const response = await fetch(request);
     if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, response.clone());
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE);
+        cache.put(request, response.clone());
+      } catch (cacheError) {
+        console.warn('Failed to cache API response:', cacheError);
+      }
     }
     return response;
   } catch (error) {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
+    console.warn('API request failed, trying cache:', error);
+    try {
+      const cachedResponse = await caches.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+    } catch (cacheError) {
+      console.warn('Cache lookup failed:', cacheError);
     }
-    throw error;
+    
+    // Return a fallback response for API failures
+    return new Response(JSON.stringify({ 
+      error: 'Network error', 
+      message: 'Unable to connect to server' 
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 
 // Handle static assets - cache first, network fallback
 async function handleStaticRequest(request) {
-  const cachedResponse = await caches.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
   try {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
     const response = await fetch(request);
     if (response.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, response.clone());
+      try {
+        const cache = await caches.open(STATIC_CACHE);
+        cache.put(request, response.clone());
+      } catch (cacheError) {
+        console.warn('Failed to cache static asset:', cacheError);
+      }
     }
     return response;
   } catch (error) {
+    console.warn('Static asset fetch failed:', error);
     // Return a fallback response for critical assets
     if (request.url.includes('bundle.js')) {
       return new Response('console.log("App failed to load");', {
@@ -128,14 +157,23 @@ async function handleNavigationRequest(request) {
   try {
     const response = await fetch(request);
     if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, response.clone());
+      try {
+        const cache = await caches.open(DYNAMIC_CACHE);
+        cache.put(request, response.clone());
+      } catch (cacheError) {
+        console.warn('Failed to cache navigation response:', cacheError);
+      }
     }
     return response;
   } catch (error) {
-    const cachedResponse = await caches.match('/index.html');
-    if (cachedResponse) {
-      return cachedResponse;
+    console.warn('Navigation request failed, trying cache:', error);
+    try {
+      const cachedResponse = await caches.match('/index.html');
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+    } catch (cacheError) {
+      console.warn('Cache lookup failed:', cacheError);
     }
     throw error;
   }

@@ -3,6 +3,7 @@ const logger = require('../utils/logger');
 // Try to use real Redis, fallback to in-memory
 let redisClient = null;
 let useRealRedis = false;
+let isConnected = false;
 
 // Initialize Redis client
 const initializeRedis = async () => {
@@ -24,25 +25,30 @@ const initializeRedis = async () => {
 
       redisClient.on('error', (err) => {
         logger.error('Redis client error:', err);
+        isConnected = false;
       });
 
       redisClient.on('connect', () => {
         logger.info('Connected to Redis');
         useRealRedis = true;
+        isConnected = true;
       });
 
       redisClient.on('ready', () => {
         logger.info('Redis client ready');
+        isConnected = true;
       });
 
       await redisClient.connect();
       return true;
     } else {
       logger.info('Using in-memory storage (Redis disabled or not configured)');
+      isConnected = true; // In-memory is always "connected"
       return false;
     }
   } catch (error) {
     logger.warn('Failed to connect to Redis, using in-memory storage:', error.message);
+    isConnected = true; // In-memory is always "connected"
     return false;
   }
 };
@@ -75,9 +81,30 @@ process.on('exit', () => {
   clearInterval(cleanupInterval);
 });
 
+// Connect to Redis
 const connectRedis = async () => {
-  await initializeRedis();
-  return Promise.resolve();
+  try {
+    await initializeRedis();
+    logger.info('Redis connection established successfully');
+  } catch (error) {
+    logger.error('Redis connection failed:', error);
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Redis connection failed in development mode, using in-memory storage');
+      isConnected = true; // In-memory is always "connected"
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Get Redis client
+const getRedisClient = () => {
+  return redisClient;
+};
+
+// Check if Redis is connected
+const isRedisConnected = () => {
+  return isConnected;
 };
 
 // Cache functions with Redis fallback
@@ -206,15 +233,17 @@ const deleteSession = async (sessionId) => {
   }
 };
 
-// Graceful shutdown
+// Close Redis connection
 const closeRedis = async () => {
-  try {
-    if (redisClient) {
+  if (redisClient) {
+    try {
       await redisClient.quit();
       logger.info('Redis connection closed');
+    } catch (error) {
+      logger.error('Error closing Redis connection:', error);
     }
-  } catch (error) {
-    logger.error('Error closing Redis connection:', error);
+    redisClient = null;
+    isConnected = false;
   }
 };
 
@@ -224,13 +253,8 @@ process.on('SIGINT', closeRedis);
 
 module.exports = {
   connectRedis,
-  setCache,
-  getCache,
-  deleteCache,
-  clearCache,
-  setSession,
-  getSession,
-  deleteSession,
-  redisClient,
-  closeRedis
+  getRedisClient,
+  closeRedis,
+  isRedisConnected,
+  useRealRedis
 }; 
