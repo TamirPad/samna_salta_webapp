@@ -1,5 +1,5 @@
-import React, { Suspense, lazy, useMemo } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { Suspense, lazy, useMemo, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import Header from './components/layout/Header';
@@ -9,8 +9,12 @@ import ErrorBoundary from './components/ErrorBoundary';
 import NetworkStatus from './components/NetworkStatus';
 import { useAppSelector } from './hooks/redux';
 import { selectLanguage } from './features/language/languageSlice';
-
-
+import { 
+  saveRouteState, 
+  handlePageRefresh, 
+  wasPageRefreshed,
+  clearNavigationError 
+} from './utils/routeUtils';
 
 // Lazy load pages with explicit chunk names for better webpack handling
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -75,6 +79,39 @@ const ChunkErrorFallback: React.FC = () => (
   </div>
 );
 
+// Scroll to top component
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+// Route persistence component
+const RoutePersistence: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Save current route state
+    saveRouteState(location.pathname, location.search, location.hash);
+    
+    // Clear any navigation errors when successfully navigating
+    clearNavigationError();
+  }, [location]);
+
+  useEffect(() => {
+    // Handle page refresh
+    if (wasPageRefreshed()) {
+      handlePageRefresh();
+    }
+  }, []);
+
+  return null;
+};
+
 const App: React.FC = (): JSX.Element => {
   const language = useAppSelector(selectLanguage);
 
@@ -100,9 +137,11 @@ const App: React.FC = (): JSX.Element => {
           key={route.path}
           path={route.path}
           element={
-            <AnimatedRoute>
-              <Component />
-            </AnimatedRoute>
+            <ErrorBoundary fallback={<ChunkErrorFallback />}>
+              <AnimatedRoute>
+                <Component />
+              </AnimatedRoute>
+            </ErrorBoundary>
           }
         />
       );
@@ -117,18 +156,18 @@ const App: React.FC = (): JSX.Element => {
   return (
     <ErrorBoundary>
       <div className="App" dir={language === 'he' ? 'rtl' : 'ltr'}>
+        <ScrollToTop />
+        <RoutePersistence />
         <NetworkStatus />
         <Header />
         <main className="main-content">
           <Suspense fallback={<LoadingSpinner />}>
-            <ErrorBoundary fallback={<ChunkErrorFallback />}>
-              <AnimatePresence mode="wait">
-                <Routes>
-                  {routeElements}
-                  {notFoundRoute}
-                </Routes>
-              </AnimatePresence>
-            </ErrorBoundary>
+            <AnimatePresence mode="wait">
+              <Routes>
+                {routeElements}
+                {notFoundRoute}
+              </Routes>
+            </AnimatePresence>
           </Suspense>
         </main>
         <Footer />
