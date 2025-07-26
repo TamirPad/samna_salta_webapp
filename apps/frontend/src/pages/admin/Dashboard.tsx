@@ -256,7 +256,7 @@ const Dashboard: React.FC = () => {
 
   const handleDevModeSkip = useCallback((): void => {
     // This would need to be handled differently in a real app
-    console.log('Dev mode skip - not implemented in production');
+          // Dev mode skip - not implemented in production
   }, []);
 
   // Memoized dashboard data

@@ -58,52 +58,22 @@ const LoadingText = styled.div`
   }
 `;
 
-const SpinnerWrapper = styled.div`
-  position: relative;
-  display: inline-block;
-`;
-
-const SpinnerScreenReader = styled.div`
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-`;
-
 // Types
 interface LoadingSpinnerProps {
   text?: string;
-  size?: 'small' | 'medium' | 'large';
-  variant?: 'default' | 'overlay' | 'inline';
-  ariaLabel?: string;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  text = 'Loading...', 
-  // size = 'medium',
-  // variant = 'default',
-  ariaLabel
+  text = 'Loading...'
 }) => {
-  // Memoized aria label
-  const screenReaderText = ariaLabel || text;
 
   return (
     <SpinnerContainer role="status" aria-live="polite">
-      <SpinnerWrapper>
-        <Spinner 
-          aria-hidden="true"
-          role="presentation"
-        />
-        <SpinnerScreenReader>
-          {screenReaderText}
-        </SpinnerScreenReader>
-      </SpinnerWrapper>
-      <LoadingText aria-hidden="true">
+      <Spinner 
+        aria-hidden="true"
+        role="presentation"
+      />
+      <LoadingText>
         {text}
       </LoadingText>
     </SpinnerContainer>

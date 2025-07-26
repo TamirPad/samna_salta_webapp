@@ -1,0 +1,63 @@
+# Multi-stage build for production
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy root package files
+COPY package*.json ./
+COPY tsconfig.base.json ./
+
+# Copy workspace configurations
+COPY apps/frontend/package*.json ./apps/frontend/
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/common/package*.json ./packages/common/
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY apps/frontend/src ./apps/frontend/src
+COPY apps/frontend/public ./apps/frontend/public
+COPY apps/frontend/tsconfig.json ./apps/frontend/
+COPY apps/backend/src ./apps/backend/src
+COPY packages/common/src ./packages/common/src
+
+# Build all packages
+RUN npm run build:frontend
+RUN npm run build:backend
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy built applications
+COPY --from=builder --chown=nodejs:nodejs /app/apps/frontend/build ./frontend/build
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./backend/dist
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+
+# Install serve for frontend
+RUN npm install -g serve
+
+# Switch to non-root user
+USER nodejs
+
+# Expose ports
+EXPOSE 3000 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
+
+# Start both frontend and backend
+CMD ["dumb-init", "sh", "-c", "serve -s frontend/build -l 3000 & npm run start --workspace=apps/backend"] 

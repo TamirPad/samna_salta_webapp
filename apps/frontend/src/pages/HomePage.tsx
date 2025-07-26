@@ -60,7 +60,7 @@ const HeroContent = styled.div`
   }
 `;
 
-const HeroTitle = styled(motion.h1)`
+const HeroTitle = styled.h1`
   font-size: 3.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -75,7 +75,7 @@ const HeroTitle = styled(motion.h1)`
   }
 `;
 
-const HeroSubtitle = styled(motion.p)`
+const HeroSubtitle = styled.p`
   font-size: 1.25rem;
   margin-bottom: 2rem;
   opacity: 0.9;
@@ -93,7 +93,7 @@ const HeroSubtitle = styled(motion.p)`
   }
 `;
 
-const HeroButtons = styled(motion.div)`
+const HeroButtons = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
@@ -183,7 +183,7 @@ const FeaturesGrid = styled.div`
   }
 `;
 
-const FeatureCard = styled(motion.div)`
+const FeatureCard = styled.div`
   background: white;
   padding: 2rem;
   border-radius: 12px;
@@ -250,7 +250,7 @@ const ProductsGrid = styled.div`
   }
 `;
 
-const ProductCard = styled(motion.div)`
+const ProductCard = styled.div`
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -318,8 +318,6 @@ const SkipLink = styled.a`
     top: 6px;
   }
 `;
-
-
 
 const HomePage: React.FC = () => {
   const language = useAppSelector(selectLanguage);
@@ -424,14 +422,12 @@ const HomePage: React.FC = () => {
   ], [t]);
 
   // Memoized handlers with useCallback
-  const handleFeatureClick = useCallback((feature: Feature) => {
-    // Analytics tracking or navigation logic
-    console.log('Feature clicked:', feature.title);
+  const handleFeatureClick = useCallback((feature: Feature): void => {
+    // TODO: Implement analytics tracking or navigation logic
   }, []);
 
-  const handleProductClick = useCallback((product: Product) => {
-    // Navigate to menu or product detail
-    console.log('Product clicked:', product.name);
+  const handleProductClick = useCallback((product: Product): void => {
+    // TODO: Navigate to menu or product detail
   }, []);
 
   // Memoized animation variants
@@ -458,32 +454,34 @@ const HomePage: React.FC = () => {
 
       <HeroSection>
         <HeroContent>
-          <HeroTitle
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {t.heroTitle}
-          </HeroTitle>
-          <HeroSubtitle
+            <HeroTitle>{t.heroTitle}</HeroTitle>
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            {t.heroSubtitle}
-          </HeroSubtitle>
-          <HeroButtons
+            <HeroSubtitle>{t.heroSubtitle}</HeroSubtitle>
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <CTAButton to="/menu" aria-label={t.viewMenu}>
-              {t.viewMenu}
-            </CTAButton>
-            <CTAButton to="/cart" aria-label={t.orderNow}>
-              {t.orderNow}
-            </CTAButton>
-          </HeroButtons>
+            <HeroButtons>
+              <CTAButton to="/menu" aria-label={t.viewMenu}>
+                {t.viewMenu}
+              </CTAButton>
+              <CTAButton to="/cart" aria-label={t.orderNow}>
+                {t.orderNow}
+              </CTAButton>
+            </HeroButtons>
+          </motion.div>
         </HeroContent>
       </HeroSection>
 
@@ -498,27 +496,30 @@ const HomePage: React.FC = () => {
           >
             <FeaturesGrid>
               {features.map((feature, index) => (
-                <FeatureCard
-                  key={index}
+                <motion.div
+                  key={`feature-${feature.title}`}
                   variants={itemVariants}
                   transition={{ duration: 0.6, delay: index * 0.2 }}
-                  onClick={() => handleFeatureClick(feature)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Learn more about ${feature.title}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleFeatureClick(feature);
-                    }
-                  }}
                 >
-                  <span className="icon" role="img" aria-label={feature.title}>
-                    {feature.icon}
-                  </span>
-                  <h3>{feature.title}</h3>
-                  <p>{feature.description}</p>
-                </FeatureCard>
+                  <FeatureCard
+                    onClick={(): void => handleFeatureClick(feature)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Learn more about ${feature.title}`}
+                    onKeyDown={(e): void => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleFeatureClick(feature);
+                      }
+                    }}
+                  >
+                    <span className="icon" role="img" aria-label={feature.title}>
+                      {feature.icon}
+                    </span>
+                    <h3>{feature.title}</h3>
+                    <p>{feature.description}</p>
+                  </FeatureCard>
+                </motion.div>
               ))}
             </FeaturesGrid>
           </motion.div>
@@ -536,30 +537,33 @@ const HomePage: React.FC = () => {
           >
             <ProductsGrid>
               {products.map((product, index) => (
-                <ProductCard
-                  key={index}
+                <motion.div
+                  key={`product-${product.name}`}
                   variants={itemVariants}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  onClick={() => handleProductClick(product)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`View ${product.name} - ${t.price}${product.price}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleProductClick(product);
-                    }
-                  }}
                 >
-                  <div className="product-image" role="img" aria-label={product.name}>
-                    {product.icon}
-                  </div>
-                  <div className="product-info">
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <div className="price">{t.price}{product.price}</div>
-                  </div>
-                </ProductCard>
+                  <ProductCard
+                    onClick={(): void => handleProductClick(product)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View ${product.name} - ${t.price}${product.price}`}
+                    onKeyDown={(e): void => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleProductClick(product);
+                      }
+                    }}
+                  >
+                    <div className="product-image" role="img" aria-label={product.name}>
+                      {product.icon}
+                    </div>
+                    <div className="product-info">
+                      <h3>{product.name}</h3>
+                      <p>{product.description}</p>
+                      <div className="price">{t.price}{product.price}</div>
+                    </div>
+                  </ProductCard>
+                </motion.div>
               ))}
             </ProductsGrid>
           </motion.div>

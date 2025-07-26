@@ -550,9 +550,11 @@ const AdminProducts: React.FC = () => {
 
   // Debounced search handler
   const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      setSearchQuery(query);
-    }, 300) as (query: string) => void,
+    debounce((query: unknown) => {
+      if (typeof query === 'string') {
+        setSearchQuery(query);
+      }
+    }, 300),
     []
   );
 
@@ -566,7 +568,6 @@ const AdminProducts: React.FC = () => {
   const handleAddProduct = useCallback(() => {
     try {
       // TODO: Implement add product functionality
-      console.log('Add product clicked');
     } catch (err) {
       setError(t.errorOccurred);
     }
@@ -575,7 +576,6 @@ const AdminProducts: React.FC = () => {
   const handleViewProduct = useCallback((productId: string) => {
     try {
       // TODO: Implement view product functionality
-      console.log('View product:', productId);
     } catch (err) {
       setError(t.errorOccurred);
     }
@@ -584,7 +584,6 @@ const AdminProducts: React.FC = () => {
   const handleEditProduct = useCallback((productId: string) => {
     try {
       // TODO: Implement edit product functionality
-      console.log('Edit product:', productId);
     } catch (err) {
       setError(t.errorOccurred);
     }
@@ -594,7 +593,6 @@ const AdminProducts: React.FC = () => {
     try {
       if (window.confirm(t.confirmDelete)) {
         // TODO: Implement delete product functionality
-        console.log('Delete product:', productId);
       }
     } catch (err) {
       setError(t.errorOccurred);

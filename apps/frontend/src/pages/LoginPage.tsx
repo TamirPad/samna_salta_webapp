@@ -40,7 +40,7 @@ const LoginPage: React.FC = (): JSX.Element => {
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error && 'response' in err 
-        ? (err as any).response?.data?.message || 'Invalid email or password'
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Invalid email or password'
         : 'Login failed. Please try again.';
       setError(errorMessage);
       dispatch(loginFailure(errorMessage));
@@ -154,7 +154,7 @@ const LoginPage: React.FC = (): JSX.Element => {
               transition: 'all 0.3s ease'
             }}
           >
-            {loading ? <LoadingSpinner size="small" /> : 'Login'}
+            {loading ? <LoadingSpinner /> : 'Login'}
           </button>
 
           <button

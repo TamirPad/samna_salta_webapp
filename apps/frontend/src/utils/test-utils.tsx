@@ -1,19 +1,3 @@
-import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { BrowserRouter } from 'react-router-dom';
-import { configureStore } from '@reduxjs/toolkit';
-
-// Import all reducers
-import cartReducer from '../features/cart/cartSlice';
-import authReducer from '../features/auth/authSlice';
-import languageReducer from '../features/language/languageSlice';
-import uiReducer from '../features/ui/uiSlice';
-import ordersReducer from '../features/orders/ordersSlice';
-import productsReducer from '../features/products/productsSlice';
-import customersReducer from '../features/customers/customersSlice';
-import analyticsReducer from '../features/analytics/analyticsSlice';
-
 // Mock apiService before importing slices that use it
 jest.mock('../utils/api', () => ({
   apiService: {
@@ -38,8 +22,34 @@ jest.mock('../utils/api', () => ({
     updateCustomer: jest.fn(),
     deleteCustomer: jest.fn(),
     getCategories: jest.fn(),
+    getCurrentUser: jest.fn(),
+    clearCache: jest.fn(),
   },
+  api: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    patch: jest.fn(),
+  },
+  clearCache: jest.fn(),
 }));
+
+import { ReactElement } from 'react';
+import { render, RenderOptions } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { BrowserRouter } from 'react-router-dom';
+import { configureStore } from '@reduxjs/toolkit';
+
+// Import all reducers
+import cartReducer from '../features/cart/cartSlice';
+import authReducer from '../features/auth/authSlice';
+import languageReducer from '../features/language/languageSlice';
+import uiReducer from '../features/ui/uiSlice';
+import ordersReducer from '../features/orders/ordersSlice';
+import productsReducer from '../features/products/productsSlice';
+import customersReducer from '../features/customers/customersSlice';
+import analyticsReducer from '../features/analytics/analyticsSlice';
 
 // Create a test store without persistence
 export const createTestStore = (preloadedState = {}) => {

@@ -1,5 +1,12 @@
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure logs directory exists
+const logsDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 // Define log format
 const logFormat = winston.format.combine(
@@ -36,17 +43,35 @@ const logger = winston.createLogger({
   transports: [
     // Write all logs with level 'error' and below to error.log
     new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/error.log'),
+      filename: path.join(logsDir, 'error.log'),
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
+      tailable: true,
     }),
     // Write all logs with level 'info' and below to combined.log
     new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/combined.log'),
+      filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 5,
+      tailable: true,
     }),
+  ],
+  // Handle uncaught exceptions
+  exceptionHandlers: [
+    new winston.transports.File({
+      filename: path.join(logsDir, 'exceptions.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    })
+  ],
+  // Handle unhandled promise rejections
+  rejectionHandlers: [
+    new winston.transports.File({
+      filename: path.join(logsDir, 'rejections.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    })
   ],
 });
 
@@ -62,6 +87,34 @@ logger.stream = {
   write: (message) => {
     logger.info(message.trim());
   }
+};
+
+// Add request logging middleware
+logger.logRequest = (req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.info('HTTP Request', {
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+  });
+  
+  next();
+};
+
+// Add error logging utility
+logger.logError = (error, context = {}) => {
+  logger.error('Application Error', {
+    message: error.message,
+    stack: error.stack,
+    ...context
+  });
 };
 
 module.exports = logger; 

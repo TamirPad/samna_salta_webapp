@@ -428,9 +428,11 @@ const MenuPage: React.FC = () => {
 
   // Debounced search handler
   const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      setSearchQuery(query);
-    }, 300) as (query: string) => void,
+    debounce((query: unknown) => {
+      if (typeof query === 'string') {
+        setSearchQuery(query);
+      }
+    }, 300),
     [setSearchQuery]
   );
 

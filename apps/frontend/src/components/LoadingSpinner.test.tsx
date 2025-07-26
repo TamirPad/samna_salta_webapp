@@ -15,13 +15,7 @@ describe('LoadingSpinner', () => {
     expect(screen.getByText('Please wait...')).toBeInTheDocument();
   });
 
-  it('should render with custom aria label', () => {
-    render(<LoadingSpinner ariaLabel="Loading products" />);
-    
-    // The aria label should be available to screen readers
-    const screenReaderText = screen.getByText('Loading products');
-    expect(screenReaderText).toBeInTheDocument();
-  });
+
 
   it('should have proper accessibility attributes', () => {
     render(<LoadingSpinner />);
@@ -37,23 +31,14 @@ describe('LoadingSpinner', () => {
     expect(spinner).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('should have hidden text for screen readers', () => {
-    render(<LoadingSpinner />);
-    
-    const text = screen.getByText('Loading...');
-    expect(text).toHaveAttribute('aria-hidden', 'true');
-  });
-
-  it('should render with different text and aria label', () => {
+  it('should render with different text', () => {
     render(
       <LoadingSpinner 
         text="Loading products..." 
-        ariaLabel="Loading product catalog"
       />
     );
     
     expect(screen.getByText('Loading products...')).toBeInTheDocument();
-    expect(screen.getByText('Loading product catalog')).toBeInTheDocument();
   });
 
   it('should be memoized', () => {
@@ -72,24 +57,19 @@ describe('LoadingSpinner', () => {
     expect(container).toBeInTheDocument();
   });
 
-  it('should handle empty aria label', () => {
-    render(<LoadingSpinner ariaLabel="" />);
-    
-    const container = screen.getByRole('status');
-    expect(container).toBeInTheDocument();
-  });
+
 
   it('should render with long text', () => {
     const longText = 'This is a very long loading message that should still render properly';
     render(<LoadingSpinner text={longText} />);
     
-    expect(screen.getByText(longText, { selector: 'div' })).toBeInTheDocument();
+    expect(screen.getByText(longText)).toBeInTheDocument();
   });
 
   it('should render with special characters', () => {
     const specialText = 'Loading... 🍞 סמנה סלטה';
     render(<LoadingSpinner text={specialText} />);
     
-    expect(screen.getByText(specialText, { selector: 'div' })).toBeInTheDocument();
+    expect(screen.getByText(specialText)).toBeInTheDocument();
   });
 }); 

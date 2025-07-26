@@ -1,22 +1,39 @@
 import React, { ComponentType, lazy, Suspense } from 'react';
 
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+
 // Performance monitoring utilities
-export const measurePerformance = (name: string, fn: () => void): void => {
+export const measurePerformance = (name: string, fn: () => void): number => {
+  if (!isBrowser || !performance) {
+    fn();
+    return 0;
+  }
+  
   const start = performance.now();
   fn();
   const end = performance.now();
-  console.log(`${name} took ${end - start} milliseconds`);
+  const duration = end - start;
+  console.log(`${name} took ${duration} milliseconds`);
+  return duration;
 };
 
-export const measureAsyncPerformance = async (name: string, fn: () => Promise<void>): Promise<void> => {
+export const measureAsyncPerformance = async (name: string, fn: () => Promise<void>): Promise<number> => {
+  if (!isBrowser || !performance) {
+    await fn();
+    return 0;
+  }
+  
   const start = performance.now();
   await fn();
   const end = performance.now();
-  console.log(`${name} took ${end - start} milliseconds`);
+  const duration = end - start;
+  console.log(`${name} took ${duration} milliseconds`);
+  return duration;
 };
 
 // Debounce utility
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): T => {
@@ -77,7 +94,11 @@ export const lazyLoad = <T extends ComponentType<Record<string, unknown>>>(
 export const createIntersectionObserver = (
   callback: IntersectionObserverCallback,
   options: IntersectionObserverInit = {}
-): IntersectionObserver => {
+): IntersectionObserver | null => {
+  if (!isBrowser || !window.IntersectionObserver) {
+    return null;
+  }
+  
   return new IntersectionObserver(callback, {
     root: null,
     rootMargin: '50px',
@@ -92,13 +113,20 @@ export const useLazyImage = (src: string, placeholder?: string): { imageSrc: str
   const [isLoaded, setIsLoaded] = React.useState<boolean>(false);
 
   React.useEffect((): void => {
+    if (!isBrowser) return;
+    
     const img = new window.Image();
     img.src = src;
     img.onload = (): void => {
       setImageSrc(src);
       setIsLoaded(true);
     };
-  }, [src]);
+    img.onerror = (): void => {
+      // Fallback to placeholder or original src
+      setImageSrc(placeholder || src);
+      setIsLoaded(true);
+    };
+  }, [src, placeholder]);
 
   return { imageSrc, isLoaded };
 };
@@ -126,6 +154,8 @@ export const getVisibleItems = <T,>(
 
 // Bundle size monitoring
 export const getBundleSize = async (url: string): Promise<number> => {
+  if (!isBrowser) return 0;
+  
   try {
     const response = await fetch(url);
     const blob = await response.blob();
@@ -138,25 +168,42 @@ export const getBundleSize = async (url: string): Promise<number> => {
 
 // Memory usage monitoring
 export const getMemoryUsage = (): { used: number; total: number; limit: number } | null => {
-  if ('memory' in performance) {
-    const memory = (performance as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
-    return {
-      used: memory.usedJSHeapSize,
-      total: memory.totalJSHeapSize,
-      limit: memory.jsHeapSizeLimit,
-    };
+  if (!isBrowser || !performance || !('memory' in performance)) {
+    return null;
   }
-  return null;
+  
+  const memory = (performance as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
+  return {
+    used: memory.usedJSHeapSize,
+    total: memory.totalJSHeapSize,
+    limit: memory.jsHeapSizeLimit,
+  };
 };
 
 // Performance marks and measures
 export const performanceMarks = {
-  start: (name: string): void => { performance.mark(name); },
-  end: (name: string): void => { performance.mark(`${name}-end`); },
+  start: (name: string): void => { 
+    if (isBrowser && performance) {
+      performance.mark(name); 
+    }
+  },
+  end: (name: string): void => { 
+    if (isBrowser && performance) {
+      performance.mark(`${name}-end`); 
+    }
+  },
   measure: (name: string, startMark: string, endMark: string): number => {
-    performance.measure(name, startMark, endMark);
-    const measure = performance.getEntriesByName(name)[0] as PerformanceMeasure | undefined;
-    return measure?.duration || 0;
+    if (!isBrowser || !performance) return 0;
+    
+    try {
+      performance.measure(name, startMark, endMark);
+      const entries = performance.getEntriesByName(name);
+      const measure = entries[0] as PerformanceMeasure | undefined;
+      return measure?.duration || 0;
+    } catch (error) {
+      console.warn('Performance measure failed:', error);
+      return 0;
+    }
   },
 };
 
@@ -179,49 +226,75 @@ export const preloadComponent = (importFunc: () => Promise<unknown>): (() => voi
 
 // Service Worker utilities
 export const registerServiceWorker = async (swPath: string): Promise<ServiceWorkerRegistration | null> => {
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register(swPath);
-      console.log('SW registered: ', registration);
-      return registration;
-    } catch (error) {
-      console.log('SW registration failed: ', error);
-      return null;
-    }
+  if (!isBrowser || !('serviceWorker' in navigator)) {
+    return null;
   }
-  return null;
+  
+  try {
+    const registration = await navigator.serviceWorker.register(swPath);
+    console.log('SW registered: ', registration);
+    return registration;
+  } catch (error) {
+    console.log('SW registration failed: ', error);
+    return null;
+  }
 };
 
 // Cache utilities
 export const cacheUtils = {
   set: (key: string, value: unknown, ttl?: number): void => {
-    const item = {
-      value,
-      timestamp: Date.now(),
-      ttl,
-    };
-    localStorage.setItem(key, JSON.stringify(item));
+    if (!isBrowser || !localStorage) return;
+    
+    try {
+      const item = {
+        value,
+        timestamp: Date.now(),
+        ttl,
+      };
+      localStorage.setItem(key, JSON.stringify(item));
+    } catch (error) {
+      console.warn('Failed to set cache item:', error);
+    }
   },
   
   get: (key: string): unknown => {
-    const item = localStorage.getItem(key);
-    if (!item) return null;
+    if (!isBrowser || !localStorage) return null;
     
-    const { value, timestamp, ttl } = JSON.parse(item);
-    if (ttl && Date.now() - timestamp > ttl) {
-      localStorage.removeItem(key);
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return null;
+      
+      const { value, timestamp, ttl } = JSON.parse(item);
+      if (ttl && Date.now() - timestamp > ttl) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      
+      return value;
+    } catch (error) {
+      console.warn('Failed to get cache item:', error);
       return null;
     }
-    
-    return value;
   },
   
   remove: (key: string): void => {
-    localStorage.removeItem(key);
+    if (!isBrowser || !localStorage) return;
+    
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.warn('Failed to remove cache item:', error);
+    }
   },
   
   clear: (): void => {
-    localStorage.clear();
+    if (!isBrowser || !localStorage) return;
+    
+    try {
+      localStorage.clear();
+    } catch (error) {
+      console.warn('Failed to clear cache:', error);
+    }
   },
 };
 

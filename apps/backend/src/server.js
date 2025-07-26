@@ -11,6 +11,9 @@ const { Server } = require('socket.io');
 // Import logger first
 const logger = require('./utils/logger');
 
+// Import environment validation
+const { validateEnvironment } = require('./config/validateEnv');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
@@ -24,35 +27,15 @@ const { authenticateToken } = require('./middleware/auth');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // Import database connection
-const { connectDB } = require('./config/database');
-const { connectRedis } = require('./config/redis');
+const { connectDB, closePool } = require('./config/database');
+const { connectRedis, closeRedis } = require('./config/redis');
 
-// Validate required environment variables
-const requiredEnvVars = [
-  'JWT_SECRET',
-  'DB_HOST',
-  'DB_NAME',
-  'DB_USER',
-  'DB_PASSWORD'
-];
-
-// In development, provide default values for missing environment variables
-if (process.env.NODE_ENV === 'development') {
-  process.env.DB_HOST = process.env.DB_HOST || 'localhost';
-  process.env.DB_NAME = process.env.DB_NAME || 'samna_salta';
-  process.env.DB_USER = process.env.DB_USER || 'postgres';
-  process.env.DB_PASSWORD = process.env.DB_PASSWORD || 'password';
-  process.env.JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
-  process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-}
-
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-if (missingEnvVars.length > 0) {
-  logger.error('Missing required environment variables:', missingEnvVars);
+// Validate environment variables
+if (!validateEnvironment()) {
   if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   } else {
-    logger.warn('Running in development mode with default values');
+    logger.warn('Running in development mode with missing environment variables');
   }
 }
 
@@ -67,27 +50,47 @@ const io = new Server(server, {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  // Add security options
+  allowEIO3: false,
+  transports: ['websocket', 'polling']
 });
 
 // Rate limiting with different limits for different endpoints
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Add rate limit headers
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many requests',
+      message: 'Rate limit exceeded. Please try again later.',
+      retryAfter: Math.ceil(15 * 60 / 1000) // 15 minutes in seconds
+    });
+  }
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs for auth endpoints
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 5, // limit each IP to 5 requests per windowMs
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many authentication attempts',
+      message: 'Too many login attempts. Please try again later.',
+      retryAfter: Math.ceil(15 * 60 / 1000) // 15 minutes in seconds
+    });
+  }
 });
 
-// Middleware
+// Enhanced security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -95,19 +98,64 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:3000"],
+      fontSrc: ["'self'", "https:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
     },
   },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  noSniff: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
+
+// CORS configuration
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:3000",
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'Cache-Control', 'cache-control'],
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count']
 }));
-app.use(compression());
+
+// Compression middleware
+app.use(compression({
+  level: parseInt(process.env.COMPRESSION_LEVEL) || 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
+// Request logging
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+
+// Body parsing middleware with limits
+app.use(express.json({ 
+  limit: process.env.MAX_FILE_SIZE || '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+app.use(express.urlencoded({ 
+  extended: true,
+  limit: process.env.MAX_FILE_SIZE || '10mb'
+}));
+
+// Request ID middleware
+app.use((req, res, next) => {
+  req.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  res.setHeader('X-Request-ID', req.id);
+  next();
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -115,7 +163,9 @@ app.get('/health', (req, res) => {
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
   });
 });
 
@@ -152,9 +202,11 @@ app.use(errorHandler);
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ 
+    success: false,
     error: 'Route not found',
     path: req.originalUrl,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    requestId: req.id
   });
 });
 
@@ -171,6 +223,7 @@ const startServer = async () => {
       logger.info(`Server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
       logger.info(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+      logger.info(`Database: ${process.env.SUPABASE_CONNECTION_STRING ? 'Supabase' : 'Local PostgreSQL'}`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
@@ -181,20 +234,40 @@ const startServer = async () => {
 startServer();
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
+const gracefulShutdown = async (signal) => {
+  logger.info(`${signal} received, shutting down gracefully`);
+  
+  try {
+    // Close server
+    server.close(() => {
+      logger.info('HTTP server closed');
+    });
+    
+    // Close database connections
+    await closePool();
+    await closeRedis();
+    
+    logger.info('Graceful shutdown completed');
     process.exit(0);
-  });
+  } catch (error) {
+    logger.error('Error during graceful shutdown:', error);
+    process.exit(1);
+  }
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  gracefulShutdown('uncaughtException');
 });
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('unhandledRejection');
 });
 
 module.exports = { app, server, io }; 

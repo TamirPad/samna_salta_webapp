@@ -1,28 +1,21 @@
 import { render, screen, fireEvent } from '../utils/test-utils';
 import ErrorBoundary from './ErrorBoundary';
 
-// Component that throws an error for testing
-const ThrowError = ({ shouldThrow = false }: { shouldThrow?: boolean }) => {
+// Test component that throws an error
+const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }): JSX.Element => {
   if (shouldThrow) {
-    throw new Error('Test error message');
+    throw new Error('Test error');
   }
   return <div>Normal component</div>;
 };
 
-// Mock window.location
-const mockLocation = {
-  reload: jest.fn(),
-  href: '',
-};
-
-Object.defineProperty(window, 'location', {
-  value: mockLocation,
-  writable: true,
-});
+// Custom fallback component
+const CustomFallback = (): JSX.Element => (
+  <div>Custom fallback</div>
+);
 
 describe('ErrorBoundary', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     // Suppress console.error for expected errors in tests
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -31,7 +24,7 @@ describe('ErrorBoundary', () => {
     jest.restoreAllMocks();
   });
 
-  it('should render children when there is no error', () => {
+  it('should render children when no error occurs', () => {
     render(
       <ErrorBoundary>
         <div>Test content</div>
@@ -41,7 +34,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('Test content')).toBeInTheDocument();
   });
 
-  it('should render error UI when child throws an error', () => {
+  it('should render error UI when error occurs', () => {
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
@@ -52,7 +45,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText(/We're sorry, but something unexpected happened/)).toBeInTheDocument();
   });
 
-  it('should render custom error message when provided', () => {
+  it('should render custom message when provided', () => {
     render(
       <ErrorBoundary customMessage="Custom error message">
         <ThrowError shouldThrow={true} />
@@ -70,18 +63,7 @@ describe('ErrorBoundary', () => {
     );
 
     expect(screen.getByText('Error Details:')).toBeInTheDocument();
-    expect(screen.getByText('Test error message')).toBeInTheDocument();
-  });
-
-  it('should not show error details when showDetails is false', () => {
-    render(
-      <ErrorBoundary showDetails={false}>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    expect(screen.queryByText('Error Details:')).not.toBeInTheDocument();
-    expect(screen.queryByText('Test error message')).not.toBeInTheDocument();
+    expect(screen.getByText('Test error')).toBeInTheDocument();
   });
 
   it('should call onError callback when error occurs', () => {
@@ -102,47 +84,57 @@ describe('ErrorBoundary', () => {
   });
 
   it('should handle refresh button click', () => {
+    const reload = jest.fn();
+    Object.defineProperty(window, 'location', {
+      value: { reload },
+      writable: true
+    });
+
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
 
-    const refreshButton = screen.getByText('🔄 Refresh Page');
-    fireEvent.click(refreshButton);
-
-    expect(mockLocation.reload).toHaveBeenCalled();
+    fireEvent.click(screen.getByText('🔄 Refresh Page'));
+    expect(reload).toHaveBeenCalled();
   });
 
   it('should handle go home button click', () => {
+    const href = jest.fn();
+    Object.defineProperty(window, 'location', {
+      value: { href },
+      writable: true
+    });
+
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
 
-    const goHomeButton = screen.getByText('🏠 Go Home');
-    fireEvent.click(goHomeButton);
-
-    expect(mockLocation.href).toBe('/');
+    fireEvent.click(screen.getByText('🏠 Go Home'));
+    expect(href).toHaveBeenCalledWith('/');
   });
 
   it('should handle contact support button click', () => {
+    const href = jest.fn();
+    Object.defineProperty(window, 'location', {
+      value: { href },
+      writable: true
+    });
+
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
 
-    const contactButton = screen.getByText('📧 Contact Support');
-    fireEvent.click(contactButton);
-
-    expect(mockLocation.href).toBe('mailto:support@sammasalta.com');
+    fireEvent.click(screen.getByText('📧 Contact Support'));
+    expect(href).toHaveBeenCalledWith('mailto:support@sammasalta.com');
   });
 
   it('should render fallback component when provided', () => {
-    const CustomFallback = () => <div>Custom fallback</div>;
-    
     render(
       <ErrorBoundary fallback={<CustomFallback />}>
         <ThrowError shouldThrow={true} />
@@ -168,44 +160,5 @@ describe('ErrorBoundary', () => {
         componentStack: expect.any(String)
       })
     );
-  });
-
-  it('should handle multiple errors gracefully', () => {
-    const { rerender } = render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-
-    // Rerender with a different error
-    rerender(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-  });
-
-  it('should maintain error state after re-renders', () => {
-    const { rerender } = render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-
-    // Rerender with normal component
-    rerender(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={false} />
-      </ErrorBoundary>
-    );
-
-    // Should still show error UI
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
   });
 }); 

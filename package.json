@@ -22,12 +22,18 @@
     "type-check": "npm run type-check --workspaces",
     "clean": "npm run clean --workspaces && rm -rf node_modules",
     "clean:all": "npm run clean:all --workspaces && rm -rf node_modules package-lock.json",
+    "cleanup": "./cleanup.sh",
+    "cleanup:full": "./cleanup.sh && npm run clean:all",
     "install:all": "npm install && npm install --workspace=apps/frontend && npm install --workspace=apps/backend",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up",
     "docker:down": "docker-compose down",
     "deploy": "npm run build && echo 'Build completed successfully'",
-    "setup": "npm run install:all"
+    "setup": "npm run install:all",
+    "audit": "npm audit --audit-level=moderate",
+    "audit:fix": "npm audit fix",
+    "outdated": "npm outdated",
+    "update": "npm update"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -10,38 +10,21 @@ import NetworkStatus from './components/NetworkStatus';
 import { useAppSelector } from './hooks/redux';
 import { selectLanguage } from './features/language/languageSlice';
 
-// Lazy load HomePage with explicit chunk name
-const HomePage = lazy(() => retry(() => import(/* webpackChunkName: "home" */ './pages/HomePage')));
 
-// Retry mechanism for lazy loading
-const retry = <T,>(fn: () => Promise<T>, retriesLeft = 3, interval = 1000): Promise<T> => {
-  return new Promise((resolve, reject) => {
-    fn()
-      .then(resolve)
-      .catch((error) => {
-        setTimeout(() => {
-          if (retriesLeft === 1) {
-            reject(error);
-            return;
-          }
-          retry(fn, retriesLeft - 1, interval).then(resolve, reject);
-        }, interval);
-      });
-  });
-};
 
 // Lazy load pages with explicit chunk names for better webpack handling
-const MenuPage = lazy(() => retry(() => import(/* webpackChunkName: "menu" */ './pages/MenuPage')));
-const CartPage = lazy(() => retry(() => import(/* webpackChunkName: "cart" */ './pages/CartPage')));
-const CheckoutPage = lazy(() => retry(() => import(/* webpackChunkName: "checkout" */ './pages/CheckoutPage')));
-const OrderTrackingPage = lazy(() => retry(() => import(/* webpackChunkName: "order-tracking" */ './pages/OrderTrackingPage')));
-const LoginPage = lazy(() => retry(() => import(/* webpackChunkName: "login" */ './pages/LoginPage')));
-const Dashboard = lazy(() => retry(() => import(/* webpackChunkName: "admin-dashboard" */ './pages/admin/Dashboard')));
-const Orders = lazy(() => retry(() => import(/* webpackChunkName: "admin-orders" */ './pages/admin/Orders')));
-const Products = lazy(() => retry(() => import(/* webpackChunkName: "admin-products" */ './pages/admin/Products')));
-const Customers = lazy(() => retry(() => import(/* webpackChunkName: "admin-customers" */ './pages/admin/Customers')));
-const Analytics = lazy(() => retry(() => import(/* webpackChunkName: "admin-analytics" */ './pages/admin/Analytics')));
-const NotFoundPage = lazy(() => retry(() => import(/* webpackChunkName: "not-found" */ './pages/NotFoundPage')));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const MenuPage = lazy(() => import('./pages/MenuPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const OrderTrackingPage = lazy(() => import('./pages/OrderTrackingPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const Orders = lazy(() => import('./pages/admin/Orders'));
+const Products = lazy(() => import('./pages/admin/Products'));
+const Customers = lazy(() => import('./pages/admin/Customers'));
+const Analytics = lazy(() => import('./pages/admin/Analytics'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Types
 interface AnimatedRouteProps {

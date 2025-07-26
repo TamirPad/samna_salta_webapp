@@ -1,327 +1,406 @@
 # Samna Salta - Traditional Yemenite Food Ordering Webapp
 
-A modern, full-stack web application for ordering traditional Yemenite food, built with React, TypeScript, Node.js, and Express in a monorepo structure.
+A modern, full-stack web application for ordering traditional Yemenite food, built with React, TypeScript, Node.js, and PostgreSQL.
 
-## 🏗️ Project Structure
+## 🚀 Features
+
+- **Multi-language Support**: Hebrew and English
+- **Real-time Order Tracking**: Socket.IO integration
+- **Secure Authentication**: JWT with session management
+- **Responsive Design**: Mobile-first approach
+- **Admin Dashboard**: Order management and analytics
+- **Payment Integration**: Stripe payment processing
+- **Image Upload**: Cloudinary integration
+- **Caching**: Redis for performance optimization
+- **Comprehensive Testing**: Unit and integration tests
+
+## 🏗️ Architecture
 
 ```
-samna-salta-webapp/
+samna_salta_webapp/
 ├── apps/
-│   ├── frontend/          # React frontend application
-│   │   ├── src/
-│   │   ├── public/
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   └── backend/           # Node.js/Express backend API
-│       ├── src/
-│       ├── package.json
-│       └── Dockerfile
+│   ├── frontend/          # React TypeScript application
+│   └── backend/           # Node.js Express API
 ├── packages/
-│   └── common/            # Shared types, utilities, and constants
-│       ├── src/
-│       ├── package.json
-│       └── tsconfig.json
-├── scripts/               # Build and deployment scripts
-├── package.json           # Root workspace configuration
-├── tsconfig.base.json     # Base TypeScript configuration
-├── docker-compose.yml     # Docker services configuration
+│   └── common/            # Shared types and utilities
+├── docker-compose.yml     # Development environment
+├── nginx.conf            # Production reverse proxy
 └── README.md
 ```
 
-## 🚀 Quick Start
+## 🛠️ Tech Stack
 
-### Prerequisites
-
-- Node.js >= 16.0.0
-- npm >= 8.0.0
-- Docker (optional, for containerized development)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd samna-salta-webapp
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install root dependencies
-   npm install
-   
-   # Install app-specific dependencies
-   npm run install:all
-   ```
-
-3. **Build shared packages**
-   ```bash
-   npm run build --workspace=packages/common
-   ```
-
-4. **Set up environment variables**
-   ```bash
-   # Copy environment examples
-   cp env.example .env
-   cp apps/backend/env.example apps/backend/.env
-   
-   # Edit the files with your configuration
-   ```
-
-### Development
-
-#### Start both frontend and backend
-```bash
-npm run dev
-```
-
-#### Start individual services
-```bash
-# Frontend only
-npm run dev:frontend
-
-# Backend only
-npm run dev:backend
-```
-
-#### Build for production
-```bash
-# Build all apps
-npm run build
-
-# Build individual apps
-npm run build:frontend
-npm run build:backend
-```
-
-### Testing
-
-```bash
-# Run all tests
-npm run test
-
-# Run tests for specific apps
-npm run test:frontend
-npm run test:backend
-```
-
-### Linting and Type Checking
-
-```bash
-# Lint all code
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
-
-# Type check all code
-npm run type-check
-```
-
-## 🐳 Docker Development
-
-### Start all services
-```bash
-docker-compose up
-```
-
-### Build and start specific services
-```bash
-# Frontend only
-docker-compose up frontend
-
-# Backend only
-docker-compose up backend
-
-# Database and Redis
-docker-compose up db redis
-```
-
-### Stop all services
-```bash
-docker-compose down
-```
-
-## 📦 Package Structure
-
-### Frontend (`apps/frontend/`)
+### Frontend
 - **React 18** with TypeScript
 - **Redux Toolkit** for state management
 - **React Router** for navigation
 - **Styled Components** for styling
 - **Framer Motion** for animations
-- **React Hook Form** for form handling
+- **Axios** for API communication
 
-### Backend (`apps/backend/`)
+### Backend
 - **Node.js** with Express
 - **PostgreSQL** database
 - **Redis** for caching and sessions
-- **JWT** authentication
-- **Stripe** payment processing
-- **Multer** for file uploads
+- **JWT** for authentication
+- **Socket.IO** for real-time features
 - **Winston** for logging
+- **Jest** for testing
 
-### Common Package (`packages/common/`)
-- **Shared TypeScript types** for User, Product, Order, etc.
-- **Utility functions** for validation, formatting, etc.
-- **Constants** for API endpoints, error messages, etc.
-- **Reusable code** between frontend and backend
+### DevOps
+- **Docker** containerization
+- **Nginx** reverse proxy
+- **PM2** process management
+- **GitHub Actions** CI/CD
 
-## 🔧 Available Scripts
+## 📋 Prerequisites
 
-### Root Level
-- `npm run dev` - Start both frontend and backend in development mode
-- `npm run build` - Build all applications
-- `npm run test` - Run tests for all applications
-- `npm run lint` - Lint all code
-- `npm run type-check` - Type check all code
-- `npm run clean` - Clean build artifacts
-- `npm run setup` - Complete setup including backend initialization
+- Node.js 18+ 
+- npm 8+
+- Docker and Docker Compose
+- PostgreSQL 15+
+- Redis 7+
 
-### Frontend (`apps/frontend/`)
-- `npm start` - Start development server
-- `npm run build` - Build for production
-- `npm test` - Run tests
-- `npm run lint` - Lint code
-- `npm run type-check` - Type check
+## 🚀 Quick Start
 
-### Backend (`apps/backend/`)
-- `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
-- `npm test` - Run tests
-- `npm run migrate` - Run database migrations
-- `npm run seed` - Seed database with sample data
+### 1. Clone the Repository
 
-## 🌐 API Endpoints
+```bash
+git clone https://github.com/yourusername/samna-salta-webapp.git
+cd samna-salta-webapp
+```
 
-### Authentication
+### 2. Environment Setup
+
+Copy the environment example file:
+
+```bash
+cp env.example .env
+```
+
+Update the `.env` file with your configuration:
+
+```env
+# Application Configuration
+NODE_ENV=development
+PORT=3001
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=samna_salta
+DB_USER=postgres
+DB_PASSWORD=your_secure_password_here
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_change_this_in_production_minimum_32_characters
+
+# Frontend Configuration
+FRONTEND_URL=http://localhost:3000
+REACT_APP_API_URL=http://localhost:3001
+
+# Optional: External Services
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+```
+
+### 3. Install Dependencies
+
+```bash
+npm run install:all
+```
+
+### 4. Database Setup
+
+#### Option A: Using Docker (Recommended)
+
+```bash
+# Start PostgreSQL and Redis
+docker-compose up db redis -d
+
+# Run database migrations
+npm run migrate --workspace=apps/backend
+```
+
+#### Option B: Local Installation
+
+1. Install PostgreSQL and Redis locally
+2. Create database: `createdb samna_salta`
+3. Run migrations: `npm run migrate --workspace=apps/backend`
+
+### 5. Start Development Servers
+
+```bash
+# Start both frontend and backend
+npm run dev
+
+# Or start individually
+npm run dev:frontend
+npm run dev:backend
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- Health Check: http://localhost:3001/health
+
+## 🧪 Testing
+
+### Run All Tests
+
+```bash
+npm run test
+```
+
+### Frontend Tests
+
+```bash
+npm run test:frontend
+```
+
+### Backend Tests
+
+```bash
+npm run test:backend
+```
+
+### Test Coverage
+
+```bash
+npm run test:coverage
+```
+
+## 🐳 Docker Development
+
+### Start All Services
+
+```bash
+docker-compose up
+```
+
+### Build Images
+
+```bash
+docker-compose build
+```
+
+### View Logs
+
+```bash
+docker-compose logs -f
+```
+
+## 🏭 Production Deployment
+
+### 1. Environment Configuration
+
+Create a production `.env` file with secure values:
+
+```env
+NODE_ENV=production
+JWT_SECRET=your_very_long_and_secure_jwt_secret_at_least_32_characters
+DB_HOST=your_production_db_host
+DB_PASSWORD=your_secure_db_password
+REDIS_URL=redis://your_redis_host:6379
+FRONTEND_URL=https://your-domain.com
+```
+
+### 2. Database Setup
+
+```bash
+# Run migrations
+npm run migrate --workspace=apps/backend
+
+# Optional: Seed data
+npm run seed --workspace=apps/backend
+```
+
+### 3. Build for Production
+
+```bash
+# Build all applications
+npm run build
+
+# Or build individually
+npm run build:frontend
+npm run build:backend
+```
+
+### 4. Deployment Options
+
+#### Option A: Docker Production
+
+```bash
+# Build production images
+docker-compose -f docker-compose.prod.yml build
+
+# Deploy
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+#### Option B: Manual Deployment
+
+1. **Backend Deployment**:
+   ```bash
+   cd apps/backend
+   npm install --production
+   npm start
+   ```
+
+2. **Frontend Deployment**:
+   ```bash
+   cd apps/frontend
+   npm install --production
+   npm run build
+   # Serve build folder with nginx or similar
+   ```
+
+#### Option C: Cloud Platforms
+
+- **Vercel**: Frontend deployment
+- **Railway**: Full-stack deployment
+- **Render**: Full-stack deployment
+- **Heroku**: Full-stack deployment
+
+## 🔒 Security Considerations
+
+### Environment Variables
+- Use strong, unique JWT secrets (32+ characters)
+- Never commit `.env` files to version control
+- Use different secrets for development and production
+- Rotate secrets regularly
+
+### Database Security
+- Use strong database passwords
+- Enable SSL connections in production
+- Restrict database access to application servers
+- Regular database backups
+
+### API Security
+- Rate limiting enabled
+- CORS properly configured
+- Input validation on all endpoints
+- SQL injection prevention with parameterized queries
+- XSS protection with helmet
+
+### Frontend Security
+- Content Security Policy (CSP) headers
+- HTTPS only in production
+- Secure cookie settings
+- Input sanitization
+
+## 📊 Monitoring and Logging
+
+### Application Logs
+- Winston logger configured
+- Log rotation enabled
+- Error tracking and alerting
+- Performance monitoring
+
+### Health Checks
+- `/health` endpoint for monitoring
+- Database connection status
+- Redis connection status
+- Memory usage monitoring
+
+## 🔧 Development Guidelines
+
+### Code Style
+- ESLint and Prettier configured
+- TypeScript strict mode enabled
+- Consistent naming conventions
+- Comprehensive error handling
+
+### Git Workflow
+- Feature branch workflow
+- Conventional commits
+- Pull request reviews
+- Automated testing on PR
+
+### Testing Strategy
+- Unit tests for utilities and components
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+- Test coverage requirements
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Failed**
+   - Check database credentials
+   - Ensure PostgreSQL is running
+   - Verify network connectivity
+
+2. **Redis Connection Failed**
+   - Check Redis server status
+   - Verify Redis URL configuration
+   - Application will fallback to in-memory storage
+
+3. **Build Failures**
+   - Clear node_modules and reinstall
+   - Check TypeScript compilation errors
+   - Verify all dependencies are installed
+
+4. **Test Failures**
+   - Ensure test database is configured
+   - Check test environment variables
+   - Verify test data setup
+
+### Debug Mode
+
+Enable debug logging:
+
+```bash
+LOG_LEVEL=debug npm run dev
+```
+
+## 📝 API Documentation
+
+### Authentication Endpoints
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/me` - Get current user
 
-### Products
+### Product Endpoints
 - `GET /api/products` - Get all products
-- `GET /api/products/:id` - Get product by ID
+- `GET /api/products/:id` - Get single product
 - `POST /api/products` - Create product (admin)
 - `PUT /api/products/:id` - Update product (admin)
 - `DELETE /api/products/:id` - Delete product (admin)
 
-### Orders
-- `GET /api/orders` - Get user orders
-- `GET /api/orders/:id` - Get order by ID
-- `POST /api/orders` - Create new order
-- `PUT /api/orders/:id` - Update order status (admin)
-
-### Admin
-- `GET /api/admin/analytics` - Get analytics data
-- `GET /api/admin/customers` - Get all customers
-- `GET /api/admin/orders` - Get all orders
-
-## 🗄️ Database Schema
-
-### Users
-- `id` (UUID, Primary Key)
-- `email` (String, Unique)
-- `name` (String)
-- `role` (Enum: 'customer', 'admin')
-- `created_at` (Timestamp)
-- `updated_at` (Timestamp)
-
-### Products
-- `id` (UUID, Primary Key)
-- `name` (String)
-- `description` (Text)
-- `price` (Decimal)
-- `category` (String)
-- `image_url` (String, Optional)
-- `available` (Boolean)
-- `created_at` (Timestamp)
-- `updated_at` (Timestamp)
-
-### Orders
-- `id` (UUID, Primary Key)
-- `user_id` (UUID, Foreign Key)
-- `total` (Decimal)
-- `status` (Enum: 'pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled')
-- `delivery_address` (Text, Optional)
-- `created_at` (Timestamp)
-- `updated_at` (Timestamp)
-
-### Order Items
-- `id` (UUID, Primary Key)
-- `order_id` (UUID, Foreign Key)
-- `product_id` (UUID, Foreign Key)
-- `quantity` (Integer)
-- `price` (Decimal)
-
-## 🔐 Environment Variables
-
-### Root Level
-- `NODE_ENV` - Environment (development, production, test)
-
-### Frontend
-- `REACT_APP_API_URL` - Backend API URL
-- `REACT_APP_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- `REACT_APP_GOOGLE_MAPS_API_KEY` - Google Maps API key
-
-### Backend
-- `PORT` - Server port (default: 3001)
-- `DB_HOST` - Database host
-- `DB_PORT` - Database port
-- `DB_NAME` - Database name
-- `DB_USER` - Database user
-- `DB_PASSWORD` - Database password
-- `REDIS_URL` - Redis connection URL
-- `JWT_SECRET` - JWT secret key
-- `STRIPE_SECRET_KEY` - Stripe secret key
-- `CLOUDINARY_URL` - Cloudinary connection URL
-
-## 🚀 Deployment
-
-### Frontend Deployment
-The frontend can be deployed to:
-- **Netlify** (configured with `netlify.toml`)
-- **Vercel** (configured with `vercel.json`)
-- **Render** (configured with `render.yaml`)
-
-### Backend Deployment
-The backend can be deployed to:
-- **Render** (configured with `render.yaml`)
-- **Heroku** (using the provided Dockerfile)
-- **AWS ECS** (using the provided Dockerfile)
-
-### Docker Deployment
-```bash
-# Build and run with Docker Compose
-docker-compose -f docker-compose.yml up -d
-
-# Or build individual services
-docker build -f apps/frontend/Dockerfile -t samna-salta-frontend .
-docker build -f apps/backend/Dockerfile -t samna-salta-backend .
-```
+### Order Endpoints
+- `GET /api/orders` - Get orders
+- `POST /api/orders` - Create order
+- `GET /api/orders/:id` - Get order details
+- `PATCH /api/orders/:id/status` - Update order status
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For support, email support@samna-salta.com or create an issue in the repository.
+For support and questions:
+- Create an issue on GitHub
+- Contact: support@sammasalta.com
+- Documentation: [Wiki](https://github.com/yourusername/samna-salta-webapp/wiki)
 
-## 🔄 Changelog
+## 🙏 Acknowledgments
 
-### v1.0.0 - Initial Release
-- Monorepo structure with React frontend and Node.js backend
-- User authentication and authorization
-- Product catalog and ordering system
-- Admin dashboard for order management
-- Payment integration with Stripe
-- Docker support for development and deployment 
+- Traditional Yemenite recipes and inspiration
+- Open source community contributions
+- Modern web development best practices 

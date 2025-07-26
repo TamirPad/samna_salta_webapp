@@ -1,5 +1,8 @@
 // Network utilities for handling connectivity and API calls
 
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
+
 export interface NetworkStatus {
   isOnline: boolean;
   isReconnecting: boolean;
@@ -23,16 +26,19 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 
 // Check if the browser is online
 export const isOnline = (): boolean => {
+  if (!isBrowser) return true; // Assume online in non-browser environments
   return navigator.onLine;
 };
 
 // Check if the browser supports service workers
 export const supportsServiceWorker = (): boolean => {
+  if (!isBrowser) return false;
   return 'serviceWorker' in navigator;
 };
 
 // Check if the browser supports push notifications
 export const supportsPushNotifications = (): boolean => {
+  if (!isBrowser) return false;
   return 'PushManager' in window;
 };
 
@@ -70,6 +76,7 @@ export const retryWithBackoff = async <T>(
 export class NetworkMonitor {
   private status: NetworkStatus;
   private listeners: Set<(status: NetworkStatus) => void>;
+  private isStarted: boolean = false;
 
   constructor() {
     this.status = {
@@ -90,6 +97,10 @@ export class NetworkMonitor {
   }
 
   public start(): void {
+    if (!isBrowser || this.isStarted) return;
+    
+    this.isStarted = true;
+    
     const handleOnline = (): void => {
       this.status = {
         isOnline: true,
@@ -124,6 +135,10 @@ export const apiRequest = async <T>(
   retryConfig?: Partial<RetryConfig>
 ): Promise<T> => {
   const makeRequest = async (): Promise<T> => {
+    if (!isBrowser) {
+      throw new Error('API requests are only available in browser environments');
+    }
+    
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -144,6 +159,8 @@ export const apiRequest = async <T>(
 
 // Check if a URL is reachable
 export const checkUrlReachability = async (url: string, timeout = 5000): Promise<boolean> => {
+  if (!isBrowser) return false;
+  
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
