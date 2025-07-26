@@ -166,9 +166,14 @@ api.interceptors.response.use(
         case 401:
           // Unauthorized - clear token and redirect to login
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           clearCache(); // Clear cache on auth failure
-          window.location.href = '/login';
-          toast.error('Session expired. Please login again.');
+          
+          // Only redirect if not already on login page to prevent infinite loops
+          if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+            window.location.href = '/login';
+            toast.error('Session expired. Please login again.');
+          }
           break;
           
         case 403:

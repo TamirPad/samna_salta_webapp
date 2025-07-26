@@ -7,6 +7,8 @@ import Footer from './components/layout/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import NetworkStatus from './components/NetworkStatus';
+import AuthProvider from './components/AuthProvider';
+import ProtectedRoute from './components/ProtectedRoute';
 import { useAppSelector } from './hooks/redux';
 import { selectLanguage } from './features/language/languageSlice';
 import { 
@@ -125,25 +127,67 @@ const App: React.FC = (): JSX.Element => {
       { path: '/checkout', component: CheckoutPage },
       { path: '/order/:orderId', component: OrderTrackingPage },
       { path: '/login', component: LoginPage },
-      { path: '/admin', component: Dashboard },
-      { path: '/admin/orders', component: Orders },
-      { path: '/admin/products', component: Products },
-      { path: '/admin/customers', component: Customers },
-      { path: '/admin/analytics', component: Analytics },
+      { 
+        path: '/admin', 
+        component: Dashboard,
+        protected: true,
+        requireAdmin: true
+      },
+      { 
+        path: '/admin/orders', 
+        component: Orders,
+        protected: true,
+        requireAdmin: true
+      },
+      { 
+        path: '/admin/products', 
+        component: Products,
+        protected: true,
+        requireAdmin: true
+      },
+      { 
+        path: '/admin/customers', 
+        component: Customers,
+        protected: true,
+        requireAdmin: true
+      },
+      { 
+        path: '/admin/analytics', 
+        component: Analytics,
+        protected: true,
+        requireAdmin: true
+      },
     ].map((route): JSX.Element => {
       const Component = route.component;
       
+      const element = (
+        <ErrorBoundary fallback={<ChunkErrorFallback />}>
+          <AnimatedRoute>
+            <Component />
+          </AnimatedRoute>
+        </ErrorBoundary>
+      );
+
+      // Wrap with ProtectedRoute if needed
+      if (route.protected) {
+        return (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={
+              <ProtectedRoute requireAdmin={route.requireAdmin}>
+                {element}
+              </ProtectedRoute>
+            }
+          />
+        );
+      }
+
       return (
         <Route
           key={route.path}
           path={route.path}
-          element={
-            <ErrorBoundary fallback={<ChunkErrorFallback />}>
-              <AnimatedRoute>
-                <Component />
-              </AnimatedRoute>
-            </ErrorBoundary>
-          }
+          element={element}
         />
       );
     }), []
@@ -159,23 +203,25 @@ const App: React.FC = (): JSX.Element => {
 
   return (
     <ErrorBoundary>
-      <div className="App" dir={language === 'he' ? 'rtl' : 'ltr'}>
-        <ScrollToTop />
-        <RoutePersistence />
-        <NetworkStatus />
-        {!isLoginPage && <Header />}
-        <main className="main-content">
-          <Suspense fallback={<LoadingSpinner />}>
-            <AnimatePresence mode="wait">
-              <Routes>
-                {routeElements}
-                {notFoundRoute}
-              </Routes>
-            </AnimatePresence>
-          </Suspense>
-        </main>
-        {!isLoginPage && <Footer />}
-      </div>
+      <AuthProvider>
+        <div className="App" dir={language === 'he' ? 'rtl' : 'ltr'}>
+          <ScrollToTop />
+          <RoutePersistence />
+          <NetworkStatus />
+          {!isLoginPage && <Header />}
+          <main className="main-content">
+            <Suspense fallback={<LoadingSpinner />}>
+              <AnimatePresence mode="wait">
+                <Routes>
+                  {routeElements}
+                  {notFoundRoute}
+                </Routes>
+              </AnimatePresence>
+            </Suspense>
+          </main>
+          {!isLoginPage && <Footer />}
+        </div>
+      </AuthProvider>
     </ErrorBoundary>
   );
 };

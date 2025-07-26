@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { loginStart, loginSuccess, loginFailure } from '../features/auth/authSlice';
-import { selectAuth } from '../features/auth/authSlice';
+import { selectAuth, selectIsAuthInitialized } from '../features/auth/authSlice';
 import { apiService } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -14,11 +14,8 @@ const LoginPage: React.FC = (): JSX.Element => {
   
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // const location = useLocation();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
-
-  // Get the intended destination from location state, or default to admin dashboard
-  // const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
+  const isAuthInitialized = useAppSelector(selectIsAuthInitialized);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -60,22 +57,31 @@ const LoginPage: React.FC = (): JSX.Element => {
     setPassword('admin123');
   };
 
-  // const handleLogout = (): void => {
-  //   localStorage.removeItem('token');
-  //   localStorage.removeItem('user');
-  //   dispatch(logoutUser());
-  // };
-
-  // Redirect if already authenticated
+  // Redirect if already authenticated (only after auth is initialized)
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthInitialized && isAuthenticated) {
       if (user?.isAdmin) {
         navigate('/admin', { replace: true });
       } else {
         navigate('/home', { replace: true });
       }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, isAuthInitialized]);
+
+  // Show loading while auth is being initialized
+  if (!isAuthInitialized) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
+      }}>
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -114,115 +120,91 @@ const LoginPage: React.FC = (): JSX.Element => {
         
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', color: '#333', fontWeight: '500' }}>
+            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
               Email
             </label>
             <input
-              id="email"
               type="email"
+              id="email"
               value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
               style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #ddd',
                 borderRadius: '6px',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
+                fontSize: '1rem'
               }}
-              placeholder="Enter your email"
             />
           </div>
-
+          
           <div>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', color: '#333', fontWeight: '500' }}>
+            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>
               Password
             </label>
             <input
-              id="password"
               type="password"
+              id="password"
               value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
               style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #ddd',
                 borderRadius: '6px',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
+                fontSize: '1rem'
               }}
-              placeholder="Enter your password"
             />
           </div>
-
+          
           {error && (
             <div style={{
-              color: '#c33',
-              backgroundColor: '#fee',
               padding: '0.75rem',
+              backgroundColor: '#fee',
+              color: '#c33',
               borderRadius: '6px',
-              fontSize: '0.875rem'
+              fontSize: '0.9rem'
             }}>
               {error}
             </div>
           )}
-
+          
           <button
             type="submit"
             disabled={loading}
             style={{
-              background: '#8B4513',
+              padding: '0.75rem',
+              backgroundColor: '#8B4513',
               color: 'white',
               border: 'none',
-              padding: '0.75rem',
               borderRadius: '6px',
               fontSize: '1rem',
-              fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              transition: 'all 0.3s ease'
+              opacity: loading ? 0.7 : 1
             }}
           >
-            {loading ? <LoadingSpinner /> : 'Login'}
+            {loading ? <LoadingSpinner text="Logging in..." /> : 'Login'}
           </button>
-
+          
           <button
             type="button"
             onClick={handleDemoLogin}
-            disabled={loading}
             style={{
-              background: '#28a745',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem',
+              padding: '0.5rem',
+              backgroundColor: 'transparent',
+              color: '#8B4513',
+              border: '1px solid #8B4513',
               borderRadius: '6px',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              transition: 'all 0.3s ease',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
               marginTop: '0.5rem'
             }}
           >
             Use Demo Credentials
           </button>
         </form>
-
-        <div style={{
-          marginTop: '1.5rem',
-          textAlign: 'center',
-          fontSize: '0.875rem',
-          color: '#666'
-        }}>
-          <p><strong>Test Credentials:</strong></p>
-          <p><strong>Email:</strong> admin@sammasalta.com</p>
-          <p><strong>Password:</strong> admin123</p>
-          <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#999' }}>
-            Make sure the backend server is running on port 3001.
-          </p>
-        </div>
       </div>
     </div>
   );

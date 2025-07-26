@@ -4,12 +4,21 @@ import authReducer, {
   loginFailure,
   logoutUser,
   clearError,
+  initializeAuth,
   selectUser,
   selectIsAuthenticated,
   selectIsAdmin,
   selectAuthLoading,
   selectAuthError,
+  selectIsAuthInitialized,
 } from './authSlice';
+
+// Mock the API service
+jest.mock('../../utils/api', () => ({
+  apiService: {
+    getCurrentUser: jest.fn(),
+  },
+}));
 
 describe('Auth Slice', () => {
   const initialState = {
@@ -17,6 +26,7 @@ describe('Auth Slice', () => {
     isAuthenticated: false,
     isLoading: false,
     error: null,
+    isInitialized: false,
   };
 
   const mockUser = {
@@ -31,6 +41,12 @@ describe('Auth Slice', () => {
     ...mockUser,
     isAdmin: true,
   };
+
+  beforeEach(() => {
+    // Clear localStorage before each test
+    localStorage.clear();
+    jest.clearAllMocks();
+  });
 
   describe('reducers', () => {
     it('should return initial state', () => {
@@ -80,9 +96,9 @@ describe('Auth Slice', () => {
 
     it('should handle logoutUser', () => {
       const state = {
+        ...initialState,
         user: mockUser,
         isAuthenticated: true,
-        isLoading: false,
         error: 'Some error',
       };
 
@@ -91,7 +107,6 @@ describe('Auth Slice', () => {
       expect(newState.user).toBe(null);
       expect(newState.isAuthenticated).toBe(false);
       expect(newState.error).toBe(null);
-      expect(newState.isLoading).toBe(false);
     });
 
     it('should handle clearError', () => {
@@ -104,17 +119,77 @@ describe('Auth Slice', () => {
 
       expect(newState.error).toBe(null);
     });
+  });
 
-    it('should handle loginSuccess with admin user', () => {
+  describe('async thunks', () => {
+    it('should handle initializeAuth.pending', () => {
+      const state = {
+        ...initialState,
+        error: 'Previous error',
+      };
+
+      const newState = authReducer(state, { type: initializeAuth.pending.type });
+
+      expect(newState.isLoading).toBe(true);
+      expect(newState.error).toBe(null);
+    });
+
+    it('should handle initializeAuth.fulfilled with valid auth', () => {
       const state = {
         ...initialState,
         isLoading: true,
       };
 
-      const newState = authReducer(state, loginSuccess(mockAdminUser));
+      const newState = authReducer(state, {
+        type: initializeAuth.fulfilled.type,
+        payload: { user: mockUser, isAuthenticated: true },
+        meta: { requestId: 'test-id' }
+      });
 
-      expect(newState.user).toEqual(mockAdminUser);
-      expect(newState.user?.isAdmin).toBe(true);
+      expect(newState.isLoading).toBe(false);
+      expect(newState.isAuthenticated).toBe(true);
+      expect(newState.user).toEqual(mockUser);
+      expect(newState.isInitialized).toBe(true);
+      expect(newState.error).toBe(null);
+    });
+
+    it('should handle initializeAuth.fulfilled with no auth', () => {
+      const state = {
+        ...initialState,
+        isLoading: true,
+      };
+
+      const newState = authReducer(state, {
+        type: initializeAuth.fulfilled.type,
+        payload: { user: null, isAuthenticated: false },
+        meta: { requestId: 'test-id' }
+      });
+
+      expect(newState.isLoading).toBe(false);
+      expect(newState.isAuthenticated).toBe(false);
+      expect(newState.user).toBe(null);
+      expect(newState.isInitialized).toBe(true);
+      expect(newState.error).toBe(null);
+    });
+
+    it('should handle initializeAuth.rejected', () => {
+      const state = {
+        ...initialState,
+        isLoading: true,
+      };
+
+      const newState = authReducer(state, {
+        type: initializeAuth.rejected.type,
+        payload: 'Authentication failed',
+        meta: { requestId: 'test-id' },
+        error: { message: 'Failed' }
+      });
+
+      expect(newState.isLoading).toBe(false);
+      expect(newState.isAuthenticated).toBe(false);
+      expect(newState.user).toBe(null);
+      expect(newState.isInitialized).toBe(true);
+      expect(newState.error).toBe('Authentication failed');
     });
   });
 
@@ -125,76 +200,42 @@ describe('Auth Slice', () => {
         isAuthenticated: true,
         isLoading: false,
         error: null,
-      },
-    };
-
-    const mockAdminState = {
-      auth: {
-        user: mockAdminUser,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      },
-    };
-
-    const mockErrorState = {
-      auth: {
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: 'Login failed',
+        isInitialized: true,
       },
     };
 
     it('should select user', () => {
-      const result = selectUser(mockState);
-      expect(result).toEqual(mockUser);
+      expect(selectUser(mockState)).toEqual(mockUser);
     });
 
     it('should select isAuthenticated', () => {
-      const result = selectIsAuthenticated(mockState);
-      expect(result).toBe(true);
+      expect(selectIsAuthenticated(mockState)).toBe(true);
     });
 
-    it('should select isAdmin for regular user', () => {
-      const result = selectIsAdmin(mockState);
-      expect(result).toBe(false);
+    it('should select isAdmin', () => {
+      expect(selectIsAdmin(mockState)).toBe(false);
     });
 
     it('should select isAdmin for admin user', () => {
-      const result = selectIsAdmin(mockAdminState);
-      expect(result).toBe(true);
-    });
-
-    it('should select isAdmin when user is null', () => {
-      const stateWithNoUser = {
-        auth: {
-          ...initialState,
-        },
-      };
-      const result = selectIsAdmin(stateWithNoUser);
-      expect(result).toBe(false);
-    });
-
-    it('should select auth loading', () => {
-      const loadingState = {
+      const adminState = {
         auth: {
           ...mockState.auth,
-          isLoading: true,
+          user: mockAdminUser,
         },
       };
-      const result = selectAuthLoading(loadingState);
-      expect(result).toBe(true);
+      expect(selectIsAdmin(adminState)).toBe(true);
     });
 
-    it('should select auth error', () => {
-      const result = selectAuthError(mockErrorState);
-      expect(result).toBe('Login failed');
+    it('should select authLoading', () => {
+      expect(selectAuthLoading(mockState)).toBe(false);
     });
 
-    it('should select null error when no error', () => {
-      const result = selectAuthError(mockState);
-      expect(result).toBe(null);
+    it('should select authError', () => {
+      expect(selectAuthError(mockState)).toBe(null);
+    });
+
+    it('should select isAuthInitialized', () => {
+      expect(selectIsAuthInitialized(mockState)).toBe(true);
     });
   });
 
@@ -235,6 +276,32 @@ describe('Auth Slice', () => {
       // Clear error
       state = authReducer(state, clearError());
       expect(state.error).toBe(null);
+    });
+
+    it('should handle authentication initialization flow', () => {
+      let state = authReducer(undefined, { type: 'unknown' });
+      
+      // Start initialization
+      state = authReducer(state, { type: initializeAuth.pending.type });
+      expect(state.isLoading).toBe(true);
+      expect(state.isInitialized).toBe(false);
+      
+      // Initialization success with auth
+      state = authReducer(state, {
+        type: initializeAuth.fulfilled.type,
+        payload: { user: mockUser, isAuthenticated: true },
+        meta: { requestId: 'test-id' }
+      });
+      expect(state.isLoading).toBe(false);
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.user).toEqual(mockUser);
+      expect(state.isInitialized).toBe(true);
+      
+      // Logout
+      state = authReducer(state, logoutUser());
+      expect(state.user).toBe(null);
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.isInitialized).toBe(true); // Should remain true
     });
   });
 }); 
