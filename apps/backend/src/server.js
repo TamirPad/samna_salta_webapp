@@ -47,7 +47,7 @@ app.set('trust proxy', 1);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -98,7 +98,10 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:3000"],
+      connectSrc: [
+        "'self'", 
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      ],
       fontSrc: ["'self'", "https:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -115,8 +118,27 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:3000"
+];
+
+// Add additional origins from environment if specified
+if (process.env.ADDITIONAL_CORS_ORIGINS) {
+  const additionalOrigins = process.env.ADDITIONAL_CORS_ORIGINS.split(',').map(origin => origin.trim());
+  allowedOrigins.push(...additionalOrigins);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'Cache-Control', 'cache-control'],

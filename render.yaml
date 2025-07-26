@@ -9,7 +9,11 @@ services:
       - key: NODE_VERSION
         value: 18.17.0
       - key: REACT_APP_API_URL
-        sync: false
+        fromService:
+          type: web
+          name: samna-salta-backend
+          property: url
+          append: /api
       - key: REACT_APP_ENVIRONMENT
         value: production
       - key: REACT_APP_STRIPE_PUBLISHABLE_KEY
@@ -49,7 +53,10 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        fromService:
+          type: web
+          name: samna-salta-frontend
+          property: url
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
