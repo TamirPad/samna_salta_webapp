@@ -118,7 +118,8 @@ const App: React.FC = (): JSX.Element => {
   // Memoized route rendering
   const routeElements = useMemo((): JSX.Element[] => 
     [
-      { path: '/', component: HomePage },
+      { path: '/', component: LoginPage },
+      { path: '/home', component: HomePage },
       { path: '/menu', component: MenuPage },
       { path: '/cart', component: CartPage },
       { path: '/checkout', component: CheckoutPage },
@@ -153,13 +154,16 @@ const App: React.FC = (): JSX.Element => {
     <Route path="*" element={<NotFoundPage />} />
   ), []);
 
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/' || location.pathname === '/login';
+
   return (
     <ErrorBoundary>
       <div className="App" dir={language === 'he' ? 'rtl' : 'ltr'}>
         <ScrollToTop />
         <RoutePersistence />
         <NetworkStatus />
-        <Header />
+        {!isLoginPage && <Header />}
         <main className="main-content">
           <Suspense fallback={<LoadingSpinner />}>
             <AnimatePresence mode="wait">
@@ -170,7 +174,7 @@ const App: React.FC = (): JSX.Element => {
             </AnimatePresence>
           </Suspense>
         </main>
-        <Footer />
+        {!isLoginPage && <Footer />}
       </div>
     </ErrorBoundary>
   );

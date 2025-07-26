@@ -256,5 +256,12 @@ module.exports = {
   getRedisClient,
   closeRedis,
   isRedisConnected,
-  useRealRedis
+  useRealRedis,
+  setCache,
+  getCache,
+  deleteCache,
+  clearCache,
+  setSession,
+  getSession,
+  deleteSession
 }; 

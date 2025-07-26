@@ -90,14 +90,13 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // Enable request/response transformation
-  transformRequest: [(data, headers) => {
-    // Add request ID for tracking
-    if (headers) {
-      headers['X-Request-ID'] = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    }
-    return data;
-  }],
+});
+
+// Add request interceptor for headers
+api.interceptors.request.use((config) => {
+  // Add request ID for tracking
+  config.headers['X-Request-ID'] = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return config;
 });
 
 // Request interceptor
@@ -232,8 +231,10 @@ export const apiService = {
   clearCache,
   
   // Auth
-  login: (credentials: { email: string; password: string }) =>
-    api.post('/auth/login', credentials),
+  login: (credentials: { email: string; password: string }) => {
+    console.log('Sending login request with:', credentials);
+    return api.post('/auth/login', credentials);
+  },
     
   register: (userData: { name: string; email: string; password: string; phone?: string }) =>
     api.post('/auth/register', userData),

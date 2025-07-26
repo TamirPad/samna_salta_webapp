@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppDispatch } from '../hooks/redux';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { loginStart, loginSuccess, loginFailure } from '../features/auth/authSlice';
+import { selectAuth } from '../features/auth/authSlice';
 import { apiService } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -13,10 +14,11 @@ const LoginPage: React.FC = (): JSX.Element => {
   
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
+  const { isAuthenticated, user } = useAppSelector(selectAuth);
 
   // Get the intended destination from location state, or default to admin dashboard
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
+  // const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -36,8 +38,12 @@ const LoginPage: React.FC = (): JSX.Element => {
       
       dispatch(loginSuccess(user));
       
-      // Redirect to admin dashboard
-      navigate(from, { replace: true });
+      // Redirect based on user type
+      if (user.isAdmin) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/home', { replace: true });
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error && 'response' in err 
         ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Invalid email or password'
@@ -50,9 +56,26 @@ const LoginPage: React.FC = (): JSX.Element => {
   };
 
   const handleDemoLogin = (): void => {
-    setEmail('admin@example.com');
+    setEmail('admin@sammasalta.com');
     setPassword('admin123');
   };
+
+  // const handleLogout = (): void => {
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('user');
+  //   dispatch(logoutUser());
+  // };
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.isAdmin) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <div style={{
@@ -78,8 +101,16 @@ const LoginPage: React.FC = (): JSX.Element => {
           fontSize: '2rem',
           fontWeight: 'bold'
         }}>
-          Samna Salta Admin
+          Samna Salta
         </h1>
+        <p style={{
+          textAlign: 'center',
+          color: '#666',
+          marginBottom: '2rem',
+          fontSize: '1rem'
+        }}>
+          Welcome to Samna Salta - Traditional Yemenite Food
+        </p>
         
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
@@ -186,7 +217,7 @@ const LoginPage: React.FC = (): JSX.Element => {
           color: '#666'
         }}>
           <p><strong>Test Credentials:</strong></p>
-          <p><strong>Email:</strong> admin@example.com</p>
+          <p><strong>Email:</strong> admin@sammasalta.com</p>
           <p><strong>Password:</strong> admin123</p>
           <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#999' }}>
             Make sure the backend server is running on port 3001.

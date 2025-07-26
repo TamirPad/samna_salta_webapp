@@ -181,7 +181,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', generalLimiter, productRoutes);
 app.use('/api/orders', generalLimiter, orderRoutes);
 app.use('/api/customers', generalLimiter, authenticateToken, customerRoutes);
-app.use('/api/analytics', generalLimiter, authenticateToken, analyticsRoutes);
+app.use('/api/analytics', generalLimiter, analyticsRoutes);
 app.use('/api/upload', generalLimiter, authenticateToken, uploadRoutes);
 
 // Socket.IO for real-time updates

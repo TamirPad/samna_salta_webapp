@@ -58,5 +58,6 @@ export const selectIsAuthenticated = (state: { auth: AuthState }): boolean => st
 export const selectIsAdmin = (state: { auth: AuthState }): boolean => state.auth.user?.isAdmin || false;
 export const selectAuthLoading = (state: { auth: AuthState }): boolean => state.auth.isLoading;
 export const selectAuthError = (state: { auth: AuthState }): string | null => state.auth.error;
+export const selectAuth = (state: { auth: AuthState }): AuthState => state.auth;
 
 export default authSlice.reducer; 

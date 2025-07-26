@@ -258,7 +258,7 @@ router.get('/', authenticateToken, requireAdmin, [
     let sql = `
       SELECT o.*, 
              COUNT(oi.id) as items_count,
-             array_agg(DISTINCT osu.status ORDER BY osu.created_at DESC) as recent_statuses
+             array_agg(DISTINCT osu.status) as recent_statuses
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN order_status_updates osu ON o.id = osu.order_id

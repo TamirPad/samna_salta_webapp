@@ -119,6 +119,13 @@ router.post('/register', validateRegistration, async (req, res) => {
 // Login user
 router.post('/login', validateLogin, async (req, res) => {
   try {
+    // Debug logging
+    logger.info('Login request received:', { 
+      body: req.body, 
+      contentType: req.get('Content-Type'),
+      userAgent: req.get('User-Agent')
+    });
+    
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

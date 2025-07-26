@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { Order } from '../../features/orders/ordersSlice';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../../hooks/redux';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
-import { apiService } from '../../utils/api';
+import { selectAuth } from '../../features/auth/authSlice';
+import { fetchOrders, clearOrdersError } from '../../features/orders/ordersSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 // Styled Components
@@ -91,82 +93,90 @@ const EmptyState = styled.div`
   color: #6c757d;
 `;
 
+const AuthContainer = styled.div`
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+const AuthCard = styled.div`
+  background: #fee;
+  color: #c33;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  max-width: 500px;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+const AuthButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
+  background: ${(props): string => props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+`;
+
+const WarningBanner = styled.div`
+  background: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border: 1px solid #ffeaa7;
+`;
+
+const DemoModeBanner = styled.div`
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #e3f2fd;
+  border-radius: 8px;
+  max-width: 600px;
+  margin: 2rem auto 0;
+`;
+
 const AdminOrders: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAppSelector(selectAuth);
+  const { orders, isLoading, error } = useAppSelector(state => state.orders);
 
   // Load orders on component mount
   useEffect(() => {
-    checkAuthAndLoadOrders();
-  }, []);
-
-  const checkAuthAndLoadOrders = async () => {
-    try {
-      setLoading(true);
-      
-      // Check if user is authenticated
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Authentication required. Please login to access orders.');
-        setIsAuthenticated(false);
-        setLoading(false);
-        return;
-      }
-
-      setIsAuthenticated(true);
-      
-      const response = await apiService.getOrders({});
-      setOrders(response.data || []);
-      setError(null);
-    } catch (err: any) {
-      console.error('Error loading orders:', err);
-      
-      if (err.response?.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem('token');
-        setError('Session expired. Please login again.');
-        setIsAuthenticated(false);
-      } else if (err.response?.status === 403) {
-        setError('Access denied. Admin privileges required.');
-      } else {
-        setError(err.message || 'Failed to load orders');
-      }
-      
-      // Fallback to demo data if API fails
-      setOrders([
-        {
-          id: 1,
-          customer_name: 'John Doe',
-          items_count: 3,
-          total_amount: 85.50,
-          status: 'pending'
-        },
-        {
-          id: 2,
-          customer_name: 'Jane Smith',
-          items_count: 2,
-          total_amount: 45.00,
-          status: 'confirmed'
-        },
-        {
-          id: 3,
-          customer_name: 'Mike Johnson',
-          items_count: 1,
-          total_amount: 25.00,
-          status: 'delivered'
-        }
-      ]);
-    } finally {
-      setLoading(false);
+    if (isAuthenticated && user?.isAdmin) {
+      dispatch(fetchOrders({}));
     }
-  };
+  }, [dispatch, isAuthenticated, user]);
+
+  // Clear error when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearOrdersError());
+    };
+  }, [dispatch]);
 
   const handleLogin = () => {
-    navigate('/login', { state: { from: { pathname: '/orders' } } });
+    navigate('/login');
   };
 
   const getStatusText = (status: string) => {
@@ -182,72 +192,41 @@ const AdminOrders: React.FC = () => {
     return statusMap[status]?.[language] || status;
   };
 
-  if (!isAuthenticated && !loading) {
+  if (!isAuthenticated) {
     return (
-      <div style={{ 
-        padding: '2rem', 
-        background: '#f8f9fa', 
-        minHeight: '100vh',
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
-        <h1 style={{ color: '#8B4513', marginBottom: '1rem' }}>
-          Orders Management
-        </h1>
-        <div style={{ 
-          background: '#fee', 
-          color: '#c33', 
-          padding: '1.5rem', 
-          borderRadius: '8px', 
-          marginBottom: '2rem',
-          maxWidth: '500px'
-        }}>
+      <AuthContainer>
+        <Title>Orders Management</Title>
+        <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>{error}</p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button 
-              onClick={handleLogin}
-              style={{
-                background: '#8B4513',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem'
-              }}
-            >
+          <p style={{ margin: '1rem 0' }}>Please login to access orders management.</p>
+          <ButtonGroup>
+            <AuthButton onClick={handleLogin}>
               Login to Access Orders
-            </button>
-            {process.env['NODE_ENV'] === 'development' && (
-              <button 
-                onClick={() => {
-                  setIsAuthenticated(true);
-                  setError(null);
-                }}
-                style={{
-                  background: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '1rem'
-                }}
-              >
-                Skip Login (Dev Mode)
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+            </AuthButton>
+          </ButtonGroup>
+        </AuthCard>
+      </AuthContainer>
     );
   }
 
-  if (loading && !orders.length) {
+  if (!user?.isAdmin) {
+    return (
+      <AuthContainer>
+        <Title>Orders Management</Title>
+        <AuthCard>
+          <strong>Access Denied</strong>
+          <p style={{ margin: '1rem 0' }}>Admin privileges required to access orders management.</p>
+          <ButtonGroup>
+            <AuthButton onClick={() => navigate('/')}>
+              Go to Home
+            </AuthButton>
+          </ButtonGroup>
+        </AuthCard>
+      </AuthContainer>
+    );
+  }
+
+  if (isLoading && !orders.length) {
     return <LoadingSpinner />;
   }
 
@@ -258,21 +237,14 @@ const AdminOrders: React.FC = () => {
       </Header>
 
       {error && (
-        <div style={{ 
-          background: '#fff3cd', 
-          color: '#856404', 
-          padding: '1rem', 
-          borderRadius: '8px', 
-          marginBottom: '2rem',
-          border: '1px solid #ffeaa7'
-        }}>
+        <WarningBanner>
           <strong>⚠️ Warning:</strong> {error}
           {error.includes('Failed to load') && (
             <div style={{ marginTop: '0.5rem' }}>
               <small>Showing demo data. Please check your connection and refresh the page.</small>
             </div>
           )}
-        </div>
+        </WarningBanner>
       )}
 
       <OrdersTable>
@@ -290,11 +262,11 @@ const AdminOrders: React.FC = () => {
             <p>No orders found</p>
           </EmptyState>
         ) : (
-          orders.map((order: any) => (
+          orders.map((order: Order) => (
             <OrderRow key={order.id}>
               <div>#{order.id}</div>
               <div>{order.customer_name}</div>
-              <div>{order.items_count || 0} items</div>
+              <div>{order.items?.length || 0} items</div>
               <div>₪{order.total_amount}</div>
               <div>
                 <StatusBadge status={order.status}>
@@ -310,19 +282,12 @@ const AdminOrders: React.FC = () => {
         )}
       </OrdersTable>
 
-      {error && !isAuthenticated && (
-        <div style={{ 
-          marginTop: '2rem', 
-          padding: '1rem', 
-          background: '#e3f2fd', 
-          borderRadius: '8px',
-          maxWidth: '600px',
-          margin: '2rem auto 0'
-        }}>
+      {!orders.length && !error && (
+        <DemoModeBanner>
           <p style={{ color: '#1976d2', margin: 0 }}>
             <strong>Demo Mode:</strong> Showing sample data. Connect to backend for live data.
           </p>
-        </div>
+        </DemoModeBanner>
       )}
     </Container>
   );

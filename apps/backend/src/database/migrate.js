@@ -144,6 +144,17 @@ const createTables = async () => {
       )
     `);
 
+    // Create order_status_updates table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS order_status_updates (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+        status VARCHAR(20) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     // Create analytics table
     await client.query(`
       CREATE TABLE IF NOT EXISTS analytics (

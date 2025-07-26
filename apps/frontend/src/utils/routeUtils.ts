@@ -52,6 +52,7 @@ export const clearRouteState = (): void => {
 export const isValidRoute = (pathname: string): boolean => {
   const validRoutes = [
     '/',
+    '/home',
     '/menu',
     '/cart',
     '/checkout',

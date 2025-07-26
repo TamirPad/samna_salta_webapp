@@ -373,11 +373,11 @@ const Header: React.FC = (): JSX.Element => {
 
   // Memoized navigation items
   const navItems = useMemo((): NavItem[] => [
-    { path: '/', label: language === 'he' ? 'בית' : 'Home' },
+    { path: '/home', label: language === 'he' ? 'בית' : 'Home' },
     { path: '/menu', label: language === 'he' ? 'תפריט' : 'Menu' },
     { 
       path: '/admin', 
-      label: language === 'he' ? 'ניהול' : 'Manage',
+      label: language === 'he' ? 'דשבורד' : 'Dashboard',
       requiresAuth: true,
       adminOnly: true
     },
@@ -390,6 +390,18 @@ const Header: React.FC = (): JSX.Element => {
     { 
       path: '/admin/analytics', 
       label: language === 'he' ? 'ניתוח' : 'Analytics',
+      requiresAuth: true,
+      adminOnly: true
+    },
+    { 
+      path: '/admin/products', 
+      label: language === 'he' ? 'מוצרים' : 'Products',
+      requiresAuth: true,
+      adminOnly: true
+    },
+    { 
+      path: '/admin/customers', 
+      label: language === 'he' ? 'לקוחות' : 'Customers',
       requiresAuth: true,
       adminOnly: true
     },
@@ -467,6 +479,11 @@ const Header: React.FC = (): JSX.Element => {
     };
   }, [isMobileMenuOpen]);
 
+  // Don't show header on login page
+  if (location.pathname === '/' || location.pathname === '/login') {
+    return <></>;
+  }
+
   return (
     <HeaderContainer>
       <SkipLink href="#main-content">
@@ -474,7 +491,7 @@ const Header: React.FC = (): JSX.Element => {
       </SkipLink>
       
       <Nav>
-        <Logo to="/" aria-label={language === 'he' ? 'סמנה סלטה - דף הבית' : 'Samna Salta - Home'}>
+        <Logo to="/home" aria-label={language === 'he' ? 'סמנה סלטה - דף הבית' : 'Samna Salta - Home'}>
           🍞 {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}
         </Logo>
 

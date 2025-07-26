@@ -1,7 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { fetchDashboardAnalytics, clearAnalyticsError } from '../../features/analytics/analyticsSlice';
+import { selectAuth } from '../../features/auth/authSlice';
 
 // Types
 interface DashboardData {
@@ -9,8 +12,28 @@ interface DashboardData {
     orders: number;
     revenue: number;
   };
+  month: {
+    orders: number;
+    revenue: number;
+  };
   customers: number;
-  pending_orders: number;
+  pendingOrders: number;
+  topProducts: Array<{
+    name: string;
+    name_he?: string;
+    name_en?: string;
+    order_count: number;
+    total_quantity: number;
+  }>;
+  ordersByStatus: Array<{
+    status: string;
+    count: number;
+  }>;
+  revenueByDay: Array<{
+    date: string;
+    orders: number;
+    revenue: number;
+  }>;
 }
 
 interface DashboardCardProps {
@@ -151,8 +174,7 @@ const StatCard: React.FC<DashboardCardProps> = React.memo(({
   title, 
   value, 
   color, 
-  isLiveData, 
-  // hasError 
+  isLiveData
 }): JSX.Element => (
   <DashboardCard
     initial={{ opacity: 0, y: 20 }}
@@ -174,97 +196,53 @@ const formatCurrency = (amount: number): string => {
   return `₪${amount.toLocaleString()}`;
 };
 
-// Custom hook for dashboard data
-const useDashboardData = (): {
-  data: DashboardData | null;
-  loading: boolean;
-  error: string | null;
-  isAuthenticated: boolean;
-  refetch: () => Promise<void>;
-} => {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  const fetchDashboardData = useCallback(async (): Promise<void> => {
-    try {
-      setLoading(true);
-      
-      const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
-      
-      if (!token || !user) {
-        setError('Authentication required. Please login to access the dashboard.');
-        setIsAuthenticated(false);
-        return;
-      }
-
-      const userData = JSON.parse(user);
-      if (!userData.isAdmin) {
-        setError('Access denied. Admin privileges required.');
-        setIsAuthenticated(false);
-        return;
-      }
-
-      setIsAuthenticated(true);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Demo data - no backend required
-      const demoData: DashboardData = {
-        today: { 
-          orders: Math.floor(Math.random() * 50) + 20, 
-          revenue: Math.floor(Math.random() * 2000) + 800 
-        },
-        customers: Math.floor(Math.random() * 200) + 100,
-        pending_orders: Math.floor(Math.random() * 15) + 5
-      };
-      
-      setData(demoData);
-      setError(null);
-    } catch (err) {
-      console.error('Dashboard fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
-      
-      // Fallback to static data if there's an error
-      setData({
-        today: { orders: 25, revenue: 1250 },
-        customers: 150,
-        pending_orders: 8
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect((): void => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
-
-  return { data, loading, error, isAuthenticated, refetch: fetchDashboardData };
-};
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { data, loading, error, isAuthenticated } = useDashboardData();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector(selectAuth);
+  const { dashboard, isLoading, error } = useAppSelector(state => state.analytics);
+
+  // Fetch dashboard data on component mount
+  useEffect(() => {
+    if (isAuthenticated && user?.isAdmin) {
+      dispatch(fetchDashboardAnalytics());
+    }
+  }, [dispatch, isAuthenticated, user]);
+
+  // Clear error when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearAnalyticsError());
+    };
+  }, [dispatch]);
 
   const handleLogin = useCallback((): void => {
     navigate('/login');
   }, [navigate]);
 
-  const handleDevModeSkip = useCallback((): void => {
-    // This would need to be handled differently in a real app
-          // Dev mode skip - not implemented in production
-  }, []);
-
   // Memoized dashboard data
-  const dashboardData = useMemo<DashboardData>(() => data || {
-    today: { orders: 25, revenue: 1250 },
-    customers: 150,
-    pending_orders: 8
-  }, [data]);
+  const dashboardData = useMemo<DashboardData>(() => {
+    if (dashboard) {
+      return {
+        today: dashboard.today,
+        month: dashboard.month,
+        customers: dashboard.customers,
+        pendingOrders: dashboard.pending_orders || 0,
+        topProducts: dashboard.top_products || [],
+        ordersByStatus: dashboard.orders_by_status || [],
+        revenueByDay: dashboard.revenue_by_day || []
+      };
+    }
+    return {
+      today: { orders: 25, revenue: 1250 },
+      month: { orders: 150, revenue: 7500 },
+      customers: 150,
+      pendingOrders: 8,
+      topProducts: [],
+      ordersByStatus: [],
+      revenueByDay: []
+    };
+  }, [dashboard]);
 
   // Memoized stats cards data
   const statsCards = useMemo<DashboardCardProps[]>(() => [
@@ -272,48 +250,60 @@ const Dashboard: React.FC = () => {
       title: "Today's Orders",
       value: dashboardData.today.orders,
       color: '#007bff',
-      isLiveData: !!data && !error,
+      isLiveData: !!dashboard && !error,
       hasError: !!error
     },
     {
       title: "Today's Revenue",
       value: formatCurrency(dashboardData.today.revenue),
       color: '#28a745',
-      isLiveData: !!data && !error,
+      isLiveData: !!dashboard && !error,
       hasError: !!error
     },
     {
       title: "Total Customers",
       value: dashboardData.customers,
       color: '#ffc107',
-      isLiveData: !!data && !error,
+      isLiveData: !!dashboard && !error,
       hasError: !!error
     },
     {
       title: "Pending Orders",
-      value: dashboardData.pending_orders,
+      value: dashboardData.pendingOrders,
       color: '#dc3545',
-      isLiveData: !!data && !error,
+      isLiveData: !!dashboard && !error,
       hasError: !!error
     }
-  ], [dashboardData, data, error]);
+  ], [dashboardData, dashboard, error]);
 
-  if (!isAuthenticated && !loading) {
+  if (!isAuthenticated) {
     return (
       <AuthContainer>
         <DashboardTitle>Samna Salta Dashboard</DashboardTitle>
         <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>{error}</p>
+          <p style={{ margin: '1rem 0' }}>Please login to access the admin dashboard.</p>
           <ButtonGroup>
             <AuthButton onClick={handleLogin}>
               Login to Dashboard
             </AuthButton>
-            {process.env['NODE_ENV'] === 'development' && (
-              <AuthButton $variant="secondary" onClick={handleDevModeSkip}>
-                Skip Login (Dev Mode)
-              </AuthButton>
-            )}
+          </ButtonGroup>
+        </AuthCard>
+      </AuthContainer>
+    );
+  }
+
+  if (!user?.isAdmin) {
+    return (
+      <AuthContainer>
+        <DashboardTitle>Samna Salta Dashboard</DashboardTitle>
+        <AuthCard>
+          <strong>Access Denied</strong>
+          <p style={{ margin: '1rem 0' }}>Admin privileges required to access this dashboard.</p>
+          <ButtonGroup>
+            <AuthButton onClick={() => navigate('/')}>
+              Go to Home
+            </AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -336,7 +326,7 @@ const Dashboard: React.FC = () => {
         </WarningBanner>
       )}
 
-      {loading && !data && (
+      {isLoading && !dashboard && (
         <LoadingMessage>
           <p>Loading dashboard data...</p>
         </LoadingMessage>
@@ -351,7 +341,7 @@ const Dashboard: React.FC = () => {
         ))}
       </DashboardGrid>
 
-      {!data && !error && (
+      {!dashboard && !error && (
         <DemoModeBanner>
           <p style={{ color: '#1976d2', margin: 0 }}>
             <strong>Demo Mode:</strong> Showing sample data. Connect to backend for live data.
