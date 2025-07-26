@@ -5,51 +5,81 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/frontend/Dockerfile
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_URL=http://localhost:3001
-      - REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
-      - REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_key
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:3001}
+      - REACT_APP_STRIPE_PUBLISHABLE_KEY=${REACT_APP_STRIPE_PUBLISHABLE_KEY}
+      - REACT_APP_GOOGLE_MAPS_API_KEY=${REACT_APP_GOOGLE_MAPS_API_KEY}
     depends_on:
       - backend
     networks:
       - samna-salta-network
+    restart: unless-stopped
 
-  # Backend API (if you have one)
+  # Backend API
   backend:
-    image: node:18-alpine
-    working_dir: /app
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DATABASE_URL=postgresql://postgres:password@db:5432/samna_salta
-      - JWT_SECRET=your_jwt_secret_here
-      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-samna_salta}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
     volumes:
-      - ./backend:/app
-    command: npm start
+      - ./apps/backend:/app
+      - /app/node_modules
     depends_on:
       - db
+      - redis
     networks:
       - samna-salta-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=samna_salta
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${DB_NAME:-samna_salta}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - samna-salta-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-samna_salta}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Redis (for caching and sessions)
   redis:
@@ -60,6 +90,12 @@ services:
       - redis_data:/data
     networks:
       - samna-salta-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Nginx Reverse Proxy (optional)
   nginx:
@@ -75,10 +111,13 @@ services:
       - backend
     networks:
       - samna-salta-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
   samna-salta-network:
