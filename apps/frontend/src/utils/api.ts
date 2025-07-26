@@ -231,10 +231,8 @@ export const apiService = {
   clearCache,
   
   // Auth
-  login: (credentials: { email: string; password: string }) => {
-    console.log('Sending login request with:', credentials);
-    return api.post('/auth/login', credentials);
-  },
+  login: (credentials: { email: string; password: string }) =>
+    api.post('/auth/login', credentials),
     
   register: (userData: { name: string; email: string; password: string; phone?: string }) =>
     api.post('/auth/register', userData),
