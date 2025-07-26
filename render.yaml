@@ -21,7 +21,7 @@ services:
         source: /*
         destination: /index.html
 
-  # Backend API Service
+  # Backend API Service (optional - can be deployed separately)
   - type: web
     name: samna-salta-backend
     env: node
@@ -32,6 +32,8 @@ services:
         value: 18.17.0
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3001
       - key: DB_HOST
         sync: false
       - key: DB_PORT
