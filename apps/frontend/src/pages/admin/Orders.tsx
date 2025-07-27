@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import { Order } from '../../features/orders/ordersSlice';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
 import { selectAuth } from '../../features/auth/authSlice';
-import { fetchOrders, clearOrdersError } from '../../features/orders/ordersSlice';
+import {
+  fetchOrders,
+  clearOrdersError,
+} from '../../features/orders/ordersSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 // Styled Components
@@ -52,7 +55,7 @@ const OrderRow = styled.div`
   padding: 1rem;
   border-bottom: 1px solid #eee;
   align-items: center;
-  
+
   &:hover {
     background: #f8f9fa;
   }
@@ -65,24 +68,38 @@ const StatusBadge = styled.span<{ status: string }>`
   font-weight: 500;
   background: ${props => {
     switch (props.status) {
-      case 'pending': return '#fff3cd';
-      case 'confirmed': return '#d1ecf1';
-      case 'preparing': return '#d4edda';
-      case 'ready': return '#d1ecf1';
-      case 'delivered': return '#d4edda';
-      case 'cancelled': return '#f8d7da';
-      default: return '#e2e3e5';
+      case 'pending':
+        return '#fff3cd';
+      case 'confirmed':
+        return '#d1ecf1';
+      case 'preparing':
+        return '#d4edda';
+      case 'ready':
+        return '#d1ecf1';
+      case 'delivered':
+        return '#d4edda';
+      case 'cancelled':
+        return '#f8d7da';
+      default:
+        return '#e2e3e5';
     }
   }};
   color: ${props => {
     switch (props.status) {
-      case 'pending': return '#856404';
-      case 'confirmed': return '#0c5460';
-      case 'preparing': return '#155724';
-      case 'ready': return '#0c5460';
-      case 'delivered': return '#155724';
-      case 'cancelled': return '#721c24';
-      default: return '#6c757d';
+      case 'pending':
+        return '#856404';
+      case 'confirmed':
+        return '#0c5460';
+      case 'preparing':
+        return '#155724';
+      case 'ready':
+        return '#0c5460';
+      case 'delivered':
+        return '#155724';
+      case 'cancelled':
+        return '#721c24';
+      default:
+        return '#6c757d';
     }
   }};
 `;
@@ -120,8 +137,11 @@ const ButtonGroup = styled.div`
   flex-wrap: wrap;
 `;
 
-const AuthButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
-  background: ${(props): string => props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
+const AuthButton = styled.button<{
+  $variant?: 'primary' | 'secondary';
+}>`
+  background: ${(props): string =>
+    props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -132,7 +152,7 @@ const AuthButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -186,9 +206,9 @@ const AdminOrders: React.FC = () => {
       preparing: { he: 'בהכנה', en: 'Preparing' },
       ready: { he: 'מוכן', en: 'Ready' },
       delivered: { he: 'נמסר', en: 'Delivered' },
-      cancelled: { he: 'בוטל', en: 'Cancelled' }
+      cancelled: { he: 'בוטל', en: 'Cancelled' },
     };
-    
+
     return statusMap[status]?.[language] || status;
   };
 
@@ -198,7 +218,9 @@ const AdminOrders: React.FC = () => {
         <Title>Orders Management</Title>
         <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>Please login to access orders management.</p>
+          <p style={{ margin: '1rem 0' }}>
+            Please login to access orders management.
+          </p>
           <ButtonGroup>
             <AuthButton onClick={handleLogin}>
               Login to Access Orders
@@ -215,11 +237,11 @@ const AdminOrders: React.FC = () => {
         <Title>Orders Management</Title>
         <AuthCard>
           <strong>Access Denied</strong>
-          <p style={{ margin: '1rem 0' }}>Admin privileges required to access orders management.</p>
+          <p style={{ margin: '1rem 0' }}>
+            Admin privileges required to access orders management.
+          </p>
           <ButtonGroup>
-            <AuthButton onClick={() => navigate('/')}>
-              Go to Home
-            </AuthButton>
+            <AuthButton onClick={() => navigate('/')}>Go to Home</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -241,7 +263,10 @@ const AdminOrders: React.FC = () => {
           <strong>⚠️ Warning:</strong> {error}
           {error.includes('Failed to load') && (
             <div style={{ marginTop: '0.5rem' }}>
-              <small>Showing demo data. Please check your connection and refresh the page.</small>
+              <small>
+                Showing demo data. Please check your connection and refresh the
+                page.
+              </small>
             </div>
           )}
         </WarningBanner>
@@ -256,7 +281,7 @@ const AdminOrders: React.FC = () => {
           <div>Status</div>
           <div>Actions</div>
         </TableHeader>
-        
+
         {orders.length === 0 ? (
           <EmptyState>
             <p>No orders found</p>
@@ -274,7 +299,9 @@ const AdminOrders: React.FC = () => {
                 </StatusBadge>
               </div>
               <div>
-                <button style={{ padding: '0.5rem', marginRight: '0.5rem' }}>View</button>
+                <button style={{ padding: '0.5rem', marginRight: '0.5rem' }}>
+                  View
+                </button>
                 <button style={{ padding: '0.5rem' }}>Edit</button>
               </div>
             </OrderRow>
@@ -285,7 +312,8 @@ const AdminOrders: React.FC = () => {
       {!orders.length && !error && (
         <DemoModeBanner>
           <p style={{ color: '#1976d2', margin: 0 }}>
-            <strong>Demo Mode:</strong> Showing sample data. Connect to backend for live data.
+            <strong>Demo Mode:</strong> Showing sample data. Connect to backend
+            for live data.
           </p>
         </DemoModeBanner>
       )}
@@ -293,4 +321,4 @@ const AdminOrders: React.FC = () => {
   );
 };
 
-export default AdminOrders; 
+export default AdminOrders;

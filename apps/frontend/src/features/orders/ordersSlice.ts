@@ -21,7 +21,14 @@ export interface Order {
   customer_email: string;
   items: OrderItem[];
   total_amount: number;
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
+  status:
+    | 'pending'
+    | 'confirmed'
+    | 'preparing'
+    | 'ready'
+    | 'delivering'
+    | 'delivered'
+    | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed';
   delivery_address?: string;
   delivery_notes?: string;
@@ -58,14 +65,18 @@ const initialState: OrdersState = {
 // Async thunks
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
-  async (params: { status?: string; page?: number; limit?: number } = {}, { rejectWithValue }) => {
+  async (
+    params: { status?: string; page?: number; limit?: number } = {},
+    { rejectWithValue }
+  ) => {
     try {
       const response = await apiService.getOrders(params);
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch orders'
-        : 'Failed to fetch orders';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message || 'Failed to fetch orders'
+          : 'Failed to fetch orders';
       return rejectWithValue(errorMessage);
     }
   }
@@ -78,9 +89,11 @@ export const fetchOrderDetails = createAsyncThunk(
       const response = await apiService.getOrder(parseInt(orderId));
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch order details'
-        : 'Failed to fetch order details';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to fetch order details'
+          : 'Failed to fetch order details';
       return rejectWithValue(errorMessage);
     }
   }
@@ -88,14 +101,27 @@ export const fetchOrderDetails = createAsyncThunk(
 
 export const updateOrderStatus = createAsyncThunk(
   'orders/updateOrderStatus',
-  async ({ orderId, status, description }: { orderId: string; status: string; description?: string }, { rejectWithValue }) => {
+  async (
+    {
+      orderId,
+      status,
+      description,
+    }: { orderId: string; status: string; description?: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await apiService.updateOrderStatus(parseInt(orderId), status, description);
+      const response = await apiService.updateOrderStatus(
+        parseInt(orderId),
+        status,
+        description
+      );
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to update order status'
-        : 'Failed to update order status';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to update order status'
+          : 'Failed to update order status';
       return rejectWithValue(errorMessage);
     }
   }
@@ -108,17 +134,25 @@ const ordersSlice = createSlice({
     setSelectedOrder: (state, action: PayloadAction<Order | null>) => {
       state.selectedOrder = action.payload;
     },
-    clearOrdersError: (state) => {
+    clearOrdersError: state => {
       state.error = null;
     },
-    setOrdersPagination: (state, action: PayloadAction<{ page: number; limit: number; total: number; totalPages: number }>) => {
+    setOrdersPagination: (
+      state,
+      action: PayloadAction<{
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      }>
+    ) => {
       state.pagination = action.payload;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // Fetch orders
-      .addCase(fetchOrders.pending, (state) => {
+      .addCase(fetchOrders.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -137,7 +171,7 @@ const ordersSlice = createSlice({
         state.error = action.payload as string;
       })
       // Fetch order details
-      .addCase(fetchOrderDetails.pending, (state) => {
+      .addCase(fetchOrderDetails.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -150,14 +184,16 @@ const ordersSlice = createSlice({
         state.error = action.payload as string;
       })
       // Update order status
-      .addCase(updateOrderStatus.pending, (state) => {
+      .addCase(updateOrderStatus.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(updateOrderStatus.fulfilled, (state, action) => {
         state.isLoading = false;
         const updatedOrder = action.payload.data;
-        const orderIndex = state.orders.findIndex(o => o.id === updatedOrder.id);
+        const orderIndex = state.orders.findIndex(
+          o => o.id === updatedOrder.id
+        );
         if (orderIndex !== -1) {
           state.orders[orderIndex] = updatedOrder;
         }
@@ -172,17 +208,20 @@ const ordersSlice = createSlice({
   },
 });
 
-export const {
-  setSelectedOrder,
-  clearOrdersError,
-  setOrdersPagination,
-} = ordersSlice.actions;
+export const { setSelectedOrder, clearOrdersError, setOrdersPagination } =
+  ordersSlice.actions;
 
 // Selectors
 export const selectOrders = (state: RootState): Order[] => state.orders.orders;
-export const selectSelectedOrder = (state: RootState): Order | null => state.orders.selectedOrder;
-export const selectOrdersLoading = (state: RootState): boolean => state.orders.isLoading;
-export const selectOrdersError = (state: RootState): string | null => state.orders.error;
-export const selectOrdersPagination = (state: RootState): { page: number; limit: number; total: number; totalPages: number } => state.orders.pagination;
+export const selectSelectedOrder = (state: RootState): Order | null =>
+  state.orders.selectedOrder;
+export const selectOrdersLoading = (state: RootState): boolean =>
+  state.orders.isLoading;
+export const selectOrdersError = (state: RootState): string | null =>
+  state.orders.error;
+export const selectOrdersPagination = (
+  state: RootState
+): { page: number; limit: number; total: number; totalPages: number } =>
+  state.orders.pagination;
 
-export default ordersSlice.reducer; 
+export default ordersSlice.reducer;

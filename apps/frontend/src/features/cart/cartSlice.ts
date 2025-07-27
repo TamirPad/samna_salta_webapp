@@ -30,7 +30,11 @@ const findItemIndex = (items: CartItem[], id: string): number => {
   return items.findIndex(item => item.id === id);
 };
 
-const updateItemQuantity = (items: CartItem[], id: string, quantity: number): CartItem[] => {
+const updateItemQuantity = (
+  items: CartItem[],
+  id: string,
+  quantity: number
+): CartItem[] => {
   const index = findItemIndex(items, id);
   if (index === -1) return items;
 
@@ -54,7 +58,11 @@ const addItemToCart = (items: CartItem[], newItem: CartItem): CartItem[] => {
     // Update existing item quantity
     const existingItem = items[existingIndex];
     if (existingItem) {
-      return updateItemQuantity(items, newItem.id, existingItem.quantity + newItem.quantity);
+      return updateItemQuantity(
+        items,
+        newItem.id,
+        existingItem.quantity + newItem.quantity
+      );
     }
     return items;
   }
@@ -71,35 +79,38 @@ const cartSlice = createSlice({
       state.items = addItemToCart(state.items, action.payload);
       state.lastUpdated = Date.now();
     },
-    
+
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter(item => item.id !== action.payload);
       state.lastUpdated = Date.now();
     },
-    
-    updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
+
+    updateQuantity: (
+      state,
+      action: PayloadAction<{ id: string; quantity: number }>
+    ) => {
       const { id, quantity } = action.payload;
       state.items = updateItemQuantity(state.items, id, quantity);
       state.lastUpdated = Date.now();
     },
-    
-    clearCart: (state) => {
+
+    clearCart: state => {
       state.items = [];
       state.lastUpdated = Date.now();
     },
-    
-    toggleCart: (state) => {
+
+    toggleCart: state => {
       state.isOpen = !state.isOpen;
     },
-    
-    openCart: (state) => {
+
+    openCart: state => {
       state.isOpen = true;
     },
-    
-    closeCart: (state) => {
+
+    closeCart: state => {
       state.isOpen = false;
     },
-    
+
     // Batch operations for better performance
     addMultipleItems: (state, action: PayloadAction<CartItem[]>) => {
       let newItems = [...state.items];
@@ -109,15 +120,18 @@ const cartSlice = createSlice({
       state.items = newItems;
       state.lastUpdated = Date.now();
     },
-    
+
     removeMultipleItems: (state, action: PayloadAction<string[]>) => {
       const idsToRemove = new Set(action.payload);
       state.items = state.items.filter(item => !idsToRemove.has(item.id));
       state.lastUpdated = Date.now();
     },
-    
+
     // Update item properties
-    updateItem: (state, action: PayloadAction<{ id: string; updates: Partial<CartItem> }>) => {
+    updateItem: (
+      state,
+      action: PayloadAction<{ id: string; updates: Partial<CartItem> }>
+    ) => {
       const { id, updates } = action.payload;
       const index = findItemIndex(state.items, id);
       if (index !== -1) {
@@ -128,12 +142,19 @@ const cartSlice = createSlice({
         state.lastUpdated = Date.now();
       }
     },
-    
+
     // Move item to different position
-    moveItem: (state, action: PayloadAction<{ fromIndex: number; toIndex: number }>) => {
+    moveItem: (
+      state,
+      action: PayloadAction<{ fromIndex: number; toIndex: number }>
+    ) => {
       const { fromIndex, toIndex } = action.payload;
-      if (fromIndex >= 0 && fromIndex < state.items.length && 
-          toIndex >= 0 && toIndex < state.items.length) {
+      if (
+        fromIndex >= 0 &&
+        fromIndex < state.items.length &&
+        toIndex >= 0 &&
+        toIndex < state.items.length
+      ) {
         const newItems = [...state.items];
         const [movedItem] = newItems.splice(fromIndex, 1);
         if (movedItem) {
@@ -163,53 +184,51 @@ export const {
 
 // Base selectors
 const selectCartState = (state: { cart: CartState }): CartState => state.cart;
-export const selectCartItems = (state: { cart: CartState }): CartItem[] => state.cart.items;
+export const selectCartItems = (state: { cart: CartState }): CartItem[] =>
+  state.cart.items;
 
 // Memoized selectors for better performance
-export const selectCartItemsCount = createSelector(
-  [selectCartItems],
-  (items) => items.reduce((total, item) => total + item.quantity, 0)
+export const selectCartItemsCount = createSelector([selectCartItems], items =>
+  items.reduce((total, item) => total + item.quantity, 0)
 );
 
-export const selectCartTotal = createSelector(
-  [selectCartItems],
-  (items) => items.reduce((total, item) => total + (item.price * item.quantity), 0)
+export const selectCartTotal = createSelector([selectCartItems], items =>
+  items.reduce((total, item) => total + item.price * item.quantity, 0)
 );
 
 export const selectIsCartOpen = createSelector(
   [selectCartState],
-  (cart) => cart.isOpen
+  cart => cart.isOpen
 );
 
 export const selectCartLastUpdated = createSelector(
   [selectCartState],
-  (cart) => cart.lastUpdated
+  cart => cart.lastUpdated
 );
 
 export const selectCartItemById = createSelector(
   [selectCartItems, (_state: { cart: CartState }, itemId: string) => itemId],
-  (items: CartItem[], itemId: string): CartItem | undefined => items.find(item => item.id === itemId)
+  (items: CartItem[], itemId: string): CartItem | undefined =>
+    items.find(item => item.id === itemId)
 );
 
 export const selectCartItemsByCategory = createSelector(
-  [selectCartItems, (_state: any, category: string) => category],
+  [selectCartItems, (_state: unknown, category: string) => category],
   (items, category) => items.filter(item => item.category === category)
 );
 
 // Utility selectors
 export const selectIsCartEmpty = createSelector(
   [selectCartItems],
-  (items) => items.length === 0
+  items => items.length === 0
 );
 
-export const selectCartItemIds = createSelector(
-  [selectCartItems],
-  (items) => items.map(item => item.id)
+export const selectCartItemIds = createSelector([selectCartItems], items =>
+  items.map(item => item.id)
 );
 
-export const selectCartCategories = createSelector(
-  [selectCartItems],
-  (items) => [...new Set(items.map(item => item.category).filter(Boolean))]
+export const selectCartCategories = createSelector([selectCartItems], items =>
+  Array.from(new Set(items.map(item => item.category).filter(Boolean)))
 );
 
 export const selectCartSummary = createSelector(
@@ -218,9 +237,11 @@ export const selectCartSummary = createSelector(
     itemCount: items.length,
     totalQuantity: count,
     totalPrice: total,
-    categories: [...new Set(items.map(item => item.category).filter(Boolean))],
+    categories: Array.from(
+      new Set(items.map(item => item.category).filter(Boolean))
+    ),
   })
 );
 
 // Export the reducer
-export default cartSlice.reducer; 
+export default cartSlice.reducer;

@@ -1,5 +1,16 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  PersistConfig,
+  PersistedState,
+} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 // Import reducers
@@ -25,23 +36,17 @@ export interface RootState {
 }
 
 // Persist configuration
-const persistConfig = {
+const persistConfig: PersistConfig<RootState> = {
   key: 'root',
   storage,
-  whitelist: ['cart', 'auth', 'language'], // Only persist these reducers
-  blacklist: ['products', 'orders', 'customers', 'analytics'], // Don't persist these
-  // Transform data before persisting
-  transforms: [
-    // Add any data transformations here if needed
-  ],
-  // Migrate data between versions
-  migrate: (state: any) => {
-    // Handle state migrations here
-    return Promise.resolve(state);
+  whitelist: ['cart', 'auth', 'language', 'ui'],
+  blacklist: ['orders', 'products', 'customers', 'analytics'],
+  transforms: [],
+  migrate: async (state: any): Promise<PersistedState> => {
+    // Migration logic here
+    return state;
   },
-  // Serialize/deserialize data
   serialize: true,
-  deserialize: true,
 };
 
 // Combine reducers
@@ -62,7 +67,7 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 // Configure store with enhanced settings
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
@@ -73,7 +78,10 @@ export const store = configureStore({
       // Add custom middleware for performance monitoring
       immutableCheck: {
         // Disable in production for better performance
-        ignoredPaths: process.env['NODE_ENV'] === 'production' ? ['products', 'orders'] : [],
+        ignoredPaths:
+          process.env['NODE_ENV'] === 'production'
+            ? ['products', 'orders']
+            : [],
       },
     }),
   devTools: process.env['NODE_ENV'] !== 'production',
@@ -104,4 +112,4 @@ if (process.env['NODE_ENV'] === 'development' && (module as any).hot) {
   (module as any).hot.accept('../features/cart/cartSlice', () => {
     store.replaceReducer(persistedReducer);
   });
-} 
+}

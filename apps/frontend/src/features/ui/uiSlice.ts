@@ -21,20 +21,20 @@ const uiSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    toggleSidebar: (state) => {
+    toggleSidebar: state => {
       state.sidebarOpen = !state.sidebarOpen;
     },
-    openSidebar: (state) => {
+    openSidebar: state => {
       state.sidebarOpen = true;
     },
-    closeSidebar: (state) => {
+    closeSidebar: state => {
       state.sidebarOpen = false;
     },
     openModal: (state, action: PayloadAction<string>) => {
       state.modalOpen = true;
       state.modalType = action.payload;
     },
-    closeModal: (state) => {
+    closeModal: state => {
       state.modalOpen = false;
       state.modalType = null;
     },
@@ -51,9 +51,13 @@ export const {
 } = uiSlice.actions;
 
 // Selectors
-export const selectIsLoading = (state: { ui: UIState }): boolean => state.ui.isLoading;
-export const selectSidebarOpen = (state: { ui: UIState }): boolean => state.ui.sidebarOpen;
-export const selectModalOpen = (state: { ui: UIState }): boolean => state.ui.modalOpen;
-export const selectModalType = (state: { ui: UIState }): string | null => state.ui.modalType;
+export const selectIsLoading = (state: { ui: UIState }): boolean =>
+  state.ui.isLoading;
+export const selectSidebarOpen = (state: { ui: UIState }): boolean =>
+  state.ui.sidebarOpen;
+export const selectModalOpen = (state: { ui: UIState }): boolean =>
+  state.ui.modalOpen;
+export const selectModalType = (state: { ui: UIState }): string | null =>
+  state.ui.modalType;
 
-export default uiSlice.reducer; 
+export default uiSlice.reducer;

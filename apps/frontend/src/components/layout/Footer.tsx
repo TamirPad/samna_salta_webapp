@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
 
 const FooterContainer = styled.footer`
-  background: linear-gradient(135deg, #2F2F2F 0%, #4A4A4A 100%);
+  background: linear-gradient(135deg, #2f2f2f 0%, #4a4a4a 100%);
   color: white;
   padding: 3rem 0 1rem;
   margin-top: auto;
@@ -35,7 +35,7 @@ const FooterGrid = styled.div`
 
 const FooterSection = styled.div`
   h3 {
-    color: #D2691E;
+    color: #d2691e;
     margin-bottom: 1rem;
     font-size: 1.25rem;
   }
@@ -43,7 +43,7 @@ const FooterSection = styled.div`
   p {
     line-height: 1.6;
     margin-bottom: 1rem;
-    color: #CCC;
+    color: #ccc;
   }
 `;
 
@@ -53,12 +53,12 @@ const FooterLinks = styled.div`
   gap: 0.5rem;
 
   a {
-    color: #CCC;
+    color: #ccc;
     text-decoration: none;
     transition: color 0.3s ease;
 
     &:hover {
-      color: #D2691E;
+      color: #d2691e;
     }
   }
 `;
@@ -81,7 +81,7 @@ const SocialLinks = styled.div`
     transition: all 0.3s ease;
 
     &:hover {
-      background: #D2691E;
+      background: #d2691e;
       transform: translateY(-2px);
     }
   }
@@ -96,10 +96,10 @@ const ContactInfo = styled.div`
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #CCC;
+    color: #ccc;
 
     .icon {
-      color: #D2691E;
+      color: #d2691e;
       font-size: 1.2rem;
     }
   }
@@ -113,7 +113,7 @@ const FooterBottom = styled.div`
   font-size: 0.9rem;
 
   a {
-    color: #D2691E;
+    color: #d2691e;
     text-decoration: none;
 
     &:hover {
@@ -130,7 +130,8 @@ const Footer: React.FC = () => {
   const translations = {
     he: {
       about: 'אודות',
-      aboutText: 'סמנה סלטה - המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים.',
+      aboutText:
+        'סמנה סלטה - המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים.',
       quickLinks: 'קישורים מהירים',
       contact: 'צור קשר',
       address: 'רחוב הראשי 123, תל אביב',
@@ -144,7 +145,8 @@ const Footer: React.FC = () => {
     },
     en: {
       about: 'About',
-      aboutText: 'Samna Salta - The best bakery in town with a wide variety of fresh breads and pastries.',
+      aboutText:
+        'Samna Salta - The best bakery in town with a wide variety of fresh breads and pastries.',
       quickLinks: 'Quick Links',
       contact: 'Contact',
       address: '123 Main Street, Tel Aviv',
@@ -155,7 +157,7 @@ const Footer: React.FC = () => {
       allRightsReserved: 'All rights reserved',
       privacyPolicy: 'Privacy Policy',
       termsOfService: 'Terms of Service',
-    }
+    },
   };
 
   const t = translations[language as keyof typeof translations];
@@ -168,43 +170,79 @@ const Footer: React.FC = () => {
             <h3>🍞 {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}</h3>
             <p>{t.aboutText}</p>
             <SocialLinks>
-              <a href="https://facebook.com/samnasalta" target="_blank" rel="noopener noreferrer" aria-label="Facebook">📘</a>
-              <a href="https://instagram.com/samnasalta" target="_blank" rel="noopener noreferrer" aria-label="Instagram">📷</a>
-              <a href="https://twitter.com/samnasalta" target="_blank" rel="noopener noreferrer" aria-label="Twitter">🐦</a>
-              <a href="https://wa.me/97231234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">📱</a>
+              <a
+                href='https://facebook.com/samnasalta'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Facebook'
+              >
+                📘
+              </a>
+              <a
+                href='https://instagram.com/samnasalta'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Instagram'
+              >
+                📷
+              </a>
+              <a
+                href='https://twitter.com/samnasalta'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='Twitter'
+              >
+                🐦
+              </a>
+              <a
+                href='https://wa.me/97231234567'
+                target='_blank'
+                rel='noopener noreferrer'
+                aria-label='WhatsApp'
+              >
+                📱
+              </a>
             </SocialLinks>
           </FooterSection>
 
           <FooterSection>
             <h3>{t.quickLinks}</h3>
             <FooterLinks>
-              <Link to="/">{language === 'he' ? 'בית' : 'Home'}</Link>
-              <Link to="/menu">{language === 'he' ? 'תפריט' : 'Menu'}</Link>
-              <Link to="/cart">{language === 'he' ? 'עגלה' : 'Cart'}</Link>
-              <Link to="/order/123">{language === 'he' ? 'מעקב הזמנה' : 'Track Order'}</Link>
-              <Link to="/dashboard">{language === 'he' ? 'ניהול' : 'Manage'}</Link>
-              <Link to="/orders">{language === 'he' ? 'הזמנות' : 'Orders'}</Link>
-              <Link to="/analytics">{language === 'he' ? 'ניתוח' : 'Analytics'}</Link>
+              <Link to='/'>{language === 'he' ? 'בית' : 'Home'}</Link>
+              <Link to='/menu'>{language === 'he' ? 'תפריט' : 'Menu'}</Link>
+              <Link to='/cart'>{language === 'he' ? 'עגלה' : 'Cart'}</Link>
+              <Link to='/order/123'>
+                {language === 'he' ? 'מעקב הזמנה' : 'Track Order'}
+              </Link>
+              <Link to='/dashboard'>
+                {language === 'he' ? 'ניהול' : 'Manage'}
+              </Link>
+              <Link to='/orders'>
+                {language === 'he' ? 'הזמנות' : 'Orders'}
+              </Link>
+              <Link to='/analytics'>
+                {language === 'he' ? 'ניתוח' : 'Analytics'}
+              </Link>
             </FooterLinks>
           </FooterSection>
 
           <FooterSection>
             <h3>{t.contact}</h3>
             <ContactInfo>
-              <div className="contact-item">
-                <span className="icon">📍</span>
+              <div className='contact-item'>
+                <span className='icon'>📍</span>
                 <span>{t.address}</span>
               </div>
-              <div className="contact-item">
-                <span className="icon">📞</span>
+              <div className='contact-item'>
+                <span className='icon'>📞</span>
                 <span>{t.phone}</span>
               </div>
-              <div className="contact-item">
-                <span className="icon">✉️</span>
+              <div className='contact-item'>
+                <span className='icon'>✉️</span>
                 <span>{t.email}</span>
               </div>
-              <div className="contact-item">
-                <span className="icon">🕒</span>
+              <div className='contact-item'>
+                <span className='icon'>🕒</span>
                 <span>{t.hours}</span>
               </div>
             </ContactInfo>
@@ -213,10 +251,12 @@ const Footer: React.FC = () => {
 
         <FooterBottom>
           <p>
-            © {currentYear} {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}. {t.allRightsReserved}
+            © {currentYear} {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}.{' '}
+            {t.allRightsReserved}
           </p>
           <p>
-            <Link to="/privacy">{t.privacyPolicy}</Link> | <Link to="/terms">{t.termsOfService}</Link>
+            <Link to='/privacy'>{t.privacyPolicy}</Link> |{' '}
+            <Link to='/terms'>{t.termsOfService}</Link>
           </p>
         </FooterBottom>
       </FooterContent>
@@ -224,4 +264,4 @@ const Footer: React.FC = () => {
   );
 };
 
-export default Footer; 
+export default Footer;

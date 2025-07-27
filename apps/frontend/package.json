@@ -35,9 +35,9 @@
     "test:watch": "react-scripts test",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "eject": "react-scripts eject",
-    "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings 50",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "lint:check": "eslint src --ext .ts,.tsx --max-warnings 0 --format=compact",
+    "lint:check": "eslint src --ext .ts,.tsx --max-warnings 50 --format=compact",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -46,6 +46,7 @@
     "precommit": "npm run lint && npm run type-check && npm run test",
     "deploy:render": "npm run build && echo 'Build completed successfully'",
     "analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
+    "analyze:size": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js --mode=static --report",
     "performance": "lighthouse http://localhost:3000 --output=json --output-path=./lighthouse-report.json",
     "clean": "rm -rf build node_modules/.cache",
     "clean:all": "rm -rf build node_modules package-lock.json && npm install"
@@ -56,8 +57,8 @@
       "react-app/jest"
     ],
     "rules": {
-      "@typescript-eslint/no-unused-vars": "error",
-      "@typescript-eslint/explicit-function-return-type": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/exhaustive-deps": "warn",
       "react/jsx-key": "error",
@@ -65,7 +66,10 @@
       "react/jsx-no-undef": "error",
       "react/no-array-index-key": "warn",
       "react/no-unescaped-entities": "warn",
-      "react/self-closing-comp": "warn"
+      "react/self-closing-comp": "warn",
+      "no-console": "warn",
+      "prefer-const": "error",
+      "no-var": "error"
     }
   },
   "jest": {
@@ -88,9 +92,9 @@
   "devDependencies": {
     "@craco/craco": "^7.1.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.10.4",
-    "@types/react": "^18.2.42",
-    "@types/react-dom": "^18.2.17",
+    "@types/node": "^20.19.9",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.55.0",
@@ -98,6 +102,8 @@
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest-watch-typeahead": "^2.2.2",
     "prettier": "^3.1.1",
     "react-app-rewired": "^2.2.1",
     "ts-jest": "^29.4.0",

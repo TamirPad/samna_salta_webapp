@@ -1,10 +1,23 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { selectLanguage } from '../features/language/languageSlice';
 import { addToCart } from '../features/cart/cartSlice';
-import { selectProductsLoading, selectProducts, selectCategories, fetchProducts, fetchCategories } from '../features/products/productsSlice';
+import {
+  selectProductsLoading,
+  selectProducts,
+  selectCategories,
+  fetchProducts,
+  fetchCategories,
+} from '../features/products/productsSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { debounce } from '../utils/performance';
 import { Product, Category } from '../types';
@@ -21,7 +34,7 @@ const MenuContainer = styled.div`
 `;
 
 const MenuHeader = styled.div`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
   color: white;
   padding: 3rem 0;
   text-align: center;
@@ -107,7 +120,7 @@ const SearchInput = styled.input`
   font-size: 1rem;
 
   &:focus {
-    border-color: #8B4513;
+    border-color: #8b4513;
     box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
   }
 
@@ -138,9 +151,10 @@ const CategoryFilter = styled.div`
 
 const CategoryButton = styled.button<{ $active: boolean }>`
   padding: 0.75rem 1.25rem;
-  border: 2px solid ${(props): string => props.$active ? '#8B4513' : '#e0e0e0'};
-  background: ${(props): string => props.$active ? '#8B4513' : 'white'};
-  color: ${(props): string => props.$active ? 'white' : '#333'};
+  border: 2px solid
+    ${(props): string => (props.$active ? '#8B4513' : '#e0e0e0')};
+  background: ${(props): string => (props.$active ? '#8B4513' : 'white')};
+  color: ${(props): string => (props.$active ? 'white' : '#333')};
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -151,13 +165,13 @@ const CategoryButton = styled.button<{ $active: boolean }>`
   justify-content: center;
 
   &:hover {
-    border-color: #8B4513;
-    background: ${(props): string => props.$active ? '#8B4513' : '#f8f9fa'};
+    border-color: #8b4513;
+    background: ${(props): string => (props.$active ? '#8B4513' : '#f8f9fa')};
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 `;
@@ -187,7 +201,7 @@ const ProductCard = styled(motion.div)`
   }
 
   &:focus-within {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 `;
@@ -195,14 +209,14 @@ const ProductCard = styled(motion.div)`
 const ProductImage = styled.div<{ imageUrl?: string; emoji?: string }>`
   width: 100%;
   height: 200px;
-  background: ${(props): string => props.imageUrl 
-    ? `url(${props.imageUrl}) center/cover` 
-    : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-  };
+  background: ${(props): string =>
+    props.imageUrl
+      ? `url(${props.imageUrl}) center/cover`
+      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: ${(props): string => props.emoji ? '4rem' : '3rem'};
+  font-size: ${(props): string => (props.emoji ? '4rem' : '3rem')};
   color: white;
   position: relative;
 `;
@@ -233,7 +247,7 @@ const ProductHeader = styled.div`
 const ProductName = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0;
   flex: 1;
   line-height: 1.3;
@@ -242,7 +256,7 @@ const ProductName = styled.h3`
 const ProductPrice = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #8B4513;
+  color: #8b4513;
   margin-left: 1rem;
 `;
 
@@ -269,7 +283,7 @@ const MetaItem = styled.div`
 
 const AddToCartButton = styled.button`
   width: 100%;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   padding: 0.875rem;
@@ -284,12 +298,12 @@ const AddToCartButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #D2691E;
+    background: #d2691e;
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
@@ -324,7 +338,7 @@ const MenuPage: React.FC = () => {
   const isLoading = useAppSelector(selectProductsLoading);
   const products = useAppSelector(selectProducts);
   const categories = useAppSelector(selectCategories);
-  
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -335,40 +349,48 @@ const MenuPage: React.FC = () => {
   }, [dispatch]);
 
   // Memoized translations
-  const translations = useMemo(() => ({
-    he: {
-      menuTitle: 'תפריט סמנה סלטה',
-      menuSubtitle: 'גלה את המגוון הרחב שלנו של לחמים ומתוקים מסורתיים',
-      allCategories: 'כל הקטגוריות',
-      searchPlaceholder: 'חפש מוצרים...',
-      addToCart: 'הוסף לעגלה',
-      preparationTime: 'זמן הכנה',
-      minutes: 'דקות',
-      new: 'חדש',
-      popular: 'פופולרי',
-      noProducts: 'לא נמצאו מוצרים',
-      noProductsDesc: 'נסה לשנות את הפילטרים שלך או לחפש משהו אחר',
-      resultsCount: 'נמצאו {count} מוצרים',
-      loading: 'טוען מוצרים...',
-    },
-    en: {
-      menuTitle: 'Samna Salta Menu',
-      menuSubtitle: 'Discover our wide variety of traditional breads and pastries',
-      allCategories: 'All Categories',
-      searchPlaceholder: 'Search products...',
-      addToCart: 'Add to Cart',
-      preparationTime: 'Prep time',
-      minutes: 'min',
-      new: 'New',
-      popular: 'Popular',
-      noProducts: 'No products found',
-      noProductsDesc: 'Try changing your filters or search for something else',
-      resultsCount: 'Found {count} products',
-      loading: 'Loading products...',
-    }
-  }), []);
+  const translations = useMemo(
+    () => ({
+      he: {
+        menuTitle: 'תפריט סמנה סלטה',
+        menuSubtitle: 'גלה את המגוון הרחב שלנו של לחמים ומתוקים מסורתיים',
+        allCategories: 'כל הקטגוריות',
+        searchPlaceholder: 'חפש מוצרים...',
+        addToCart: 'הוסף לעגלה',
+        preparationTime: 'זמן הכנה',
+        minutes: 'דקות',
+        new: 'חדש',
+        popular: 'פופולרי',
+        noProducts: 'לא נמצאו מוצרים',
+        noProductsDesc: 'נסה לשנות את הפילטרים שלך או לחפש משהו אחר',
+        resultsCount: 'נמצאו {count} מוצרים',
+        loading: 'טוען מוצרים...',
+      },
+      en: {
+        menuTitle: 'Samna Salta Menu',
+        menuSubtitle:
+          'Discover our wide variety of traditional breads and pastries',
+        allCategories: 'All Categories',
+        searchPlaceholder: 'Search products...',
+        addToCart: 'Add to Cart',
+        preparationTime: 'Prep time',
+        minutes: 'min',
+        new: 'New',
+        popular: 'Popular',
+        noProducts: 'No products found',
+        noProductsDesc:
+          'Try changing your filters or search for something else',
+        resultsCount: 'Found {count} products',
+        loading: 'Loading products...',
+      },
+    }),
+    []
+  );
 
-  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language]
+  );
 
   // Memoized data processing
   const displayProducts = useMemo((): Product[] => {
@@ -379,12 +401,12 @@ const MenuPage: React.FC = () => {
   }, [products]);
 
   const displayCategories = useMemo((): Category[] => {
-    const allCategories: Category = { 
-      id: 0, 
-      name: t.allCategories, 
-      name_en: t.allCategories, 
+    const allCategories: Category = {
+      id: 0,
+      name: t.allCategories,
+      name_en: t.allCategories,
       name_he: t.allCategories,
-      is_active: true
+      is_active: true,
     };
     if (!categories || !Array.isArray(categories) || categories.length === 0) {
       return [allCategories];
@@ -392,7 +414,7 @@ const MenuPage: React.FC = () => {
     // Cast categories to the correct type and ensure is_active property exists
     const typedCategories = categories.map(cat => ({
       ...cat,
-      is_active: (cat as Category & { is_active?: boolean }).is_active ?? true
+      is_active: (cat as Category & { is_active?: boolean }).is_active ?? true,
     })) as Category[];
     return [allCategories, ...typedCategories];
   }, [categories, t.allCategories]);
@@ -402,24 +424,26 @@ const MenuPage: React.FC = () => {
     if (!Array.isArray(displayProducts)) {
       return [];
     }
-    
+
     let filtered = displayProducts;
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => 
-        product.category_id === parseInt(selectedCategory)
+      filtered = filtered.filter(
+        product => product.category_id === parseInt(selectedCategory)
       );
     }
 
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(product => 
-        product.name.toLowerCase().includes(query) ||
-        (product.description && product.description.toLowerCase().includes(query)) ||
-        (product.name_en && product.name_en.toLowerCase().includes(query)) ||
-        (product.name_he && product.name_he.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        product =>
+          product.name.toLowerCase().includes(query) ||
+          (product.description &&
+            product.description.toLowerCase().includes(query)) ||
+          (product.name_en && product.name_en.toLowerCase().includes(query)) ||
+          (product.name_he && product.name_he.toLowerCase().includes(query))
       );
     }
 
@@ -437,37 +461,63 @@ const MenuPage: React.FC = () => {
   );
 
   // Memoized handlers
-  const handleAddToCart = useCallback((product: Product) => {
-    dispatch(addToCart({
-      id: product.id.toString(),
-      name: language === 'he' ? product.name_he || product.name : product.name_en || product.name,
-      price: product.price,
-      quantity: 1,
-      image: product.image_url || product.image || '',
-      category: product.category?.name || '',
-    }));
-  }, [dispatch, language]);
+  const handleAddToCart = useCallback(
+    (product: Product) => {
+      dispatch(
+        addToCart({
+          id: product.id.toString(),
+          name:
+            language === 'he'
+              ? product.name_he || product.name
+              : product.name_en || product.name,
+          price: product.price,
+          quantity: 1,
+          image: product.image_url || product.image || '',
+          category: product.category?.name || '',
+        })
+      );
+    },
+    [dispatch, language]
+  );
 
   const handleCategoryChange = useCallback((categoryId: number) => {
     setSelectedCategory(categoryId === 0 ? 'all' : categoryId.toString());
   }, []);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSearch(e.target.value);
-  }, [debouncedSearch]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      debouncedSearch(e.target.value);
+    },
+    [debouncedSearch]
+  );
 
   // Utility functions
-  const getProductName = useCallback((product: Product): string => {
-    return language === 'he' ? product.name_he || product.name : product.name_en || product.name;
-  }, [language]);
+  const getProductName = useCallback(
+    (product: Product): string => {
+      return language === 'he'
+        ? product.name_he || product.name
+        : product.name_en || product.name;
+    },
+    [language]
+  );
 
-  const getProductDescription = useCallback((product: Product): string => {
-    return language === 'he' ? product.description_he || '' : product.description_en || product.description || '';
-  }, [language]);
+  const getProductDescription = useCallback(
+    (product: Product): string => {
+      return language === 'he'
+        ? product.description_he || ''
+        : product.description_en || product.description || '';
+    },
+    [language]
+  );
 
-  const getCategoryName = useCallback((category: Category): string => {
-    return language === 'he' ? category.name_he || category.name : category.name_en || category.name;
-  }, [language]);
+  const getCategoryName = useCallback(
+    (category: Category): string => {
+      return language === 'he'
+        ? category.name_he || category.name
+        : category.name_en || category.name;
+    },
+    [language]
+  );
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -485,90 +535,103 @@ const MenuPage: React.FC = () => {
           <SearchContainer>
             <SearchIconWrapper>🔍</SearchIconWrapper>
             <SearchInput
-              type="text"
+              type='text'
               placeholder={t.searchPlaceholder}
               onChange={handleSearchChange}
               aria-label={t.searchPlaceholder}
             />
           </SearchContainer>
-          
+
           <CategoryFilter>
-            {displayCategories.map((category): JSX.Element => (
-              <CategoryButton
-                key={category.id}
-                $active={selectedCategory === category.id.toString()}
-                onClick={() => handleCategoryChange(category.id)}
-                aria-label={`Filter by ${getCategoryName(category)}`}
-              >
-                {getCategoryName(category)}
-              </CategoryButton>
-            ))}
+            {displayCategories.map(
+              (category): JSX.Element => (
+                <CategoryButton
+                  key={category.id}
+                  $active={selectedCategory === category.id.toString()}
+                  onClick={() => handleCategoryChange(category.id)}
+                  aria-label={`Filter by ${getCategoryName(category)}`}
+                >
+                  {getCategoryName(category)}
+                </CategoryButton>
+              )
+            )}
           </CategoryFilter>
         </FilterSection>
 
         <ResultsCount>
-          {t.resultsCount.replace('{count}', filteredProducts.length.toString())}
+          {t.resultsCount.replace(
+            '{count}',
+            filteredProducts.length.toString()
+          )}
         </ResultsCount>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode='wait'>
           {filteredProducts.length > 0 ? (
             <ProductsGrid>
-              {filteredProducts.map((product, index): JSX.Element => (
-                <ProductCard
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`View ${getProductName(product)} - ₪${product.price}`}
-                  onKeyDown={(e): void => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      // Handle product click if needed
-                    }
-                  }}
-                >
-                  <ProductImage 
-                    imageUrl={product.image_url || product.image || ''} 
-                    emoji={product.emoji || ''}
+              {filteredProducts.map(
+                (product, index): JSX.Element => (
+                  <ProductCard
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    tabIndex={0}
+                    role='button'
+                    aria-label={`View ${getProductName(product)} - ₪${product.price}`}
+                    onKeyDown={(e): void => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        // Handle product click if needed
+                      }
+                    }}
                   >
-                    {product.emoji && (
-                      <span role="img" aria-label={getProductName(product)}>
-                        {product.emoji}
-                      </span>
-                    )}
-                    {product.is_new && <ProductBadge>{t.new}</ProductBadge>}
-                    {product.is_popular && <ProductBadge>{t.popular}</ProductBadge>}
-                  </ProductImage>
-                  
-                  <ProductInfo>
-                    <ProductHeader>
-                      <ProductName>{getProductName(product)}</ProductName>
-                      <ProductPrice>₪{product.price}</ProductPrice>
-                    </ProductHeader>
-                    
-                    <ProductDescription>{getProductDescription(product)}</ProductDescription>
-                    
-                    <ProductMeta>
-                      <MetaItem>
-                        <span style={{ fontSize: '14px' }}>⏱️</span>
-                        {product.preparation_time_minutes || product.preparation_time} {t.minutes}
-                      </MetaItem>
-                    </ProductMeta>
-                    
-                    <AddToCartButton
-                      onClick={(): void => handleAddToCart(product)}
-                      disabled={!product.is_active}
-                      aria-label={`Add ${getProductName(product)} to cart`}
+                    <ProductImage
+                      imageUrl={product.image_url || product.image || ''}
+                      emoji={product.emoji || ''}
                     >
-                      🛒
-                      {t.addToCart}
-                    </AddToCartButton>
-                  </ProductInfo>
-                </ProductCard>
-              ))}
+                      {product.emoji && (
+                        <span role='img' aria-label={getProductName(product)}>
+                          {product.emoji}
+                        </span>
+                      )}
+                      {product.is_new && <ProductBadge>{t.new}</ProductBadge>}
+                      {product.is_popular && (
+                        <ProductBadge>{t.popular}</ProductBadge>
+                      )}
+                    </ProductImage>
+
+                    <ProductInfo>
+                      <ProductHeader>
+                        <ProductName>{getProductName(product)}</ProductName>
+                        <ProductPrice>₪{product.price}</ProductPrice>
+                      </ProductHeader>
+
+                      <ProductDescription>
+                        {getProductDescription(product)}
+                      </ProductDescription>
+
+                      <ProductMeta>
+                        <MetaItem>
+                          <span style={{ fontSize: '14px' }}>⏱️</span>
+                          {product.preparation_time_minutes ||
+                            product.preparation_time}{' '}
+                          {t.minutes}
+                        </MetaItem>
+                      </ProductMeta>
+
+                      <AddToCartButton
+                        onClick={(): void => handleAddToCart(product)}
+                        disabled={!product.is_active}
+                        aria-label={`Add ${getProductName(product)} to cart`}
+                      >
+                        🛒
+                        {t.addToCart}
+                      </AddToCartButton>
+                    </ProductInfo>
+                  </ProductCard>
+                )
+              )}
             </ProductsGrid>
           ) : (
             <EmptyState>
@@ -583,4 +646,4 @@ const MenuPage: React.FC = () => {
   );
 };
 
-export default React.memo(MenuPage); 
+export default React.memo(MenuPage);

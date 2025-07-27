@@ -1,18 +1,38 @@
 module.exports = {
-  testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
-  testMatch: [
-    '**/__tests__/**/*.js',
-    '**/?(*.)+(spec|test).js'
-  ],
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/**/*.test.js',
-    '!src/server.js'
+    '!src/**/*.spec.js',
+    '!src/**/__tests__/**',
+    '!src/**/__mocks__/**',
+    '!src/server.js',
+    '!src/database/migrate.js',
+    '!src/database/seed.js',
   ],
+  coverageThreshold: {
+    global: {
+      branches: 100,
+      functions: 100,
+      lines: 100,
+      statements: 100,
+    },
+  },
+  coverageReporters: ['text', 'lcov', 'html', 'json'],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
-  setupFilesAfterEnv: [],
+  testEnvironment: 'node',
+  testMatch: [
+    '<rootDir>/src/**/__tests__/**/*.js',
+    '<rootDir>/src/**/*.{test,spec}.js',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/coverage/',
+  ],
+  transform: {},
+  moduleFileExtensions: ['js', 'json'],
+  clearMocks: true,
+  collectCoverage: true,
+  verbose: true,
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.js'],
   testTimeout: 10000,
-  verbose: true
 }; 

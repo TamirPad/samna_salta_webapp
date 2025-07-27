@@ -59,14 +59,19 @@ const initialState: CustomersState = {
 // Async thunks
 export const fetchCustomers = createAsyncThunk(
   'customers/fetchCustomers',
-  async (params: { page?: number; limit?: number; search?: string } = {}, { rejectWithValue }) => {
+  async (
+    params: { page?: number; limit?: number; search?: string } = {},
+    { rejectWithValue }
+  ) => {
     try {
       const response = await apiService.getCustomers(params);
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch customers'
-        : 'Failed to fetch customers';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to fetch customers'
+          : 'Failed to fetch customers';
       return rejectWithValue(errorMessage);
     }
   }
@@ -79,9 +84,11 @@ export const fetchCustomerDetails = createAsyncThunk(
       const response = await apiService.getCustomer(parseInt(customerId));
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch customer details'
-        : 'Failed to fetch customer details';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to fetch customer details'
+          : 'Failed to fetch customer details';
       return rejectWithValue(errorMessage);
     }
   }
@@ -89,14 +96,22 @@ export const fetchCustomerDetails = createAsyncThunk(
 
 export const updateCustomer = createAsyncThunk(
   'customers/updateCustomer',
-  async ({ id, customerData }: { id: string; customerData: Partial<Customer> }, { rejectWithValue }) => {
+  async (
+    { id, customerData }: { id: string; customerData: Partial<Customer> },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await apiService.updateCustomer(parseInt(id), customerData);
+      const response = await apiService.updateCustomer(
+        parseInt(id),
+        customerData
+      );
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to update customer'
-        : 'Failed to update customer';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to update customer'
+          : 'Failed to update customer';
       return rejectWithValue(errorMessage);
     }
   }
@@ -109,9 +124,11 @@ export const deleteCustomer = createAsyncThunk(
       await apiService.deleteCustomer(parseInt(customerId));
       return customerId;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to delete customer'
-        : 'Failed to delete customer';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to delete customer'
+          : 'Failed to delete customer';
       return rejectWithValue(errorMessage);
     }
   }
@@ -121,21 +138,27 @@ const customersSlice = createSlice({
   name: 'customers',
   initialState,
   reducers: {
-    setSelectedCustomer: (state, action: PayloadAction<CustomerDetails | null>) => {
+    setSelectedCustomer: (
+      state,
+      action: PayloadAction<CustomerDetails | null>
+    ) => {
       state.selectedCustomer = action.payload;
     },
-    clearCustomersError: (state) => {
+    clearCustomersError: state => {
       state.error = null;
     },
-    setCustomersPagination: (state, action: PayloadAction<{ page: number; limit: number }>) => {
+    setCustomersPagination: (
+      state,
+      action: PayloadAction<{ page: number; limit: number }>
+    ) => {
       state.pagination.page = action.payload.page;
       state.pagination.limit = action.payload.limit;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // Fetch customers
-      .addCase(fetchCustomers.pending, (state) => {
+      .addCase(fetchCustomers.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -149,7 +172,7 @@ const customersSlice = createSlice({
         state.error = action.payload as string;
       })
       // Fetch customer details
-      .addCase(fetchCustomerDetails.pending, (state) => {
+      .addCase(fetchCustomerDetails.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -162,7 +185,7 @@ const customersSlice = createSlice({
         state.error = action.payload as string;
       })
       // Update customer
-      .addCase(updateCustomer.pending, (state) => {
+      .addCase(updateCustomer.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -170,13 +193,21 @@ const customersSlice = createSlice({
         state.isLoading = false;
         // Update the customer in the list
         const updatedCustomer = action.payload.data;
-        const index = state.customers.findIndex(c => c.id === updatedCustomer.id);
+        const index = state.customers.findIndex(
+          c => c.id === updatedCustomer.id
+        );
         if (index !== -1) {
           state.customers[index] = updatedCustomer;
         }
         // Update selected customer if it's the same one
-        if (state.selectedCustomer && state.selectedCustomer.id === updatedCustomer.id) {
-          state.selectedCustomer = { ...state.selectedCustomer, ...updatedCustomer };
+        if (
+          state.selectedCustomer &&
+          state.selectedCustomer.id === updatedCustomer.id
+        ) {
+          state.selectedCustomer = {
+            ...state.selectedCustomer,
+            ...updatedCustomer,
+          };
         }
       })
       .addCase(updateCustomer.rejected, (state, action) => {
@@ -186,13 +217,25 @@ const customersSlice = createSlice({
   },
 });
 
-export const { setSelectedCustomer, clearCustomersError, setCustomersPagination } = customersSlice.actions;
+export const {
+  setSelectedCustomer,
+  clearCustomersError,
+  setCustomersPagination,
+} = customersSlice.actions;
 
 // Selectors
-export const selectCustomers = (state: RootState): Customer[] => state.customers.customers;
-export const selectSelectedCustomer = (state: RootState): CustomerDetails | null => state.customers.selectedCustomer;
-export const selectCustomersLoading = (state: RootState): boolean => state.customers.isLoading;
-export const selectCustomersError = (state: RootState): string | null => state.customers.error;
-export const selectCustomersPagination = (state: RootState): { page: number; limit: number; total: number; pages: number } => state.customers.pagination;
+export const selectCustomers = (state: RootState): Customer[] =>
+  state.customers.customers;
+export const selectSelectedCustomer = (
+  state: RootState
+): CustomerDetails | null => state.customers.selectedCustomer;
+export const selectCustomersLoading = (state: RootState): boolean =>
+  state.customers.isLoading;
+export const selectCustomersError = (state: RootState): string | null =>
+  state.customers.error;
+export const selectCustomersPagination = (
+  state: RootState
+): { page: number; limit: number; total: number; pages: number } =>
+  state.customers.pagination;
 
-export default customersSlice.reducer; 
+export default customersSlice.reducer;

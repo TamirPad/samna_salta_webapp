@@ -128,7 +128,9 @@ describe('Auth Slice', () => {
         error: 'Previous error',
       };
 
-      const newState = authReducer(state, { type: initializeAuth.pending.type });
+      const newState = authReducer(state, {
+        type: initializeAuth.pending.type,
+      });
 
       expect(newState.isLoading).toBe(true);
       expect(newState.error).toBe(null);
@@ -143,7 +145,7 @@ describe('Auth Slice', () => {
       const newState = authReducer(state, {
         type: initializeAuth.fulfilled.type,
         payload: { user: mockUser, isAuthenticated: true },
-        meta: { requestId: 'test-id' }
+        meta: { requestId: 'test-id' },
       });
 
       expect(newState.isLoading).toBe(false);
@@ -162,7 +164,7 @@ describe('Auth Slice', () => {
       const newState = authReducer(state, {
         type: initializeAuth.fulfilled.type,
         payload: { user: null, isAuthenticated: false },
-        meta: { requestId: 'test-id' }
+        meta: { requestId: 'test-id' },
       });
 
       expect(newState.isLoading).toBe(false);
@@ -182,7 +184,7 @@ describe('Auth Slice', () => {
         type: initializeAuth.rejected.type,
         payload: 'Authentication failed',
         meta: { requestId: 'test-id' },
-        error: { message: 'Failed' }
+        error: { message: 'Failed' },
       });
 
       expect(newState.isLoading).toBe(false);
@@ -242,18 +244,18 @@ describe('Auth Slice', () => {
   describe('state transitions', () => {
     it('should handle complete login flow', () => {
       let state = authReducer(undefined, { type: 'unknown' });
-      
+
       // Start login
       state = authReducer(state, loginStart());
       expect(state.isLoading).toBe(true);
       expect(state.error).toBe(null);
-      
+
       // Login success
       state = authReducer(state, loginSuccess(mockUser));
       expect(state.isLoading).toBe(false);
       expect(state.isAuthenticated).toBe(true);
       expect(state.user).toEqual(mockUser);
-      
+
       // Logout
       state = authReducer(state, logoutUser());
       expect(state.user).toBe(null);
@@ -262,17 +264,17 @@ describe('Auth Slice', () => {
 
     it('should handle login failure flow', () => {
       let state = authReducer(undefined, { type: 'unknown' });
-      
+
       // Start login
       state = authReducer(state, loginStart());
       expect(state.isLoading).toBe(true);
-      
+
       // Login failure
       state = authReducer(state, loginFailure('Invalid credentials'));
       expect(state.isLoading).toBe(false);
       expect(state.error).toBe('Invalid credentials');
       expect(state.isAuthenticated).toBe(false);
-      
+
       // Clear error
       state = authReducer(state, clearError());
       expect(state.error).toBe(null);
@@ -280,23 +282,23 @@ describe('Auth Slice', () => {
 
     it('should handle authentication initialization flow', () => {
       let state = authReducer(undefined, { type: 'unknown' });
-      
+
       // Start initialization
       state = authReducer(state, { type: initializeAuth.pending.type });
       expect(state.isLoading).toBe(true);
       expect(state.isInitialized).toBe(false);
-      
+
       // Initialization success with auth
       state = authReducer(state, {
         type: initializeAuth.fulfilled.type,
         payload: { user: mockUser, isAuthenticated: true },
-        meta: { requestId: 'test-id' }
+        meta: { requestId: 'test-id' },
       });
       expect(state.isLoading).toBe(false);
       expect(state.isAuthenticated).toBe(true);
       expect(state.user).toEqual(mockUser);
       expect(state.isInitialized).toBe(true);
-      
+
       // Logout
       state = authReducer(state, logoutUser());
       expect(state.user).toBe(null);
@@ -304,4 +306,4 @@ describe('Auth Slice', () => {
       expect(state.isInitialized).toBe(true); // Should remain true
     });
   });
-}); 
+});

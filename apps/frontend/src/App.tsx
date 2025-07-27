@@ -1,4 +1,12 @@
-import React, { Suspense, lazy, useMemo, useEffect } from 'react';
+import React, {
+  Suspense,
+  lazy,
+  useMemo,
+  useEffect,
+  ReactElement,
+  ReactNode,
+  useState,
+} from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,11 +19,11 @@ import AuthProvider from './components/AuthProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAppSelector } from './hooks/redux';
 import { selectLanguage } from './features/language/languageSlice';
-import { 
-  saveRouteState, 
-  handlePageRefresh, 
+import {
+  saveRouteState,
+  handlePageRefresh,
   wasPageRefreshed,
-  clearNavigationError 
+  clearNavigationError,
 } from './utils/routeUtils';
 
 // Lazy load pages with explicit chunk names for better webpack handling
@@ -38,34 +46,41 @@ interface AnimatedRouteProps {
 }
 
 // Animated Route Wrapper Component
-const AnimatedRoute: React.FC<AnimatedRouteProps> = React.memo(({ children }): JSX.Element => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.3 }}
-  >
-    {children}
-  </motion.div>
-));
+const AnimatedRoute: React.FC<AnimatedRouteProps> = React.memo(
+  ({ children }): JSX.Element => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  )
+);
 
 AnimatedRoute.displayName = 'AnimatedRoute';
 
 // Error Fallback Component for Chunk Loading Errors
 const ChunkErrorFallback: React.FC = () => (
-  <div style={{ 
-    display: 'flex', 
-    flexDirection: 'column', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    height: '50vh',
-    textAlign: 'center',
-    padding: '2rem'
-  }}>
+  <div
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '50vh',
+      textAlign: 'center',
+      padding: '2rem',
+    }}
+  >
     <h2>Loading Error</h2>
-    <p>There was an issue loading this page. Please refresh the page and try again.</p>
-    <button 
-      onClick={(): void => window.location.reload()} 
+    <p>
+      There was an issue loading this page. Please refresh the page and try
+      again.
+    </p>
+    <button
+      onClick={(): void => window.location.reload()}
       style={{
         padding: '0.5rem 1rem',
         backgroundColor: '#8B4513',
@@ -73,7 +88,7 @@ const ChunkErrorFallback: React.FC = () => (
         border: 'none',
         borderRadius: '4px',
         cursor: 'pointer',
-        marginTop: '1rem'
+        marginTop: '1rem',
       }}
     >
       Refresh Page
@@ -99,7 +114,7 @@ const RoutePersistence: React.FC = () => {
   useEffect(() => {
     // Save current route state
     saveRouteState(location.pathname, location.search, location.hash);
-    
+
     // Clear any navigation errors when successfully navigating
     clearNavigationError();
   }, [location]);
@@ -118,100 +133,98 @@ const App: React.FC = (): JSX.Element => {
   const language = useAppSelector(selectLanguage);
 
   // Memoized route rendering
-  const routeElements = useMemo((): JSX.Element[] => 
-    [
-      { path: '/', component: LoginPage },
-      { path: '/home', component: HomePage },
-      { path: '/menu', component: MenuPage },
-      { path: '/cart', component: CartPage },
-      { path: '/checkout', component: CheckoutPage },
-      { path: '/order/:orderId', component: OrderTrackingPage },
-      { path: '/login', component: LoginPage },
-      { 
-        path: '/admin', 
-        component: Dashboard,
-        protected: true,
-        requireAdmin: true
-      },
-      { 
-        path: '/admin/orders', 
-        component: Orders,
-        protected: true,
-        requireAdmin: true
-      },
-      { 
-        path: '/admin/products', 
-        component: Products,
-        protected: true,
-        requireAdmin: true
-      },
-      { 
-        path: '/admin/customers', 
-        component: Customers,
-        protected: true,
-        requireAdmin: true
-      },
-      { 
-        path: '/admin/analytics', 
-        component: Analytics,
-        protected: true,
-        requireAdmin: true
-      },
-    ].map((route): JSX.Element => {
-      const Component = route.component;
-      
-      const element = (
-        <ErrorBoundary fallback={<ChunkErrorFallback />}>
-          <AnimatedRoute>
-            <Component />
-          </AnimatedRoute>
-        </ErrorBoundary>
-      );
+  const routeElements = useMemo(
+    (): JSX.Element[] =>
+      [
+        { path: '/', component: LoginPage },
+        { path: '/home', component: HomePage },
+        { path: '/menu', component: MenuPage },
+        { path: '/cart', component: CartPage },
+        { path: '/checkout', component: CheckoutPage },
+        { path: '/order/:orderId', component: OrderTrackingPage },
+        { path: '/login', component: LoginPage },
+        {
+          path: '/admin',
+          component: Dashboard,
+          protected: true,
+          requireAdmin: true,
+        },
+        {
+          path: '/admin/orders',
+          component: Orders,
+          protected: true,
+          requireAdmin: true,
+        },
+        {
+          path: '/admin/products',
+          component: Products,
+          protected: true,
+          requireAdmin: true,
+        },
+        {
+          path: '/admin/customers',
+          component: Customers,
+          protected: true,
+          requireAdmin: true,
+        },
+        {
+          path: '/admin/analytics',
+          component: Analytics,
+          protected: true,
+          requireAdmin: true,
+        },
+      ].map((route): JSX.Element => {
+        const Component = route.component;
 
-      // Wrap with ProtectedRoute if needed
-      if (route.protected) {
-        return (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={
-              <ProtectedRoute requireAdmin={route.requireAdmin}>
-                {element}
-              </ProtectedRoute>
-            }
-          />
+        const element = (
+          <ErrorBoundary fallback={<ChunkErrorFallback />}>
+            <AnimatedRoute>
+              <Component />
+            </AnimatedRoute>
+          </ErrorBoundary>
         );
-      }
 
-      return (
-        <Route
-          key={route.path}
-          path={route.path}
-          element={element}
-        />
-      );
-    }), []
+        // Wrap with ProtectedRoute if needed
+        if (route.protected) {
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <ProtectedRoute requireAdmin={route.requireAdmin}>
+                  {element}
+                </ProtectedRoute>
+              }
+            />
+          );
+        }
+
+        return <Route key={route.path} path={route.path} element={element} />;
+      }),
+    []
   );
 
   // Memoized 404 route
-  const notFoundRoute = useMemo((): JSX.Element => (
-    <Route path="*" element={<NotFoundPage />} />
-  ), []);
+  const notFoundRoute = useMemo(
+    (): JSX.Element => <Route path='*' element={<NotFoundPage />} />,
+    []
+  );
 
   const location = useLocation();
-  const isLoginPage = location.pathname === '/' || location.pathname === '/login';
+  const isLoginPage =
+    location.pathname === '/' || location.pathname === '/login';
 
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <div className="App" dir={language === 'he' ? 'rtl' : 'ltr'}>
+        <div className='App' dir={language === 'he' ? 'rtl' : 'ltr'}>
           <ScrollToTop />
           <RoutePersistence />
           <NetworkStatus />
           {!isLoginPage && <Header />}
-          <main className="main-content">
+          <main className='main-content'>
             <Suspense fallback={<LoadingSpinner />}>
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode='wait'>
                 <Routes>
                   {routeElements}
                   {notFoundRoute}
@@ -226,4 +239,4 @@ const App: React.FC = (): JSX.Element => {
   );
 };
 
-export default React.memo(App); 
+export default React.memo(App);

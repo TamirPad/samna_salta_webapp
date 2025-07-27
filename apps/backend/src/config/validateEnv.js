@@ -39,10 +39,22 @@ const validateEnvironment = () => {
       }
     });
 
-    // Validate JWT secret strength
-    if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-      errors.push('JWT_SECRET must be at least 32 characters long in production');
+      // Validate JWT secret strength
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+    errors.push('JWT_SECRET must be at least 32 characters long in production');
+  }
+  
+  // Validate JWT secret complexity in production
+  if (process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    const hasUpperCase = /[A-Z]/.test(process.env.JWT_SECRET);
+    const hasLowerCase = /[a-z]/.test(process.env.JWT_SECRET);
+    const hasNumbers = /\d/.test(process.env.JWT_SECRET);
+    const hasSpecialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(process.env.JWT_SECRET);
+    
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChars) {
+      errors.push('JWT_SECRET must contain uppercase, lowercase, numbers, and special characters in production');
     }
+  }
   }
 
   // Validate database configuration

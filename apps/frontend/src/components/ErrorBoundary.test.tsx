@@ -1,3 +1,4 @@
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import { render, screen, fireEvent } from '../utils/test-utils';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -10,9 +11,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }): JSX.Element => {
 };
 
 // Custom fallback component
-const CustomFallback = (): JSX.Element => (
-  <div>Custom fallback</div>
-);
+const CustomFallback = (): JSX.Element => <div>Custom fallback</div>;
 
 describe('ErrorBoundary', () => {
   beforeEach(() => {
@@ -42,12 +41,14 @@ describe('ErrorBoundary', () => {
     );
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText(/We're sorry, but something unexpected happened/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/We're sorry, but something unexpected happened/)
+    ).toBeInTheDocument();
   });
 
   it('should render custom message when provided', () => {
     render(
-      <ErrorBoundary customMessage="Custom error message">
+      <ErrorBoundary customMessage='Custom error message'>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
@@ -68,7 +69,7 @@ describe('ErrorBoundary', () => {
 
   it('should call onError callback when error occurs', () => {
     const onError = jest.fn();
-    
+
     render(
       <ErrorBoundary onError={onError}>
         <ThrowError shouldThrow={true} />
@@ -78,7 +79,7 @@ describe('ErrorBoundary', () => {
     expect(onError).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
-        componentStack: expect.any(String)
+        componentStack: expect.any(String),
       })
     );
   });
@@ -87,7 +88,7 @@ describe('ErrorBoundary', () => {
     const reload = jest.fn();
     Object.defineProperty(window, 'location', {
       value: { reload },
-      writable: true
+      writable: true,
     });
 
     render(
@@ -104,7 +105,7 @@ describe('ErrorBoundary', () => {
     const href = jest.fn();
     Object.defineProperty(window, 'location', {
       value: { href },
-      writable: true
+      writable: true,
     });
 
     render(
@@ -121,7 +122,7 @@ describe('ErrorBoundary', () => {
     const href = jest.fn();
     Object.defineProperty(window, 'location', {
       value: { href },
-      writable: true
+      writable: true,
     });
 
     render(
@@ -145,8 +146,10 @@ describe('ErrorBoundary', () => {
   });
 
   it('should log error to console when error occurs', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
@@ -157,8 +160,8 @@ describe('ErrorBoundary', () => {
       'Error caught by boundary:',
       expect.any(Error),
       expect.objectContaining({
-        componentStack: expect.any(String)
+        componentStack: expect.any(String),
       })
     );
   });
-}); 
+});

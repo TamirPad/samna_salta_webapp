@@ -51,9 +51,11 @@ export const fetchDashboardAnalytics = createAsyncThunk(
       const response = await apiService.getDashboardAnalytics();
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch dashboard analytics'
-        : 'Failed to fetch dashboard analytics';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to fetch dashboard analytics'
+          : 'Failed to fetch dashboard analytics';
       return rejectWithValue(errorMessage);
     }
   }
@@ -63,14 +65,14 @@ const analyticsSlice = createSlice({
   name: 'analytics',
   initialState,
   reducers: {
-    clearAnalyticsError: (state) => {
+    clearAnalyticsError: state => {
       state.error = null;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // Fetch dashboard analytics
-      .addCase(fetchDashboardAnalytics.pending, (state) => {
+      .addCase(fetchDashboardAnalytics.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -88,8 +90,12 @@ const analyticsSlice = createSlice({
 export const { clearAnalyticsError } = analyticsSlice.actions;
 
 // Selectors
-export const selectDashboardAnalytics = (state: RootState): DashboardAnalytics | null => state.analytics.dashboard;
-export const selectAnalyticsLoading = (state: RootState): boolean => state.analytics.isLoading;
-export const selectAnalyticsError = (state: RootState): string | null => state.analytics.error;
+export const selectDashboardAnalytics = (
+  state: RootState
+): DashboardAnalytics | null => state.analytics.dashboard;
+export const selectAnalyticsLoading = (state: RootState): boolean =>
+  state.analytics.isLoading;
+export const selectAnalyticsError = (state: RootState): string | null =>
+  state.analytics.error;
 
-export default analyticsSlice.reducer; 
+export default analyticsSlice.reducer;

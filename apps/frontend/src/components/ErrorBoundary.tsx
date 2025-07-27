@@ -1,4 +1,11 @@
-import { Component, ReactNode, ErrorInfo } from 'react';
+import React, {
+  Component,
+  ReactNode,
+  ErrorInfo,
+  ReactElement,
+  useState,
+  useEffect,
+} from 'react';
 import styled from 'styled-components';
 
 // Styled components
@@ -17,7 +24,7 @@ const ErrorContent = styled.div`
   background: white;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   width: 100%;
 `;
@@ -71,7 +78,7 @@ const ErrorActions = styled.div`
 `;
 
 const ErrorButton = styled.button`
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -121,10 +128,23 @@ class ErrorBoundary extends Component<Props, State> {
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Error caught by boundary:', error, errorInfo);
-    
+
+    // Log error to external service in production
+    if (process.env.NODE_ENV === 'production') {
+      // You can integrate with Sentry, LogRocket, or other error tracking services here
+      console.error('Production error:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // Update state with error info
     this.setState({ error, errorInfo });
-    
+
     // Call custom error handler if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
@@ -153,26 +173,27 @@ class ErrorBoundary extends Component<Props, State> {
               {this.props.customMessage || 'Something went wrong'}
             </ErrorTitle>
             <ErrorMessage>
-              We&apos;re sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists.
+              We&apos;re sorry, but something unexpected happened. Please try
+              refreshing the page or contact support if the problem persists.
             </ErrorMessage>
-            
+
             {this.props.showDetails && this.state.error && (
               <ErrorDetails>
                 <ErrorDetailsTitle>Error Details:</ErrorDetailsTitle>
                 <ErrorDetailsText>{this.state.error.message}</ErrorDetailsText>
                 {this.state.errorInfo && (
-                  <ErrorDetailsText>{this.state.errorInfo.componentStack}</ErrorDetailsText>
+                  <ErrorDetailsText>
+                    {this.state.errorInfo.componentStack}
+                  </ErrorDetailsText>
                 )}
               </ErrorDetails>
             )}
-            
+
             <ErrorActions>
               <ErrorButton onClick={this.handleRefresh}>
                 🔄 Refresh Page
               </ErrorButton>
-              <ErrorButton onClick={this.handleGoHome}>
-                🏠 Go Home
-              </ErrorButton>
+              <ErrorButton onClick={this.handleGoHome}>🏠 Go Home</ErrorButton>
               <ErrorButton onClick={this.handleContactSupport}>
                 📧 Contact Support
               </ErrorButton>
@@ -186,4 +207,4 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary; 
+export default ErrorBoundary;

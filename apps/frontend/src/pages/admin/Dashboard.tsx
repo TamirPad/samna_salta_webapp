@@ -1,9 +1,19 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { fetchDashboardAnalytics, clearAnalyticsError } from '../../features/analytics/analyticsSlice';
+import {
+  fetchDashboardAnalytics,
+  clearAnalyticsError,
+} from '../../features/analytics/analyticsSlice';
 import { selectAuth } from '../../features/auth/authSlice';
 
 // Types
@@ -53,7 +63,7 @@ const DashboardContainer = styled.div`
 `;
 
 const DashboardTitle = styled.h1`
-  color: #8B4513;
+  color: #8b4513;
   margin-bottom: 1rem;
 `;
 
@@ -92,18 +102,18 @@ const DashboardCard = styled(motion.div)`
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 `;
 
 const CardTitle = styled.h3`
   margin-bottom: 0.5rem;
-  color: #2F2F2F;
+  color: #2f2f2f;
 `;
 
 const CardValue = styled.p<{ $color: string }>`
@@ -114,7 +124,7 @@ const CardValue = styled.p<{ $color: string }>`
 `;
 
 const DataStatus = styled.small<{ $isLive: boolean }>`
-  color: ${(props): string => props.$isLive ? '#28a745' : '#ffc107'};
+  color: ${(props): string => (props.$isLive ? '#28a745' : '#ffc107')};
 `;
 
 const AuthContainer = styled.div`
@@ -144,8 +154,11 @@ const ButtonGroup = styled.div`
   flex-wrap: wrap;
 `;
 
-const AuthButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
-  background: ${(props): string => props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
+const AuthButton = styled.button<{
+  $variant?: 'primary' | 'secondary';
+}>`
+  background: ${(props): string =>
+    props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -156,7 +169,7 @@ const AuthButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -170,24 +183,21 @@ const DemoModeBanner = styled.div`
 `;
 
 // Reusable Card Component
-const StatCard: React.FC<DashboardCardProps> = React.memo(({ 
-  title, 
-  value, 
-  color, 
-  isLiveData
-}): JSX.Element => (
-  <DashboardCard
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <CardTitle>{title}</CardTitle>
-    <CardValue $color={color}>{value}</CardValue>
-    <DataStatus $isLive={isLiveData}>
-      {isLiveData ? '✓ Live data' : '⚠️ Demo data'}
-    </DataStatus>
-  </DashboardCard>
-));
+const StatCard: React.FC<DashboardCardProps> = React.memo(
+  ({ title, value, color, isLiveData }): JSX.Element => (
+    <DashboardCard
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <CardTitle>{title}</CardTitle>
+      <CardValue $color={color}>{value}</CardValue>
+      <DataStatus $isLive={isLiveData}>
+        {isLiveData ? '✓ Live data' : '⚠️ Demo data'}
+      </DataStatus>
+    </DashboardCard>
+  )
+);
 
 StatCard.displayName = 'StatCard';
 
@@ -200,7 +210,9 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
-  const { dashboard, isLoading, error } = useAppSelector(state => state.analytics);
+  const { dashboard, isLoading, error } = useAppSelector(
+    state => state.analytics
+  );
 
   // Fetch dashboard data on component mount
   useEffect(() => {
@@ -230,7 +242,7 @@ const Dashboard: React.FC = () => {
         pendingOrders: dashboard.pending_orders || 0,
         topProducts: dashboard.top_products || [],
         ordersByStatus: dashboard.orders_by_status || [],
-        revenueByDay: dashboard.revenue_by_day || []
+        revenueByDay: dashboard.revenue_by_day || [],
       };
     }
     return {
@@ -240,41 +252,44 @@ const Dashboard: React.FC = () => {
       pendingOrders: 8,
       topProducts: [],
       ordersByStatus: [],
-      revenueByDay: []
+      revenueByDay: [],
     };
   }, [dashboard]);
 
   // Memoized stats cards data
-  const statsCards = useMemo<DashboardCardProps[]>(() => [
-    {
-      title: "Today's Orders",
-      value: dashboardData.today.orders,
-      color: '#007bff',
-      isLiveData: !!dashboard && !error,
-      hasError: !!error
-    },
-    {
-      title: "Today's Revenue",
-      value: formatCurrency(dashboardData.today.revenue),
-      color: '#28a745',
-      isLiveData: !!dashboard && !error,
-      hasError: !!error
-    },
-    {
-      title: "Total Customers",
-      value: dashboardData.customers,
-      color: '#ffc107',
-      isLiveData: !!dashboard && !error,
-      hasError: !!error
-    },
-    {
-      title: "Pending Orders",
-      value: dashboardData.pendingOrders,
-      color: '#dc3545',
-      isLiveData: !!dashboard && !error,
-      hasError: !!error
-    }
-  ], [dashboardData, dashboard, error]);
+  const statsCards = useMemo<DashboardCardProps[]>(
+    () => [
+      {
+        title: "Today's Orders",
+        value: dashboardData.today.orders,
+        color: '#007bff',
+        isLiveData: !!dashboard && !error,
+        hasError: !!error,
+      },
+      {
+        title: "Today's Revenue",
+        value: formatCurrency(dashboardData.today.revenue),
+        color: '#28a745',
+        isLiveData: !!dashboard && !error,
+        hasError: !!error,
+      },
+      {
+        title: 'Total Customers',
+        value: dashboardData.customers,
+        color: '#ffc107',
+        isLiveData: !!dashboard && !error,
+        hasError: !!error,
+      },
+      {
+        title: 'Pending Orders',
+        value: dashboardData.pendingOrders,
+        color: '#dc3545',
+        isLiveData: !!dashboard && !error,
+        hasError: !!error,
+      },
+    ],
+    [dashboardData, dashboard, error]
+  );
 
   if (!isAuthenticated) {
     return (
@@ -282,11 +297,11 @@ const Dashboard: React.FC = () => {
         <DashboardTitle>Samna Salta Dashboard</DashboardTitle>
         <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>Please login to access the admin dashboard.</p>
+          <p style={{ margin: '1rem 0' }}>
+            Please login to access the admin dashboard.
+          </p>
           <ButtonGroup>
-            <AuthButton onClick={handleLogin}>
-              Login to Dashboard
-            </AuthButton>
+            <AuthButton onClick={handleLogin}>Login to Dashboard</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -299,11 +314,11 @@ const Dashboard: React.FC = () => {
         <DashboardTitle>Samna Salta Dashboard</DashboardTitle>
         <AuthCard>
           <strong>Access Denied</strong>
-          <p style={{ margin: '1rem 0' }}>Admin privileges required to access this dashboard.</p>
+          <p style={{ margin: '1rem 0' }}>
+            Admin privileges required to access this dashboard.
+          </p>
           <ButtonGroup>
-            <AuthButton onClick={() => navigate('/')}>
-              Go to Home
-            </AuthButton>
+            <AuthButton onClick={() => navigate('/')}>Go to Home</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -320,7 +335,10 @@ const Dashboard: React.FC = () => {
           <strong>⚠️ Warning:</strong> {error}
           {error.includes('Network error') && (
             <div style={{ marginTop: '0.5rem' }}>
-              <small>Showing demo data. Please check your connection and refresh the page.</small>
+              <small>
+                Showing demo data. Please check your connection and refresh the
+                page.
+              </small>
             </div>
           )}
         </WarningBanner>
@@ -333,18 +351,16 @@ const Dashboard: React.FC = () => {
       )}
 
       <DashboardGrid>
-        {statsCards.map((card) => (
-          <StatCard
-            key={card.title}
-            {...card}
-          />
+        {statsCards.map(card => (
+          <StatCard key={card.title} {...card} />
         ))}
       </DashboardGrid>
 
       {!dashboard && !error && (
         <DemoModeBanner>
           <p style={{ color: '#1976d2', margin: 0 }}>
-            <strong>Demo Mode:</strong> Showing sample data. Connect to backend for live data.
+            <strong>Demo Mode:</strong> Showing sample data. Connect to backend
+            for live data.
           </p>
         </DemoModeBanner>
       )}
@@ -352,4 +368,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default React.memo(Dashboard); 
+export default React.memo(Dashboard);

@@ -1,25 +1,32 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Minus, 
-  Trash2, 
+import {
+  Plus,
+  Minus,
+  Trash2,
   CreditCard,
   Truck,
   Store,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { selectLanguage } from '../features/language/languageSlice';
-import { 
-  selectCartItems, 
+import {
+  selectCartItems,
   selectCartTotal,
   selectCartItemsCount,
-  updateQuantity, 
+  updateQuantity,
   removeFromCart,
-  CartItem
+  CartItem,
 } from '../features/cart/cartSlice';
 
 // Types
@@ -53,7 +60,7 @@ const CartContent = styled.div`
 `;
 
 const CartHeader = styled.div`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -113,7 +120,7 @@ const CartItemsHeader = styled.div`
 const CartItemsTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0;
 `;
 
@@ -149,10 +156,10 @@ const ItemImage = styled.div<{ imageUrl?: string }>`
   width: 80px;
   height: 80px;
   border-radius: 8px;
-  background: ${(props): string => props.imageUrl 
-    ? `url(${props.imageUrl}) center/cover` 
-    : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-  };
+  background: ${(props): string =>
+    props.imageUrl
+      ? `url(${props.imageUrl}) center/cover`
+      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
   flex-shrink: 0;
 
   @media (max-width: 768px) {
@@ -173,7 +180,7 @@ const ItemDetails = styled.div`
 const ItemName = styled.h3`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0 0 0.25rem 0;
   line-height: 1.3;
 `;
@@ -187,7 +194,7 @@ const ItemCategory = styled.p`
 const ItemPrice = styled.div`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #8B4513;
+  color: #8b4513;
 `;
 
 const ItemControls = styled.div`
@@ -228,7 +235,7 @@ const QuantityButton = styled.button`
   }
 
   &:focus {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 
@@ -294,7 +301,7 @@ const CartSummary = styled.div`
 const SummaryTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0 0 1.5rem 0;
 `;
 
@@ -307,7 +314,8 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border: 2px solid ${(props): string => props.selected ? '#8B4513' : '#e0e0e0'};
+  border: 2px solid
+    ${(props): string => (props.selected ? '#8B4513' : '#e0e0e0')};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -315,12 +323,12 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   min-height: 44px;
 
   &:hover {
-    border-color: #8B4513;
+    border-color: #8b4513;
     transform: translateY(-1px);
   }
 
   &:focus-within {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 `;
@@ -335,7 +343,7 @@ const DeliveryOptionContent = styled.div`
 
 const DeliveryOptionTitle = styled.div`
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -371,12 +379,12 @@ const SummaryTotal = styled.div`
   border-top: 2px solid #e0e0e0;
   font-size: 1.25rem;
   font-weight: bold;
-  color: #8B4513;
+  color: #8b4513;
 `;
 
 const CheckoutButton = styled.button`
   width: 100%;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   padding: 1rem;
@@ -392,13 +400,13 @@ const CheckoutButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #D2691E;
+    background: #d2691e;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
@@ -423,7 +431,7 @@ const EmptyCartIcon = styled.div`
 `;
 
 const ContinueShoppingButton = styled.button`
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -435,12 +443,12 @@ const ContinueShoppingButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #D2691E;
+    background: #d2691e;
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 `;
@@ -464,105 +472,129 @@ const CartPage: React.FC = () => {
   const cartItems = useAppSelector(selectCartItems) as CartItem[];
   const cartItemsCount = useAppSelector(selectCartItemsCount);
   const cartTotal = useAppSelector(selectCartTotal);
-  
-  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
+
+  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>(
+    'pickup'
+  );
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [error, setError] = useState<string>('');
 
   // Memoized translations
-  const translations = useMemo(() => ({
-    he: {
-      cartTitle: 'עגלת הקניות שלך',
-      cartSubtitle: 'בדוק את הפריטים שלך והמשך לתשלום',
-      cartItems: 'פריטי עגלה',
-      items: 'פריטים',
-      pickup: 'איסוף עצמי',
-      pickupDesc: 'איסוף מהמסעדה',
-      delivery: 'משלוח',
-      deliveryDesc: 'משלוח עד הבית',
-      deliveryAddress: 'כתובת משלוח',
-      deliveryAddressPlaceholder: 'הזן את כתובת המשלוח שלך',
-      subtotal: 'סכום ביניים',
-      deliveryFee: 'דמי משלוח',
-      total: 'סה"כ',
-      checkout: 'המשך לתשלום',
-      emptyCart: 'העגלה שלך ריקה',
-      emptyCartDesc: 'הוסף פריטים מהתפריט כדי להתחיל',
-      continueShopping: 'המשך בקניות',
-      remove: 'הסר',
-      quantity: 'כמות',
-      deliveryAddressRequired: 'כתובת משלוח נדרשת',
-      errorOccurred: 'אירעה שגיאה',
-    },
-    en: {
-      cartTitle: 'Your Shopping Cart',
-      cartSubtitle: 'Review your items and proceed to checkout',
-      cartItems: 'Cart Items',
-      items: 'items',
-      pickup: 'Pickup',
-      pickupDesc: 'Pick up from restaurant',
-      delivery: 'Delivery',
-      deliveryDesc: 'Home delivery',
-      deliveryAddress: 'Delivery Address',
-      deliveryAddressPlaceholder: 'Enter your delivery address',
-      subtotal: 'Subtotal',
-      deliveryFee: 'Delivery Fee',
-      total: 'Total',
-      checkout: 'Proceed to Checkout',
-      emptyCart: 'Your cart is empty',
-      emptyCartDesc: 'Add items from the menu to get started',
-      continueShopping: 'Continue Shopping',
-      remove: 'Remove',
-      quantity: 'Quantity',
-      deliveryAddressRequired: 'Delivery address is required',
-      errorOccurred: 'An error occurred',
-    }
-  }), []);
+  const translations = useMemo(
+    () => ({
+      he: {
+        cartTitle: 'עגלת הקניות שלך',
+        cartSubtitle: 'בדוק את הפריטים שלך והמשך לתשלום',
+        cartItems: 'פריטי עגלה',
+        items: 'פריטים',
+        pickup: 'איסוף עצמי',
+        pickupDesc: 'איסוף מהמסעדה',
+        delivery: 'משלוח',
+        deliveryDesc: 'משלוח עד הבית',
+        deliveryAddress: 'כתובת משלוח',
+        deliveryAddressPlaceholder: 'הזן את כתובת המשלוח שלך',
+        subtotal: 'סכום ביניים',
+        deliveryFee: 'דמי משלוח',
+        total: 'סה"כ',
+        checkout: 'המשך לתשלום',
+        emptyCart: 'העגלה שלך ריקה',
+        emptyCartDesc: 'הוסף פריטים מהתפריט כדי להתחיל',
+        continueShopping: 'המשך בקניות',
+        remove: 'הסר',
+        quantity: 'כמות',
+        deliveryAddressRequired: 'כתובת משלוח נדרשת',
+        errorOccurred: 'אירעה שגיאה',
+      },
+      en: {
+        cartTitle: 'Your Shopping Cart',
+        cartSubtitle: 'Review your items and proceed to checkout',
+        cartItems: 'Cart Items',
+        items: 'items',
+        pickup: 'Pickup',
+        pickupDesc: 'Pick up from restaurant',
+        delivery: 'Delivery',
+        deliveryDesc: 'Home delivery',
+        deliveryAddress: 'Delivery Address',
+        deliveryAddressPlaceholder: 'Enter your delivery address',
+        subtotal: 'Subtotal',
+        deliveryFee: 'Delivery Fee',
+        total: 'Total',
+        checkout: 'Proceed to Checkout',
+        emptyCart: 'Your cart is empty',
+        emptyCartDesc: 'Add items from the menu to get started',
+        continueShopping: 'Continue Shopping',
+        remove: 'Remove',
+        quantity: 'Quantity',
+        deliveryAddressRequired: 'Delivery address is required',
+        errorOccurred: 'An error occurred',
+      },
+    }),
+    []
+  );
 
-  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language]
+  );
 
   // Memoized delivery methods
-  const deliveryMethods = useMemo((): DeliveryMethod[] => [
-    {
-      id: 'pickup',
-      title: t.pickup,
-      description: t.pickupDesc,
-      icon: <Store size={20} />,
-      fee: 0
-    },
-    {
-      id: 'delivery',
-      title: t.delivery,
-      description: t.deliveryDesc,
-      icon: <Truck size={20} />,
-      fee: 15
-    }
-  ], [t]);
+  const deliveryMethods = useMemo(
+    (): DeliveryMethod[] => [
+      {
+        id: 'pickup',
+        title: t.pickup,
+        description: t.pickupDesc,
+        icon: <Store size={20} />,
+        fee: 0,
+      },
+      {
+        id: 'delivery',
+        title: t.delivery,
+        description: t.deliveryDesc,
+        icon: <Truck size={20} />,
+        fee: 15,
+      },
+    ],
+    [t]
+  );
 
-  const deliveryFee = useMemo(() => 
-    deliveryMethods.find(method => method.id === deliveryMethod)?.fee || 0, 
+  const deliveryFee = useMemo(
+    () =>
+      deliveryMethods.find(method => method.id === deliveryMethod)?.fee || 0,
     [deliveryMethods, deliveryMethod]
   );
 
-  const finalTotal = useMemo(() => cartTotal + deliveryFee, [cartTotal, deliveryFee]);
+  const finalTotal = useMemo(
+    () => cartTotal + deliveryFee,
+    [cartTotal, deliveryFee]
+  );
 
   // Memoized handlers
-  const handleQuantityChange = useCallback((itemId: string, newQuantity: number): void => {
-    if (newQuantity < 1) return;
-    dispatch(updateQuantity({ id: itemId, quantity: newQuantity }));
-  }, [dispatch]);
+  const handleQuantityChange = useCallback(
+    (itemId: string, newQuantity: number): void => {
+      if (newQuantity < 1) return;
+      dispatch(updateQuantity({ id: itemId, quantity: newQuantity }));
+    },
+    [dispatch]
+  );
 
-  const handleRemoveItem = useCallback((itemId: string): void => {
-    dispatch(removeFromCart(itemId));
-  }, [dispatch]);
+  const handleRemoveItem = useCallback(
+    (itemId: string): void => {
+      dispatch(removeFromCart(itemId));
+    },
+    [dispatch]
+  );
 
-  const handleDeliveryMethodChange = useCallback((method: 'pickup' | 'delivery'): void => {
-    setDeliveryMethod(method);
-    setError('');
-    if (method === 'pickup') {
-      setDeliveryAddress('');
-    }
-  }, []);
+  const handleDeliveryMethodChange = useCallback(
+    (method: 'pickup' | 'delivery'): void => {
+      setDeliveryMethod(method);
+      setError('');
+      if (method === 'pickup') {
+        setDeliveryAddress('');
+      }
+    },
+    []
+  );
 
   const handleDeliveryAddressChange = useCallback((address: string): void => {
     setDeliveryAddress(address);
@@ -571,7 +603,7 @@ const CartPage: React.FC = () => {
 
   const handleCheckout = useCallback((): void => {
     if (cartItems.length === 0) return;
-    
+
     if (deliveryMethod === 'delivery' && !deliveryAddress.trim()) {
       setError(t.deliveryAddressRequired);
       return;
@@ -598,12 +630,12 @@ const CartPage: React.FC = () => {
             <CartTitle>{t.cartTitle}</CartTitle>
             <CartSubtitle>{t.cartSubtitle}</CartSubtitle>
           </CartHeader>
-          
+
           <EmptyCart>
             <EmptyCartIcon>🛒</EmptyCartIcon>
             <h3>{t.emptyCart}</h3>
             <p>{t.emptyCartDesc}</p>
-            <ContinueShoppingButton 
+            <ContinueShoppingButton
               onClick={handleContinueShopping}
               aria-label={t.continueShopping}
             >
@@ -627,9 +659,11 @@ const CartPage: React.FC = () => {
           <CartItemsSection>
             <CartItemsHeader>
               <CartItemsTitle>{t.cartItems}</CartItemsTitle>
-              <CartItemsCount>{cartItemsCount} {t.items}</CartItemsCount>
+              <CartItemsCount>
+                {cartItemsCount} {t.items}
+              </CartItemsCount>
             </CartItemsHeader>
-            
+
             <CartItemsList>
               <AnimatePresence>
                 {cartItems.map((item, index) => (
@@ -641,17 +675,19 @@ const CartPage: React.FC = () => {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
                     <ItemImage imageUrl={item.image} />
-                    
+
                     <ItemDetails>
                       <ItemName>{item.name}</ItemName>
                       <ItemCategory>{item.category}</ItemCategory>
                       <ItemPrice>₪{item.price}</ItemPrice>
                     </ItemDetails>
-                    
+
                     <ItemControls>
                       <QuantityControl>
                         <QuantityButton
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          onClick={() =>
+                            handleQuantityChange(item.id, item.quantity - 1)
+                          }
                           disabled={item.quantity <= 1}
                           aria-label={`Decrease quantity of ${item.name}`}
                         >
@@ -659,14 +695,16 @@ const CartPage: React.FC = () => {
                         </QuantityButton>
                         <QuantityDisplay>{item.quantity}</QuantityDisplay>
                         <QuantityButton
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          onClick={() =>
+                            handleQuantityChange(item.id, item.quantity + 1)
+                          }
                           aria-label={`Increase quantity of ${item.name}`}
                         >
                           <Plus size={16} />
                         </QuantityButton>
                       </QuantityControl>
-                      
-                      <RemoveButton 
+
+                      <RemoveButton
                         onClick={() => handleRemoveItem(item.id)}
                         aria-label={`Remove ${item.name} from cart`}
                       >
@@ -681,23 +719,23 @@ const CartPage: React.FC = () => {
 
           <CartSummary>
             <SummaryTitle>Order Summary</SummaryTitle>
-            
+
             {error && (
               <ErrorMessage>
                 <AlertCircle size={16} />
                 {error}
               </ErrorMessage>
             )}
-            
+
             <DeliveryOptions>
-              {deliveryMethods.map((method) => (
-                <DeliveryOption 
+              {deliveryMethods.map(method => (
+                <DeliveryOption
                   key={method.id}
                   selected={deliveryMethod === method.id}
                 >
                   <DeliveryOptionInput
-                    type="radio"
-                    name="deliveryMethod"
+                    type='radio'
+                    name='deliveryMethod'
                     value={method.id}
                     checked={deliveryMethod === method.id}
                     onChange={() => handleDeliveryMethodChange(method.id)}
@@ -705,7 +743,9 @@ const CartPage: React.FC = () => {
                   {method.icon}
                   <DeliveryOptionContent>
                     <DeliveryOptionTitle>{method.title}</DeliveryOptionTitle>
-                    <DeliveryOptionDescription>{method.description}</DeliveryOptionDescription>
+                    <DeliveryOptionDescription>
+                      {method.description}
+                    </DeliveryOptionDescription>
                   </DeliveryOptionContent>
                 </DeliveryOption>
               ))}
@@ -713,37 +753,45 @@ const CartPage: React.FC = () => {
 
             {deliveryMethod === 'delivery' && (
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: 600,
+                  }}
+                >
                   {t.deliveryAddress}
                 </label>
                 <DeliveryAddressInput
-                  type="text"
+                  type='text'
                   placeholder={t.deliveryAddressPlaceholder}
                   value={deliveryAddress}
-                  onChange={(e) => handleDeliveryAddressChange(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleDeliveryAddressChange(e.target.value)
+                  }
                   aria-label={t.deliveryAddressPlaceholder}
                 />
               </div>
             )}
-            
+
             <SummaryRow>
               <span>{t.subtotal}</span>
               <span>₪{cartTotal}</span>
             </SummaryRow>
-            
+
             {deliveryMethod === 'delivery' && (
               <SummaryRow>
                 <span>{t.deliveryFee}</span>
                 <span>₪{deliveryFee}</span>
               </SummaryRow>
             )}
-            
+
             <SummaryTotal>
               <span>{t.total}</span>
               <span>₪{finalTotal}</span>
             </SummaryTotal>
-            
-            <CheckoutButton 
+
+            <CheckoutButton
               onClick={handleCheckout}
               disabled={cartItems.length === 0}
               aria-label={t.checkout}
@@ -758,4 +806,4 @@ const CartPage: React.FC = () => {
   );
 };
 
-export default React.memo(CartPage); 
+export default React.memo(CartPage);

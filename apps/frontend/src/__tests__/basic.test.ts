@@ -10,10 +10,10 @@ describe('Basic Test Setup', () => {
     const element = document.createElement('div');
     element.textContent = 'Test Content';
     document.body.appendChild(element);
-    
+
     expect(element).toBeInTheDocument();
     expect(element).toHaveTextContent('Test Content');
-    
+
     document.body.removeChild(element);
   });
 
@@ -23,4 +23,4 @@ describe('Basic Test Setup', () => {
     expect(store.getState).toBeDefined();
     expect(typeof store.getState()).toBe('object');
   });
-}); 
+});

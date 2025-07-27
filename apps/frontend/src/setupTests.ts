@@ -14,13 +14,13 @@ jest.mock('framer-motion', () => ({
     li: 'li',
     a: 'a',
   },
-  AnimatePresence: ({ children }: any) => children,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
   useAnimation: () => ({
     start: jest.fn(),
     stop: jest.fn(),
     set: jest.fn(),
   }),
-  useMotionValue: (initial: any) => ({
+  useMotionValue: (initial: unknown) => ({
     get: () => initial,
     set: jest.fn(),
     on: jest.fn(),
@@ -73,7 +73,9 @@ global.IntersectionObserver = class IntersectionObserver {
   root = null;
   rootMargin = '';
   thresholds = [];
-  takeRecords() { return []; }
+  takeRecords() {
+    return [];
+  }
 } as any;
 
 // Mock ResizeObserver
@@ -142,27 +144,29 @@ const originalError = console.error;
 const originalWarn = console.warn;
 
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     // Suppress specific warnings that are expected in tests
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-       args[0].includes('A non-serializable value was detected in an action') ||
-       args[0].includes('Warning: componentWillReceiveProps') ||
-       args[0].includes('Warning: componentWillUpdate'))
+        args[0].includes(
+          'A non-serializable value was detected in an action'
+        ) ||
+        args[0].includes('Warning: componentWillReceiveProps') ||
+        args[0].includes('Warning: componentWillUpdate'))
     ) {
       return;
     }
     originalError.call(console, ...args);
   };
-  
-  console.warn = (...args: any[]) => {
+
+  console.warn = (...args: unknown[]) => {
     // Suppress specific warnings that are expected in tests
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('componentWillReceiveProps') ||
-       args[0].includes('componentWillUpdate') ||
-       args[0].includes('Warning: React does not recognize'))
+        args[0].includes('componentWillUpdate') ||
+        args[0].includes('Warning: React does not recognize'))
     ) {
       return;
     }
@@ -173,4 +177,4 @@ beforeAll(() => {
 afterAll(() => {
   console.error = originalError;
   console.warn = originalWarn;
-}); 
+});

@@ -1,7 +1,8 @@
 // Network utilities for handling connectivity and API calls
 
 // Check if we're in a browser environment
-const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
+const isBrowser =
+  typeof window !== 'undefined' && typeof navigator !== 'undefined';
 
 export interface NetworkStatus {
   isOnline: boolean;
@@ -55,13 +56,14 @@ export const retryWithBackoff = async <T>(
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt === finalConfig.maxRetries) {
         throw lastError;
       }
 
       const delay = Math.min(
-        finalConfig.baseDelay * Math.pow(finalConfig.backoffMultiplier, attempt),
+        finalConfig.baseDelay *
+          Math.pow(finalConfig.backoffMultiplier, attempt),
         finalConfig.maxDelay
       );
 
@@ -76,7 +78,7 @@ export const retryWithBackoff = async <T>(
 export class NetworkMonitor {
   private status: NetworkStatus;
   private listeners: Set<(status: NetworkStatus) => void>;
-  private isStarted: boolean = false;
+  private isStarted = false;
 
   constructor() {
     this.status = {
@@ -98,9 +100,9 @@ export class NetworkMonitor {
 
   public start(): void {
     if (!isBrowser || this.isStarted) return;
-    
+
     this.isStarted = true;
-    
+
     const handleOnline = (): void => {
       this.status = {
         isOnline: true,
@@ -136,9 +138,11 @@ export const apiRequest = async <T>(
 ): Promise<T> => {
   const makeRequest = async (): Promise<T> => {
     if (!isBrowser) {
-      throw new Error('API requests are only available in browser environments');
+      throw new Error(
+        'API requests are only available in browser environments'
+      );
     }
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -158,9 +162,12 @@ export const apiRequest = async <T>(
 };
 
 // Check if a URL is reachable
-export const checkUrlReachability = async (url: string, timeout = 5000): Promise<boolean> => {
+export const checkUrlReachability = async (
+  url: string,
+  timeout = 5000
+): Promise<boolean> => {
   if (!isBrowser) return false;
-  
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -175,4 +182,4 @@ export const checkUrlReachability = async (url: string, timeout = 5000): Promise
   } catch {
     return false;
   }
-}; 
+};

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 const NotFoundContainer = styled.div`
@@ -9,7 +9,7 @@ const NotFoundContainer = styled.div`
 const NotFoundPage: React.FC = () => {
   return (
     <NotFoundContainer>
-      <div className="container">
+      <div className='container'>
         <h1>404 - Page Not Found</h1>
         <p>Sorry, we couldn&apos;t find the page you&apos;re looking for.</p>
       </div>
@@ -17,4 +17,4 @@ const NotFoundPage: React.FC = () => {
   );
 };
 
-export default NotFoundPage; 
+export default NotFoundPage;

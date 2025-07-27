@@ -14,12 +14,13 @@ import reportWebVitals from './utils/webVitals';
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered: ', registration);
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then(registration => {
+        // Service worker registered successfully
       })
-      .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+      .catch(registrationError => {
+        // Service worker registration failed
       });
   });
 }
@@ -35,11 +36,13 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
           <GlobalStyles />
           <App />
           <ToastContainer
-            position="top-right"
+            position='top-right'
             autoClose={5000}
             hideProgressBar={false}
             newestOnTop={false}
@@ -48,10 +51,10 @@ root.render(
             pauseOnFocusLoss
             draggable
             pauseOnHover
-            theme="light"
+            theme='light'
           />
         </BrowserRouter>
       </PersistGate>
     </Provider>
   </React.StrictMode>
-); 
+);

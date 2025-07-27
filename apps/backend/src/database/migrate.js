@@ -31,6 +31,16 @@ const createTables = async () => {
   try {
     await client.query('BEGIN');
 
+    // Create migrations table for versioning
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id SERIAL PRIMARY KEY,
+        version VARCHAR(50) UNIQUE NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        executed_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     // Create users table
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -169,8 +179,48 @@ const createTables = async () => {
       )
     `);
 
+    // Create business_settings table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS business_settings (
+        id SERIAL PRIMARY KEY,
+        business_name VARCHAR(200) NOT NULL,
+        business_description TEXT,
+        business_address TEXT,
+        business_phone VARCHAR(20),
+        business_email VARCHAR(255),
+        business_hours TEXT,
+        delivery_charge DECIMAL(10,2) DEFAULT 0,
+        currency VARCHAR(10) DEFAULT 'ILS',
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create indexes for better performance
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin);
+      CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
+      CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
+      CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+      CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+      CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+      CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+      CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics(event_type);
+      CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics(created_at);
+    `);
+
+    // Record migration
+    await client.query(`
+      INSERT INTO migrations (version, name) 
+      VALUES ($1, $2) 
+      ON CONFLICT (version) DO NOTHING`,
+      ['1.0.0', 'Initial schema creation']
+    );
+
     await client.query('COMMIT');
-    logger.info('Database tables created successfully');
+    logger.info('Database tables and indexes created successfully');
   } catch (error) {
     await client.query('ROLLBACK');
     logger.error('Error creating tables:', error);
@@ -195,8 +245,12 @@ const createAdminUser = async () => {
       return;
     }
 
-    // Create admin user
-    const hashedPassword = await bcrypt.hash('admin123', 12);
+    // Generate a secure random password
+    const crypto = require('crypto');
+    const securePassword = crypto.randomBytes(16).toString('hex');
+    
+    // Create admin user with secure password
+    const hashedPassword = await bcrypt.hash(securePassword, 12);
     
     await getMigrationClient().query(
       `INSERT INTO users (name, email, password_hash, phone, is_admin, created_at, updated_at)
@@ -206,7 +260,8 @@ const createAdminUser = async () => {
 
     logger.info('Admin user created successfully');
     logger.info('Email: admin@sammasalta.com');
-    logger.info('Password: admin123');
+    logger.info('Password: ' + securePassword);
+    logger.warn('IMPORTANT: Save this password securely. It will not be shown again.');
 
   } catch (error) {
     logger.error('Failed to create admin user:', error);

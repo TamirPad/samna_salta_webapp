@@ -1,195 +1,538 @@
-import { render, screen, act } from '@testing-library/react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
+import { render, screen, fireEvent, waitFor } from '../utils/test-utils';
 import NetworkStatus from './NetworkStatus';
+import { NetworkMonitor } from '../utils/networkUtils';
+
+// Mock the NetworkMonitor
+jest.mock('../utils/networkUtils', () => ({
+  NetworkMonitor: jest.fn(),
+  isOnline: jest.fn(),
+}));
+
+const mockNetworkMonitor = NetworkMonitor as jest.MockedClass<
+  typeof NetworkMonitor
+>;
 
 describe('NetworkStatus', () => {
+  let mockAddListener: jest.Mock;
+  let mockRemoveListener: jest.Mock;
+  let mockGetStatus: jest.Mock;
+
   beforeEach(() => {
-    // Mock navigator.onLine
-    Object.defineProperty(navigator, 'onLine', {
-      writable: true,
-      value: true,
+    jest.clearAllMocks();
+
+    mockAddListener = jest.fn();
+    mockRemoveListener = jest.fn();
+    mockGetStatus = jest.fn();
+
+    mockNetworkMonitor.mockImplementation(
+      () =>
+        ({
+          addListener: mockAddListener,
+          removeListener: mockRemoveListener,
+          getStatus: mockGetStatus,
+          start: jest.fn(),
+          stop: jest.fn(),
+        }) as any
+    );
+  });
+
+  describe('Initial Rendering', () => {
+    it('should render with online status by default', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByTestId('network-status')).toBeInTheDocument();
+      expect(screen.getByText('Online')).toBeInTheDocument();
+      expect(screen.getByTestId('network-status')).toHaveClass(
+        'network-status--online'
+      );
+    });
+
+    it('should render with offline status', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Offline')).toBeInTheDocument();
+      expect(screen.getByTestId('network-status')).toHaveClass(
+        'network-status--offline'
+      );
+    });
+
+    it('should render with reconnecting status', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: true,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Reconnecting...')).toBeInTheDocument();
+      expect(screen.getByTestId('network-status')).toHaveClass(
+        'network-status--reconnecting'
+      );
     });
   });
 
-  afterEach(() => {
-    // Clean up event listeners
-    window.dispatchEvent(new Event('online'));
-  });
-
-  it('should not render when online', () => {
-    render(<NetworkStatus />);
-    
-    expect(screen.queryByText(/You're currently offline/)).not.toBeInTheDocument();
-  });
-
-  it('should render offline message when going offline', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
+  describe('Network Status Updates', () => {
+    it('should update status when network changes to online', async () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: false,
+        lastSeen: new Date(),
       });
-      window.dispatchEvent(new Event('offline'));
-    });
-    
-    expect(screen.getByText(/You're currently offline/)).toBeInTheDocument();
-    expect(screen.getByText(/Some features may not work properly/)).toBeInTheDocument();
-  });
 
-  it('should hide offline message when going back online', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
-      });
-      window.dispatchEvent(new Event('offline'));
-    });
-    
-    expect(screen.getByText(/You're currently offline/)).toBeInTheDocument();
-    
-    // Simulate going back online
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: true,
-      });
-      window.dispatchEvent(new Event('online'));
-    });
-    
-    expect(screen.queryByText(/You're currently offline/)).not.toBeInTheDocument();
-  });
+      render(<NetworkStatus />);
 
-  it('should render with correct styling', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
+      expect(screen.getByText('Offline')).toBeInTheDocument();
+
+      // Simulate network status change
+      const mockListener = mockAddListener.mock.calls[0][0];
+      mockListener({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
       });
-      window.dispatchEvent(new Event('offline'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Online')).toBeInTheDocument();
+      });
     });
-    
-    const offlineMessage = screen.getByText(/You're currently offline/);
-    expect(offlineMessage).toBeInTheDocument();
-    
-    // Check if the message is in a fixed position container
-    const container = offlineMessage.closest('div');
-    expect(container).toHaveStyle({
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      right: '0',
-      background: '#ff6b6b',
-      color: 'white',
+
+    it('should update status when network changes to offline', async () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Online')).toBeInTheDocument();
+
+      // Simulate network status change
+      const mockListener = mockAddListener.mock.calls[0][0];
+      mockListener({
+        isOnline: false,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Offline')).toBeInTheDocument();
+      });
+    });
+
+    it('should update status when reconnecting', async () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Offline')).toBeInTheDocument();
+
+      // Simulate reconnecting status
+      const mockListener = mockAddListener.mock.calls[0][0];
+      mockListener({
+        isOnline: false,
+        isReconnecting: true,
+        lastSeen: new Date(),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Reconnecting...')).toBeInTheDocument();
+      });
     });
   });
 
-  it('should include WiFi off icon', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
-      });
-      window.dispatchEvent(new Event('offline'));
-    });
-    
-    // The WifiOff icon should be present
-    const icon = document.querySelector('svg');
-    expect(icon).toBeInTheDocument();
-  });
+  describe('Component Lifecycle', () => {
+    it('should add listener on mount', () => {
+      render(<NetworkStatus />);
 
-  it('should handle multiple online/offline transitions', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
-      });
-      window.dispatchEvent(new Event('offline'));
+      expect(mockAddListener).toHaveBeenCalledTimes(1);
+      expect(typeof mockAddListener.mock.calls[0][0]).toBe('function');
     });
-    
-    expect(screen.getByText(/You're currently offline/)).toBeInTheDocument();
-    
-    // Simulate going back online
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: true,
-      });
-      window.dispatchEvent(new Event('online'));
-    });
-    
-    expect(screen.queryByText(/You're currently offline/)).not.toBeInTheDocument();
-    
-    // Simulate going offline again
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
-      });
-      window.dispatchEvent(new Event('offline'));
-    });
-    
-    expect(screen.getByText(/You're currently offline/)).toBeInTheDocument();
-  });
 
-  it('should clean up event listeners on unmount', () => {
-    const { unmount } = render(<NetworkStatus />);
-    
-    // Spy on removeEventListener
-    const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
-    
-    unmount();
-    
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('online', expect.any(Function));
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('offline', expect.any(Function));
-  });
+    it('should remove listener on unmount', () => {
+      const { unmount } = render(<NetworkStatus />);
 
-  it('should have high z-index for visibility', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
-      });
-      window.dispatchEvent(new Event('offline'));
+      unmount();
+
+      expect(mockRemoveListener).toHaveBeenCalledTimes(1);
     });
-    
-    const container = screen.getByText(/You're currently offline/).closest('div');
-    expect(container).toHaveStyle({
-      zIndex: '9999',
+
+    it('should start network monitor on mount', () => {
+      const mockStart = jest.fn();
+      mockNetworkMonitor.mockImplementation(
+        () =>
+          ({
+            addListener: mockAddListener,
+            removeListener: mockRemoveListener,
+            getStatus: mockGetStatus,
+            start: mockStart,
+            stop: jest.fn(),
+            status: {
+              isOnline: true,
+              isReconnecting: false,
+              lastSeen: new Date(),
+            },
+            listeners: new Set(),
+            isStarted: false,
+            notifyListeners: jest.fn(),
+          }) as any
+      );
+
+      render(<NetworkStatus />);
+
+      expect(mockStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop network monitor on unmount', () => {
+      const mockStop = jest.fn();
+      mockNetworkMonitor.mockImplementation(
+        () =>
+          ({
+            addListener: mockAddListener,
+            removeListener: mockRemoveListener,
+            getStatus: mockGetStatus,
+            start: jest.fn(),
+            stop: mockStop,
+          }) as any
+      );
+
+      const { unmount } = render(<NetworkStatus />);
+
+      unmount();
+
+      expect(mockStop).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('should be positioned at the top of the screen', () => {
-    render(<NetworkStatus />);
-    
-    // Simulate going offline
-    act(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        writable: true,
-        value: false,
+  describe('User Interactions', () => {
+    it('should show tooltip on hover', async () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date('2023-01-01T12:00:00Z'),
       });
-      window.dispatchEvent(new Event('offline'));
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      fireEvent.mouseEnter(statusElement);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Last seen:/)).toBeInTheDocument();
+      });
     });
-    
-    const container = screen.getByText(/You're currently offline/).closest('div');
-    expect(container).toHaveStyle({
-      position: 'fixed',
-      top: '0',
+
+    it('should hide tooltip on mouse leave', async () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date('2023-01-01T12:00:00Z'),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      fireEvent.mouseEnter(statusElement);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Last seen:/)).toBeInTheDocument();
+      });
+
+      fireEvent.mouseLeave(statusElement);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Last seen:/)).not.toBeInTheDocument();
+      });
+    });
+
+    it('should handle click events', () => {
+      const mockOnClick = jest.fn();
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus onClick={mockOnClick} />);
+
+      const statusElement = screen.getByTestId('network-status');
+      fireEvent.click(statusElement);
+
+      expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
   });
-}); 
+
+  describe('Accessibility', () => {
+    it('should have proper ARIA attributes', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveAttribute('role', 'status');
+      expect(statusElement).toHaveAttribute('aria-live', 'polite');
+    });
+
+    it('should have proper ARIA label for online status', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveAttribute(
+        'aria-label',
+        'Network status: Online'
+      );
+    });
+
+    it('should have proper ARIA label for offline status', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveAttribute(
+        'aria-label',
+        'Network status: Offline'
+      );
+    });
+
+    it('should have proper ARIA label for reconnecting status', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: true,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveAttribute(
+        'aria-label',
+        'Network status: Reconnecting...'
+      );
+    });
+
+    it('should be keyboard accessible', () => {
+      const mockOnClick = jest.fn();
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus onClick={mockOnClick} />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveAttribute('tabIndex', '0');
+
+      fireEvent.keyDown(statusElement, { key: 'Enter' });
+      expect(mockOnClick).toHaveBeenCalledTimes(1);
+
+      fireEvent.keyDown(statusElement, { key: ' ' });
+      expect(mockOnClick).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Styling and Visual States', () => {
+    it('should apply correct CSS classes for online state', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveClass('network-status');
+      expect(statusElement).toHaveClass('network-status--online');
+      expect(statusElement).not.toHaveClass('network-status--offline');
+      expect(statusElement).not.toHaveClass('network-status--reconnecting');
+    });
+
+    it('should apply correct CSS classes for offline state', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveClass('network-status');
+      expect(statusElement).toHaveClass('network-status--offline');
+      expect(statusElement).not.toHaveClass('network-status--online');
+      expect(statusElement).not.toHaveClass('network-status--reconnecting');
+    });
+
+    it('should apply correct CSS classes for reconnecting state', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        isReconnecting: true,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveClass('network-status');
+      expect(statusElement).toHaveClass('network-status--reconnecting');
+      expect(statusElement).not.toHaveClass('network-status--online');
+      expect(statusElement).not.toHaveClass('network-status--offline');
+    });
+
+    it('should apply custom className when provided', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus className='custom-class' />);
+
+      const statusElement = screen.getByTestId('network-status');
+      expect(statusElement).toHaveClass('custom-class');
+      expect(statusElement).toHaveClass('network-status');
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle null status gracefully', () => {
+      mockGetStatus.mockReturnValue(null);
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Unknown')).toBeInTheDocument();
+    });
+
+    it('should handle undefined status gracefully', () => {
+      mockGetStatus.mockReturnValue(undefined);
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Unknown')).toBeInTheDocument();
+    });
+
+    it('should handle missing isOnline property', () => {
+      mockGetStatus.mockReturnValue({
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Unknown')).toBeInTheDocument();
+    });
+
+    it('should handle missing isReconnecting property', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Offline')).toBeInTheDocument();
+    });
+
+    it('should handle null lastSeen', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: null,
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Online')).toBeInTheDocument();
+    });
+
+    it('should handle undefined lastSeen', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: undefined,
+      });
+
+      render(<NetworkStatus />);
+
+      expect(screen.getByText('Online')).toBeInTheDocument();
+    });
+  });
+
+  describe('Performance', () => {
+    it('should not re-render unnecessarily', () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      const { rerender } = render(<NetworkStatus />);
+
+      const initialRender = screen.getByTestId('network-status');
+
+      rerender(<NetworkStatus />);
+
+      const reRender = screen.getByTestId('network-status');
+      expect(reRender).toBe(initialRender);
+    });
+
+    it('should handle rapid status changes efficiently', async () => {
+      mockGetStatus.mockReturnValue({
+        isOnline: true,
+        isReconnecting: false,
+        lastSeen: new Date(),
+      });
+
+      render(<NetworkStatus />);
+
+      const mockListener = mockAddListener.mock.calls[0][0];
+
+      // Simulate rapid status changes
+      for (let i = 0; i < 10; i++) {
+        mockListener({
+          isOnline: i % 2 === 0,
+          isReconnecting: false,
+          lastSeen: new Date(),
+        });
+      }
+
+      await waitFor(() => {
+        expect(screen.getByText('Offline')).toBeInTheDocument();
+      });
+    });
+  });
+});

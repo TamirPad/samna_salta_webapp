@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const csrf = require('csurf');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
@@ -44,6 +45,17 @@ const server = createServer(app);
 
 // Trust proxy for rate limiting
 app.set('trust proxy', 1);
+
+// CORS configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:3000"
+];
+
+// Add additional origins from environment if specified
+if (process.env.ADDITIONAL_CORS_ORIGINS) {
+  const additionalOrigins = process.env.ADDITIONAL_CORS_ORIGINS.split(',').map(origin => origin.trim());
+  allowedOrigins.push(...additionalOrigins);
+}
 
 const io = new Server(server, {
   cors: {
@@ -117,17 +129,6 @@ app.use(helmet({
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
-// CORS configuration
-const allowedOrigins = [
-  process.env.FRONTEND_URL || "http://localhost:3000"
-];
-
-// Add additional origins from environment if specified
-if (process.env.ADDITIONAL_CORS_ORIGINS) {
-  const additionalOrigins = process.env.ADDITIONAL_CORS_ORIGINS.split(',').map(origin => origin.trim());
-  allowedOrigins.push(...additionalOrigins);
-}
-
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -171,6 +172,38 @@ app.use(express.urlencoded({
   extended: true,
   limit: process.env.MAX_FILE_SIZE || '10mb'
 }));
+
+// Add request size validation middleware
+app.use((req, res, next) => {
+  const contentLength = parseInt(req.headers['content-length'] || '0');
+  const maxSize = parseInt(process.env.MAX_FILE_SIZE || '10485760'); // 10MB default
+  
+  if (contentLength > maxSize) {
+    return res.status(413).json({
+      success: false,
+      error: 'Request entity too large',
+      message: 'Request size exceeds the allowed limit'
+    });
+  }
+  next();
+});
+
+// CSRF protection (skip for API routes and file uploads)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/upload/')) {
+    return next();
+  }
+  
+  const csrfProtection = csrf({ 
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    }
+  });
+  
+  csrfProtection(req, res, next);
+});
 
 // Request ID middleware
 app.use((req, res, next) => {
@@ -239,40 +272,21 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
-
-// Start server
 const startServer = async () => {
   try {
-    // Connect to databases (but don't fail if they're not available in development)
-    try {
-      await connectDB();
-    } catch (dbError) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('Database connection failed, starting server without database');
-      } else {
-        throw dbError;
-      }
-    }
+    // Connect to database
+    await connectDB();
     
-    try {
-      await connectRedis();
-    } catch (redisError) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('Redis connection failed, starting server without Redis');
-      } else {
-        throw redisError;
-      }
-    }
+    // Connect to Redis
+    await connectRedis();
     
-    server.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
-      logger.info(`Environment: ${process.env.NODE_ENV}`);
-      logger.info(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-      logger.info(`Database: ${process.env.SUPABASE_CONNECTION_STRING ? 'Supabase' : 'Local PostgreSQL'}`);
+    const port = process.env.PORT || 3001;
+    
+    server.listen(port, () => {
+      logger.info(`Server running on port ${port}`, { service: 'samna-salta-api' });
     });
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    logger.error('Failed to start server:', { service: 'samna-salta-api', error: error.message });
     process.exit(1);
   }
 };

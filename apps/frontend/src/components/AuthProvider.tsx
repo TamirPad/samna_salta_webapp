@@ -1,6 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { initializeAuth, selectIsAuthInitialized, selectAuthLoading } from '../features/auth/authSlice';
+import {
+  initializeAuth,
+  selectIsAuthInitialized,
+  selectAuthLoading,
+} from '../features/auth/authSlice';
 import LoadingSpinner from './LoadingSpinner';
 
 interface AuthProviderProps {
@@ -22,13 +26,15 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Show loading spinner while initializing authentication
   if (!isInitialized || isLoading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
+        }}
+      >
         <LoadingSpinner />
       </div>
     );
@@ -37,4 +43,4 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return <>{children}</>;
 };
 
-export default AuthProvider; 
+export default AuthProvider;

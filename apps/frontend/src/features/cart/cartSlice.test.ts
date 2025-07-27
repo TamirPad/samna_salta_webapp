@@ -28,7 +28,7 @@ describe('Cart Slice', () => {
   const mockItem: CartItem = {
     id: '1',
     name: 'Test Product',
-    price: 25.00,
+    price: 25.0,
     quantity: 1,
     image: 'test-image.jpg',
     category: 'Test Category',
@@ -38,7 +38,7 @@ describe('Cart Slice', () => {
   const mockItem2: CartItem = {
     id: '2',
     name: 'Test Product 2',
-    price: 30.00,
+    price: 30.0,
     quantity: 2,
     image: 'test-image-2.jpg',
     category: 'Test Category 2',
@@ -94,7 +94,10 @@ describe('Cart Slice', () => {
         items: [mockItem],
       };
 
-      const newState = cartReducer(stateWithItem, updateQuantity({ id: '1', quantity: 3 }));
+      const newState = cartReducer(
+        stateWithItem,
+        updateQuantity({ id: '1', quantity: 3 })
+      );
 
       expect(newState.items[0]?.quantity).toBe(3);
     });
@@ -105,7 +108,10 @@ describe('Cart Slice', () => {
         items: [mockItem],
       };
 
-      const newState = cartReducer(stateWithItem, updateQuantity({ id: '1', quantity: 0 }));
+      const newState = cartReducer(
+        stateWithItem,
+        updateQuantity({ id: '1', quantity: 0 })
+      );
 
       expect(newState.items).toHaveLength(0);
     });
@@ -150,7 +156,10 @@ describe('Cart Slice', () => {
     });
 
     it('should handle addMultipleItems', () => {
-      const newState = cartReducer(initialState, addMultipleItems([mockItem, mockItem2]));
+      const newState = cartReducer(
+        initialState,
+        addMultipleItems([mockItem, mockItem2])
+      );
 
       expect(newState.items).toHaveLength(2);
       expect(newState.items[0]).toEqual(mockItem);
@@ -163,7 +172,10 @@ describe('Cart Slice', () => {
         items: [mockItem, mockItem2],
       };
 
-      const newState = cartReducer(stateWithItems, removeMultipleItems(['1', '2']));
+      const newState = cartReducer(
+        stateWithItems,
+        removeMultipleItems(['1', '2'])
+      );
 
       expect(newState.items).toHaveLength(0);
     });
@@ -174,13 +186,16 @@ describe('Cart Slice', () => {
         items: [mockItem],
       };
 
-      const newState = cartReducer(stateWithItem, updateItem({
-        id: '1',
-        updates: { name: 'Updated Product', price: 35.00 }
-      }));
+      const newState = cartReducer(
+        stateWithItem,
+        updateItem({
+          id: '1',
+          updates: { name: 'Updated Product', price: 35.0 },
+        })
+      );
 
       expect(newState.items[0]?.name).toBe('Updated Product');
-      expect(newState.items[0]?.price).toBe(35.00);
+      expect(newState.items[0]?.price).toBe(35.0);
       expect(newState.items[0]?.quantity).toBe(1); // unchanged
     });
 
@@ -190,7 +205,10 @@ describe('Cart Slice', () => {
         items: [mockItem, mockItem2],
       };
 
-      const newState = cartReducer(stateWithItems, moveItem({ fromIndex: 0, toIndex: 1 }));
+      const newState = cartReducer(
+        stateWithItems,
+        moveItem({ fromIndex: 0, toIndex: 1 })
+      );
 
       expect(newState.items[0]?.id).toBe('2');
       expect(newState.items[1]?.id).toBe('1');
@@ -202,7 +220,10 @@ describe('Cart Slice', () => {
         items: [mockItem, mockItem2],
       };
 
-      const newState = cartReducer(stateWithItems, moveItem({ fromIndex: 0, toIndex: 5 }));
+      const newState = cartReducer(
+        stateWithItems,
+        moveItem({ fromIndex: 0, toIndex: 5 })
+      );
 
       expect(newState.items).toEqual(stateWithItems.items);
     });
@@ -294,13 +315,19 @@ describe('Cart Slice', () => {
   describe('edge cases', () => {
     it('should handle adding item with zero quantity', () => {
       const itemWithZeroQuantity = { ...mockItem, quantity: 0 };
-      const newState = cartReducer(initialState, addToCart(itemWithZeroQuantity));
+      const newState = cartReducer(
+        initialState,
+        addToCart(itemWithZeroQuantity)
+      );
 
       expect(newState.items).toHaveLength(0);
     });
 
     it('should handle updating quantity of non-existent item', () => {
-      const newState = cartReducer(initialState, updateQuantity({ id: '999', quantity: 5 }));
+      const newState = cartReducer(
+        initialState,
+        updateQuantity({ id: '999', quantity: 5 })
+      );
 
       expect(newState.items).toHaveLength(0);
     });
@@ -312,12 +339,15 @@ describe('Cart Slice', () => {
     });
 
     it('should handle updating non-existent item', () => {
-      const newState = cartReducer(initialState, updateItem({
-        id: '999',
-        updates: { name: 'Updated' }
-      }));
+      const newState = cartReducer(
+        initialState,
+        updateItem({
+          id: '999',
+          updates: { name: 'Updated' },
+        })
+      );
 
       expect(newState.items).toHaveLength(0);
     });
   });
-}); 
+});

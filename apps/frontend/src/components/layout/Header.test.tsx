@@ -1,10 +1,14 @@
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import { render, screen, fireEvent, waitFor } from '../../utils/test-utils';
 import { mockAuthState } from '../../utils/test-utils';
 import Header from './Header';
 
 describe('Header', () => {
   const defaultState = {
-    auth: mockAuthState,
+    auth: {
+      ...mockAuthState.auth,
+      user: { id: 1, email: 'test@example.com', name: 'Test User', isAdmin: true, phone: '+1234567890' },
+    },
     language: { currentLanguage: 'he' },
     cart: { items: [] },
   };
@@ -45,7 +49,10 @@ describe('Header', () => {
   it('should not render admin navigation when user is not admin', () => {
     const nonAdminState = {
       ...defaultState,
-      auth: { ...mockAuthState, user: { ...mockAuthState.user, isAdmin: false } },
+      auth: {
+        ...mockAuthState.auth,
+        user: { id: 1, email: 'test@example.com', name: 'Test User', isAdmin: false, phone: '+1234567890' },
+      },
     };
 
     render(<Header />, { preloadedState: nonAdminState });
@@ -81,7 +88,18 @@ describe('Header', () => {
   it('should show cart badge when items are in cart', () => {
     const stateWithCartItems = {
       ...defaultState,
-      cart: { items: [{ id: '1', name: 'Test', price: 10, quantity: 2, image: '', category: '' }] },
+      cart: {
+        items: [
+          {
+            id: '1',
+            name: 'Test',
+            price: 10,
+            quantity: 2,
+            image: '',
+            category: '',
+          },
+        ],
+      },
     };
 
     render(<Header />, { preloadedState: stateWithCartItems });
@@ -125,7 +143,7 @@ describe('Header', () => {
     // Navigate to a different route
     const homeLinks = screen.getAllByText('בית');
     const homeLink = homeLinks[0]; // Get the first occurrence
-    
+
     if (homeLink) {
       fireEvent.click(homeLink);
     }
@@ -166,4 +184,4 @@ describe('Header', () => {
     expect(screen.getByLabelText('עגלת קניות')).toBeInTheDocument();
     expect(screen.getByLabelText('תפריט ניווט')).toBeInTheDocument();
   });
-}); 
+});

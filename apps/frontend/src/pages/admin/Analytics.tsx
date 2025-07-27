@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 // import { selectLanguage } from '../../features/language/languageSlice';
 import { selectAuth } from '../../features/auth/authSlice';
-import { fetchDashboardAnalytics, clearAnalyticsError } from '../../features/analytics/analyticsSlice';
+import {
+  fetchDashboardAnalytics,
+  clearAnalyticsError,
+} from '../../features/analytics/analyticsSlice';
 import { apiService } from '../../utils/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -37,9 +40,9 @@ const TabContainer = styled.div`
 `;
 
 const Tab = styled.button<{ $active: boolean }>`
-  background: ${props => props.$active ? '#8B4513' : 'transparent'};
-  color: ${props => props.$active ? 'white' : '#8B4513'};
-  border: 2px solid #8B4513;
+  background: ${props => (props.$active ? '#8B4513' : 'transparent')};
+  color: ${props => (props.$active ? 'white' : '#8B4513')};
+  border: 2px solid #8b4513;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   cursor: pointer;
@@ -47,7 +50,7 @@ const Tab = styled.button<{ $active: boolean }>`
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${props => props.$active ? '#8B4513' : '#f8f9fa'};
+    background: ${props => (props.$active ? '#8B4513' : '#f8f9fa')};
     transform: translateY(-1px);
   }
 `;
@@ -56,7 +59,7 @@ const ContentContainer = styled.div`
   background: white;
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const StatsGrid = styled.div`
@@ -71,13 +74,13 @@ const StatCard = styled.div`
   padding: 1.5rem;
   border-radius: 8px;
   text-align: center;
-  border-left: 4px solid #8B4513;
+  border-left: 4px solid #8b4513;
 `;
 
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: bold;
-  color: #8B4513;
+  color: #8b4513;
   margin-bottom: 0.5rem;
 `;
 
@@ -108,11 +111,11 @@ const Table = styled.table`
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const Th = styled.th`
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   padding: 1rem;
   text-align: left;
@@ -158,7 +161,7 @@ const ButtonGroup = styled.div`
 `;
 
 const AuthButton = styled.button`
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -169,7 +172,7 @@ const AuthButton = styled.button`
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -248,15 +251,21 @@ const AdminAnalytics: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
-  const { dashboard, isLoading, error } = useAppSelector(state => state.analytics);
+  const { dashboard, isLoading, error } = useAppSelector(
+    state => state.analytics
+  );
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'sales' | 'products' | 'customers'>('dashboard');
+  const [activeTab, setActiveTab] = useState<
+    'dashboard' | 'sales' | 'products' | 'customers'
+  >('dashboard');
   const [salesData, setSalesData] = useState<SalesData[]>([]);
   const [productData, setProductData] = useState<ProductData[]>([]);
   const [customerData, setCustomerData] = useState<CustomerData[]>([]);
   const [dateRange, setDateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0]
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
   });
   const [loadingData, setLoadingData] = useState(false);
 
@@ -284,7 +293,7 @@ const AdminAnalytics: React.FC = () => {
       const response = await apiService.getSalesReport({
         ...(dateRange.startDate && { start_date: dateRange.startDate }),
         ...(dateRange.endDate && { end_date: dateRange.endDate }),
-        group_by: 'day'
+        group_by: 'day',
       });
       setSalesData(response.data.data.sales);
     } catch (error) {
@@ -299,7 +308,7 @@ const AdminAnalytics: React.FC = () => {
       setLoadingData(true);
       const response = await apiService.getProductAnalytics({
         ...(dateRange.startDate && { start_date: dateRange.startDate }),
-        ...(dateRange.endDate && { end_date: dateRange.endDate })
+        ...(dateRange.endDate && { end_date: dateRange.endDate }),
       });
       setProductData(response.data.data.products);
     } catch (error) {
@@ -314,7 +323,7 @@ const AdminAnalytics: React.FC = () => {
       setLoadingData(true);
       const response = await apiService.getCustomerAnalytics({
         ...(dateRange.startDate && { start_date: dateRange.startDate }),
-        ...(dateRange.endDate && { end_date: dateRange.endDate })
+        ...(dateRange.endDate && { end_date: dateRange.endDate }),
       });
       setCustomerData(response.data.data.customers);
     } catch (error) {
@@ -324,7 +333,9 @@ const AdminAnalytics: React.FC = () => {
     }
   };
 
-  const handleTabChange = (tab: 'dashboard' | 'sales' | 'products' | 'customers') => {
+  const handleTabChange = (
+    tab: 'dashboard' | 'sales' | 'products' | 'customers'
+  ) => {
     setActiveTab(tab);
     if (tab === 'sales') {
       fetchSalesData();
@@ -366,11 +377,11 @@ const AdminAnalytics: React.FC = () => {
         <Title>Analytics Dashboard</Title>
         <AuthCard>
           <strong>Access Denied</strong>
-          <p style={{ margin: '1rem 0' }}>Admin privileges required to access analytics.</p>
+          <p style={{ margin: '1rem 0' }}>
+            Admin privileges required to access analytics.
+          </p>
           <ButtonGroup>
-            <AuthButton onClick={() => navigate('/')}>
-              Go to Home
-            </AuthButton>
+            <AuthButton onClick={() => navigate('/')}>Go to Home</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -390,26 +401,26 @@ const AdminAnalytics: React.FC = () => {
       )}
 
       <TabContainer>
-        <Tab 
-          $active={activeTab === 'dashboard'} 
+        <Tab
+          $active={activeTab === 'dashboard'}
           onClick={() => handleTabChange('dashboard')}
         >
           Dashboard
         </Tab>
-        <Tab 
-          $active={activeTab === 'sales'} 
+        <Tab
+          $active={activeTab === 'sales'}
           onClick={() => handleTabChange('sales')}
         >
           Sales Reports
         </Tab>
-        <Tab 
-          $active={activeTab === 'products'} 
+        <Tab
+          $active={activeTab === 'products'}
           onClick={() => handleTabChange('products')}
         >
           Product Analytics
         </Tab>
-        <Tab 
-          $active={activeTab === 'customers'} 
+        <Tab
+          $active={activeTab === 'customers'}
           onClick={() => handleTabChange('customers')}
         >
           Customer Analytics
@@ -429,7 +440,9 @@ const AdminAnalytics: React.FC = () => {
                     <StatLabel>Today&apos;s Orders</StatLabel>
                   </StatCard>
                   <StatCard>
-                    <StatValue>{formatCurrency(dashboard?.today?.revenue || 0)}</StatValue>
+                    <StatValue>
+                      {formatCurrency(dashboard?.today?.revenue || 0)}
+                    </StatValue>
                     <StatLabel>Today&apos;s Revenue</StatLabel>
                   </StatCard>
                   <StatCard>
@@ -446,29 +459,39 @@ const AdminAnalytics: React.FC = () => {
                   <p>Revenue Chart - Coming Soon</p>
                 </ChartContainer>
 
-                {dashboard?.top_products && dashboard.top_products.length > 0 && (
-                  <TableContainer>
-                    <h3>Top Selling Products</h3>
-                    <Table>
-                      <thead>
-                        <tr>
-                          <Th>Product</Th>
-                          <Th>Orders</Th>
-                          <Th>Quantity Sold</Th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dashboard.top_products.map((product: { name: string; order_count: number; total_quantity: number }, index: number) => (
-                          <Tr key={`product-${product.name}-${index}`}>
-                            <Td>{product.name}</Td>
-                            <Td>{product.order_count}</Td>
-                            <Td>{product.total_quantity}</Td>
-                          </Tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </TableContainer>
-                )}
+                {dashboard?.top_products &&
+                  dashboard.top_products.length > 0 && (
+                    <TableContainer>
+                      <h3>Top Selling Products</h3>
+                      <Table>
+                        <thead>
+                          <tr>
+                            <Th>Product</Th>
+                            <Th>Orders</Th>
+                            <Th>Quantity Sold</Th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dashboard.top_products.map(
+                            (
+                              product: {
+                                name: string;
+                                order_count: number;
+                                total_quantity: number;
+                              },
+                              index: number
+                            ) => (
+                              <Tr key={`product-${product.name}-${index}`}>
+                                <Td>{product.name}</Td>
+                                <Td>{product.order_count}</Td>
+                                <Td>{product.total_quantity}</Td>
+                              </Tr>
+                            )
+                          )}
+                        </tbody>
+                      </Table>
+                    </TableContainer>
+                  )}
               </>
             )}
           </>
@@ -478,15 +501,22 @@ const AdminAnalytics: React.FC = () => {
           <>
             <DateFilterContainer>
               <DateInput
-                type="date"
+                type='date'
                 value={dateRange.startDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={e =>
+                  setDateRange(prev => ({
+                    ...prev,
+                    startDate: e.target.value,
+                  }))
+                }
               />
               <span>to</span>
               <DateInput
-                type="date"
+                type='date'
                 value={dateRange.endDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={e =>
+                  setDateRange(prev => ({ ...prev, endDate: e.target.value }))
+                }
               />
               <FilterButton onClick={fetchSalesData}>Apply Filter</FilterButton>
             </DateFilterContainer>
@@ -524,17 +554,26 @@ const AdminAnalytics: React.FC = () => {
           <>
             <DateFilterContainer>
               <DateInput
-                type="date"
+                type='date'
                 value={dateRange.startDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={e =>
+                  setDateRange(prev => ({
+                    ...prev,
+                    startDate: e.target.value,
+                  }))
+                }
               />
               <span>to</span>
               <DateInput
-                type="date"
+                type='date'
                 value={dateRange.endDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={e =>
+                  setDateRange(prev => ({ ...prev, endDate: e.target.value }))
+                }
               />
-              <FilterButton onClick={fetchProductData}>Apply Filter</FilterButton>
+              <FilterButton onClick={fetchProductData}>
+                Apply Filter
+              </FilterButton>
             </DateFilterContainer>
 
             {loadingData ? (
@@ -553,7 +592,7 @@ const AdminAnalytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {productData.map((product) => (
+                    {productData.map(product => (
                       <Tr key={product.id}>
                         <Td>{product.name}</Td>
                         <Td>{formatCurrency(product.price)}</Td>
@@ -574,17 +613,26 @@ const AdminAnalytics: React.FC = () => {
           <>
             <DateFilterContainer>
               <DateInput
-                type="date"
+                type='date'
                 value={dateRange.startDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={e =>
+                  setDateRange(prev => ({
+                    ...prev,
+                    startDate: e.target.value,
+                  }))
+                }
               />
               <span>to</span>
               <DateInput
-                type="date"
+                type='date'
                 value={dateRange.endDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={e =>
+                  setDateRange(prev => ({ ...prev, endDate: e.target.value }))
+                }
               />
-              <FilterButton onClick={fetchCustomerData}>Apply Filter</FilterButton>
+              <FilterButton onClick={fetchCustomerData}>
+                Apply Filter
+              </FilterButton>
             </DateFilterContainer>
 
             {loadingData ? (
@@ -604,7 +652,7 @@ const AdminAnalytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {customerData.map((customer) => (
+                    {customerData.map(customer => (
                       <Tr key={customer.id}>
                         <Td>{customer.name}</Td>
                         <Td>{customer.email}</Td>
@@ -612,7 +660,11 @@ const AdminAnalytics: React.FC = () => {
                         <Td>{customer.order_count}</Td>
                         <Td>{formatCurrency(customer.total_spent)}</Td>
                         <Td>{formatCurrency(customer.avg_order_value)}</Td>
-                        <Td>{customer.last_order_date ? formatDate(customer.last_order_date) : 'N/A'}</Td>
+                        <Td>
+                          {customer.last_order_date
+                            ? formatDate(customer.last_order_date)
+                            : 'N/A'}
+                        </Td>
                       </Tr>
                     ))}
                   </tbody>
@@ -626,4 +678,4 @@ const AdminAnalytics: React.FC = () => {
   );
 };
 
-export default AdminAnalytics; 
+export default AdminAnalytics;

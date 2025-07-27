@@ -16,19 +16,21 @@ export default reportWebVitals;
 
 // Performance monitoring utilities
 export const measureWebVitals = (): void => {
-  reportWebVitals((metric) => {
+  reportWebVitals(metric => {
     console.log('Web Vital:', metric);
     // Here you could send metrics to your analytics service
   });
 };
 
 // Custom performance observer
-export const observePerformance = (callback: (entry: PerformanceEntry) => void): PerformanceObserver | null => {
+export const observePerformance = (
+  callback: (entry: PerformanceEntry) => void
+): PerformanceObserver | null => {
   if ('PerformanceObserver' in window) {
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       list.getEntries().forEach(callback);
     });
-    
+
     try {
       observer.observe({ entryTypes: ['navigation', 'resource', 'paint'] });
       return observer;
@@ -38,4 +40,4 @@ export const observePerformance = (callback: (entry: PerformanceEntry) => void):
     }
   }
   return null;
-}; 
+};

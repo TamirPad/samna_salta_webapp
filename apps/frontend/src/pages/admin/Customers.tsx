@@ -1,16 +1,35 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useMemo,
+} from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { Search, Filter, Eye, Edit, User, Phone, MapPin, ShoppingCart, DollarSign, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  User,
+  Phone,
+  MapPin,
+  ShoppingCart,
+  DollarSign,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
-import { 
-  fetchCustomers, 
+import {
+  fetchCustomers,
   fetchCustomerDetails,
   setSelectedCustomer,
   clearCustomersError,
-  setCustomersPagination
+  setCustomersPagination,
 } from '../../features/customers/customersSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -37,7 +56,7 @@ const CustomersHeader = styled.div`
 const CustomersTitle = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin-bottom: 0.5rem;
 `;
 
@@ -78,7 +97,7 @@ const SearchField = styled.input`
   transition: border-color 0.3s ease;
 
   &:focus {
-    border-color: #8B4513;
+    border-color: #8b4513;
   }
 `;
 
@@ -103,7 +122,7 @@ const FilterButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #8B4513;
+    border-color: #8b4513;
     background: #f8f9fa;
   }
 `;
@@ -131,7 +150,7 @@ const CustomerCard = styled(motion.div)`
 `;
 
 const CustomerHeader = styled.div`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
   color: white;
   padding: 1.5rem;
   text-align: center;
@@ -185,7 +204,7 @@ const DetailLabel = styled.div`
 `;
 
 const DetailValue = styled.div`
-  color: #2F2F2F;
+  color: #2f2f2f;
 `;
 
 const CustomerActions = styled.div`
@@ -194,7 +213,9 @@ const CustomerActions = styled.div`
   margin-top: 1rem;
 `;
 
-const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' }>`
+const ActionButton = styled.button<{
+  variant?: 'primary' | 'secondary';
+}>`
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -245,18 +266,22 @@ const PaginationContainer = styled.div`
   margin-top: 2rem;
 `;
 
-const PaginationButton = styled.button<{ active?: boolean; disabled?: boolean }>`
+const PaginationButton = styled.button<{
+  active?: boolean;
+  disabled?: boolean;
+}>`
   padding: 0.5rem 1rem;
-  border: 2px solid ${props => props.active ? '#8B4513' : '#e0e0e0'};
-  background: ${props => props.active ? '#8B4513' : 'white'};
-  color: ${props => props.active ? 'white' : props.disabled ? '#ccc' : '#333'};
+  border: 2px solid ${props => (props.active ? '#8B4513' : '#e0e0e0')};
+  background: ${props => (props.active ? '#8B4513' : 'white')};
+  color: ${props =>
+    props.active ? 'white' : props.disabled ? '#ccc' : '#333'};
   border-radius: 8px;
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    border-color: #8B4513;
-    background: ${props => props.active ? '#8B4513' : '#f8f9fa'};
+    border-color: #8b4513;
+    background: ${props => (props.active ? '#8B4513' : '#f8f9fa')};
   }
 `;
 
@@ -293,7 +318,7 @@ const ModalHeader = styled.div`
 const ModalTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
 `;
 
 const CloseButton = styled.button`
@@ -302,7 +327,7 @@ const CloseButton = styled.button`
   font-size: 1.5rem;
   cursor: pointer;
   color: #666;
-  
+
   &:hover {
     color: #333;
   }
@@ -320,81 +345,89 @@ const AdminCustomers: React.FC = () => {
   const isLoading = useAppSelector((state: any) => state.customers.isLoading);
   const error = useAppSelector((state: any) => state.customers.error);
   const pagination = useAppSelector((state: any) => state.customers.pagination);
-  const selectedCustomer = useAppSelector((state: any) => state.customers.selectedCustomer);
-  
+  const selectedCustomer = useAppSelector(
+    (state: any) => state.customers.selectedCustomer
+  );
+
   const [searchQuery, setSearchQuery] = useState('');
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // All hooks must be called before any conditional returns
-  const translations = useMemo(() => ({
-    he: {
-      title: 'ניהול לקוחות',
-      subtitle: 'נהל את הלקוחות שלך ועקוב אחר הפעילות שלהם',
-      searchPlaceholder: 'חפש לקוחות...',
-      filterAll: 'כל הלקוחות',
-      filterActive: 'לקוחות פעילים',
-      filterInactive: 'לקוחות לא פעילים',
-      noCustomers: 'לא נמצאו לקוחות',
-      noCustomersDesc: 'אין לקוחות שתואמים לחיפוש שלך',
-      customerDetails: 'פרטי לקוח',
-      editCustomer: 'ערוך לקוח',
-      name: 'שם',
-      email: 'אימייל',
-      phone: 'טלפון',
-      address: 'כתובת',
-      totalOrders: 'סה"כ הזמנות',
-      totalSpent: 'סה"כ הוצאות',
-      memberSince: 'חבר מאז',
-      orders: 'הזמנות',
-      previous: 'הקודם',
-      next: 'הבא',
-      page: 'עמוד',
-      of: 'מתוך',
-      view: 'צפה',
-      edit: 'ערוך',
-      filter: 'פילטר',
-      lastOrder: 'הזמנה אחרונה',
-      close: 'סגור',
-      notes: 'הערות',
-      save: 'שמור',
-      cancel: 'ביטול'
-    },
-    en: {
-      title: 'Customer Management',
-      subtitle: 'Manage your customers and track their activity',
-      searchPlaceholder: 'Search customers...',
-      filterAll: 'All Customers',
-      filterActive: 'Active Customers',
-      filterInactive: 'Inactive Customers',
-      noCustomers: 'No customers found',
-      noCustomersDesc: 'No customers match your search',
-      customerDetails: 'Customer Details',
-      editCustomer: 'Edit Customer',
-      name: 'Name',
-      email: 'Email',
-      phone: 'Phone',
-      address: 'Address',
-      totalOrders: 'Total Orders',
-      totalSpent: 'Total Spent',
-      memberSince: 'Member Since',
-      orders: 'Orders',
-      previous: 'Previous',
-      next: 'Next',
-      page: 'Page',
-      of: 'of',
-      view: 'View',
-      edit: 'Edit',
-      filter: 'Filter',
-      lastOrder: 'Last Order',
-      close: 'Close',
-      notes: 'Notes',
-      save: 'Save',
-      cancel: 'Cancel'
-    }
-  }), []);
+  const translations = useMemo(
+    () => ({
+      he: {
+        title: 'ניהול לקוחות',
+        subtitle: 'נהל את הלקוחות שלך ועקוב אחר הפעילות שלהם',
+        searchPlaceholder: 'חפש לקוחות...',
+        filterAll: 'כל הלקוחות',
+        filterActive: 'לקוחות פעילים',
+        filterInactive: 'לקוחות לא פעילים',
+        noCustomers: 'לא נמצאו לקוחות',
+        noCustomersDesc: 'אין לקוחות שתואמים לחיפוש שלך',
+        customerDetails: 'פרטי לקוח',
+        editCustomer: 'ערוך לקוח',
+        name: 'שם',
+        email: 'אימייל',
+        phone: 'טלפון',
+        address: 'כתובת',
+        totalOrders: 'סה"כ הזמנות',
+        totalSpent: 'סה"כ הוצאות',
+        memberSince: 'חבר מאז',
+        orders: 'הזמנות',
+        previous: 'הקודם',
+        next: 'הבא',
+        page: 'עמוד',
+        of: 'מתוך',
+        view: 'צפה',
+        edit: 'ערוך',
+        filter: 'פילטר',
+        lastOrder: 'הזמנה אחרונה',
+        close: 'סגור',
+        notes: 'הערות',
+        save: 'שמור',
+        cancel: 'ביטול',
+      },
+      en: {
+        title: 'Customer Management',
+        subtitle: 'Manage your customers and track their activity',
+        searchPlaceholder: 'Search customers...',
+        filterAll: 'All Customers',
+        filterActive: 'Active Customers',
+        filterInactive: 'Inactive Customers',
+        noCustomers: 'No customers found',
+        noCustomersDesc: 'No customers match your search',
+        customerDetails: 'Customer Details',
+        editCustomer: 'Edit Customer',
+        name: 'Name',
+        email: 'Email',
+        phone: 'Phone',
+        address: 'Address',
+        totalOrders: 'Total Orders',
+        totalSpent: 'Total Spent',
+        memberSince: 'Member Since',
+        orders: 'Orders',
+        previous: 'Previous',
+        next: 'Next',
+        page: 'Page',
+        of: 'of',
+        view: 'View',
+        edit: 'Edit',
+        filter: 'Filter',
+        lastOrder: 'Last Order',
+        close: 'Close',
+        notes: 'Notes',
+        save: 'Save',
+        cancel: 'Cancel',
+      },
+    }),
+    []
+  );
 
-  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language]
+  );
 
   // Check authentication and load customers
   useEffect(() => {
@@ -407,11 +440,11 @@ const AdminCustomers: React.FC = () => {
       }
 
       setIsAuthenticated(true);
-      
+
       try {
         await dispatch(fetchCustomers({ page: 1, limit: 20 })).unwrap();
-      } catch (err: any) {
-        if (err.response?.status === 401) {
+      } catch (err: unknown) {
+        if ((err as any).response?.status === 401) {
           // Token expired or invalid
           localStorage.removeItem('token');
           setIsAuthenticated(false);
@@ -426,13 +459,21 @@ const AdminCustomers: React.FC = () => {
   // Load customers when pagination changes
   useEffect(() => {
     if (isAuthenticated && pagination.page > 1) {
-      dispatch(fetchCustomers({ 
-        search: searchQuery, 
-        page: pagination.page, 
-        limit: pagination.limit 
-      }));
+      dispatch(
+        fetchCustomers({
+          search: searchQuery,
+          page: pagination.page,
+          limit: pagination.limit,
+        })
+      );
     }
-  }, [pagination.page, pagination.limit, dispatch, isAuthenticated, searchQuery]);
+  }, [
+    pagination.page,
+    pagination.limit,
+    dispatch,
+    isAuthenticated,
+    searchQuery,
+  ]);
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -459,7 +500,7 @@ const AdminCustomers: React.FC = () => {
 
   const handleViewCustomer = async (customerId: string) => {
     if (!isAuthenticated) return;
-    
+
     try {
       await dispatch(fetchCustomerDetails(customerId)).unwrap();
     } catch (err) {
@@ -469,72 +510,94 @@ const AdminCustomers: React.FC = () => {
 
   const handleEditCustomer = async (_customerId: string) => {
     if (!isAuthenticated) return;
-    
+
     // TODO: Navigate to edit page or open edit modal
   };
 
   const handlePageChange = (newPage: number) => {
     if (!isAuthenticated) return;
-    
-    dispatch(setCustomersPagination({ page: newPage, limit: pagination.limit }));
-    dispatch(fetchCustomers({ 
-      search: searchQuery, 
-      page: newPage, 
-      limit: pagination.limit 
-    }));
+
+    dispatch(
+      setCustomersPagination({ page: newPage, limit: pagination.limit })
+    );
+    dispatch(
+      fetchCustomers({
+        search: searchQuery,
+        page: newPage,
+        limit: pagination.limit,
+      })
+    );
   };
 
   const handleLogin = () => {
     navigate('/login', { state: { from: { pathname: '/customers' } } });
   };
 
-  const getCustomerName = (customer: any) => {
-    return language === 'he' && customer.name_he ? customer.name_he : customer.name;
+  const getCustomerName = (customer: unknown) => {
+    return language === 'he' && (customer as any).name_he
+      ? (customer as any).name_he
+      : (customer as any).name;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    return new Date(dateString).toLocaleDateString(
+      language === 'he' ? 'he-IL' : 'en-US',
+      {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }
+    );
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(language === 'he' ? 'he-IL' : 'en-US', {
       style: 'currency',
-      currency: 'ILS'
+      currency: 'ILS',
     }).format(amount);
   };
 
   // Show authentication required screen
   if (!isAuthenticated) {
     return (
-      <div style={{ 
-        padding: '2rem', 
-        background: '#f8f9fa', 
-        minHeight: '100vh',
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+      <div
+        style={{
+          padding: '2rem',
+          background: '#f8f9fa',
+          minHeight: '100vh',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <h1 style={{ color: '#8B4513', marginBottom: '1rem' }}>
           Customers Management
         </h1>
-        <div style={{ 
-          background: '#fee', 
-          color: '#c33', 
-          padding: '1.5rem', 
-          borderRadius: '8px', 
-          marginBottom: '2rem',
-          maxWidth: '500px'
-        }}>
+        <div
+          style={{
+            background: '#fee',
+            color: '#c33',
+            padding: '1.5rem',
+            borderRadius: '8px',
+            marginBottom: '2rem',
+            maxWidth: '500px',
+          }}
+        >
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>Please login to access customer management.</p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button 
+          <p style={{ margin: '1rem 0' }}>
+            Please login to access customer management.
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <button
               onClick={handleLogin}
               style={{
                 background: '#8B4513',
@@ -543,13 +606,13 @@ const AdminCustomers: React.FC = () => {
                 padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: '1rem',
               }}
             >
               Login to Access Customers
             </button>
             {process.env['NODE_ENV'] === 'development' && (
-              <button 
+              <button
                 onClick={() => {
                   setIsAuthenticated(true);
                 }}
@@ -560,7 +623,7 @@ const AdminCustomers: React.FC = () => {
                   padding: '0.75rem 1.5rem',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
                 }}
               >
                 Skip Login (Dev Mode)
@@ -582,18 +645,18 @@ const AdminCustomers: React.FC = () => {
         <CustomersHeader>
           <CustomersTitle>{t.title}</CustomersTitle>
           <CustomersSubtitle>{t.subtitle}</CustomersSubtitle>
-          
+
           <CustomersActions>
             <SearchInput>
               <SearchIcon size={20} />
               <SearchField
-                type="text"
+                type='text'
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
               />
             </SearchInput>
-            
+
             <FilterButton>
               <Filter size={16} />
               {t.filter}
@@ -602,13 +665,15 @@ const AdminCustomers: React.FC = () => {
         </CustomersHeader>
 
         {error && (
-          <div style={{ 
-            background: '#fee', 
-            color: '#c33', 
-            padding: '1rem', 
-            borderRadius: '8px', 
-            marginBottom: '1rem' 
-          }}>
+          <div
+            style={{
+              background: '#fee',
+              color: '#c33',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+            }}
+          >
             {error}
           </div>
         )}
@@ -616,54 +681,72 @@ const AdminCustomers: React.FC = () => {
         {customers.length > 0 ? (
           <>
             <CustomersGrid>
-              {customers.map((customer: any) => (
-                <CustomerCard key={customer.id}>
+              {customers.map((customer: unknown) => (
+                <CustomerCard key={(customer as any).id}>
                   <CustomerHeader>
-                    <CustomerAvatar>{customer.avatar || customer.name.charAt(0)}</CustomerAvatar>
+                    <CustomerAvatar>
+                      {(customer as any).avatar ||
+                        (customer as any).name.charAt(0)}
+                    </CustomerAvatar>
                     <CustomerInfo>
                       <CustomerName>{getCustomerName(customer)}</CustomerName>
-                      <CustomerEmail>{customer.email}</CustomerEmail>
+                      <CustomerEmail>{(customer as any).email}</CustomerEmail>
                     </CustomerInfo>
                     <CustomerActions>
-                      <ActionButton onClick={() => handleViewCustomer(customer.id)}>
+                      <ActionButton
+                        onClick={() => handleViewCustomer((customer as any).id)}
+                      >
                         <Eye size={16} />
                         {t.view}
                       </ActionButton>
-                      <ActionButton onClick={() => handleEditCustomer(customer.id)}>
+                      <ActionButton
+                        onClick={() => handleEditCustomer((customer as any).id)}
+                      >
                         <Edit size={16} />
                         {t.edit}
                       </ActionButton>
                     </CustomerActions>
                   </CustomerHeader>
-                  
+
                   <CustomerDetails>
                     <DetailItem>
                       <Phone size={16} />
-                      <span>{customer.phone}</span>
+                      <span>{(customer as any).phone}</span>
                     </DetailItem>
-                    {customer.address && (
+                    {(customer as any).address && (
                       <DetailItem>
                         <MapPin size={16} />
-                        <span>{customer.address}</span>
+                        <span>{(customer as any).address}</span>
                       </DetailItem>
                     )}
                     <DetailItem>
                       <ShoppingCart size={16} />
-                      <span>{t.totalOrders}: {customer.total_orders}</span>
+                      <span>
+                        {t.totalOrders}: {(customer as any).total_orders}
+                      </span>
                     </DetailItem>
                     <DetailItem>
                       <DollarSign size={16} />
-                      <span>{t.totalSpent}: {formatCurrency(customer.total_spent)}</span>
+                      <span>
+                        {t.totalSpent}:{' '}
+                        {formatCurrency((customer as any).total_spent)}
+                      </span>
                     </DetailItem>
-                    {customer.last_order_date && (
+                    {(customer as any).last_order_date && (
                       <DetailItem>
                         <Calendar size={16} />
-                        <span>{t.lastOrder}: {formatDate(customer.last_order_date)}</span>
+                        <span>
+                          {t.lastOrder}:{' '}
+                          {formatDate((customer as any).last_order_date)}
+                        </span>
                       </DetailItem>
                     )}
                     <DetailItem>
                       <User size={16} />
-                      <span>{t.memberSince}: {formatDate(customer.member_since)}</span>
+                      <span>
+                        {t.memberSince}:{' '}
+                        {formatDate((customer as any).member_since)}
+                      </span>
                     </DetailItem>
                   </CustomerDetails>
                 </CustomerCard>
@@ -679,11 +762,11 @@ const AdminCustomers: React.FC = () => {
                   <ChevronLeft size={16} />
                   {t.previous}
                 </PaginationButton>
-                
+
                 <span>
                   {t.page} {pagination.page} {t.of} {pagination.pages}
                 </span>
-                
+
                 <PaginationButton
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
@@ -705,58 +788,64 @@ const AdminCustomers: React.FC = () => {
       {/* Customer Modal */}
       {selectedCustomer && (
         <CustomerModal onClick={() => dispatch(setSelectedCustomer(null))}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
+          <ModalContent onClick={e => e.stopPropagation()}>
             <ModalHeader>
-              <ModalTitle>
-                {t.customerDetails}
-              </ModalTitle>
-              <CloseButton onClick={() => dispatch(setSelectedCustomer(null))}>×</CloseButton>
+              <ModalTitle>{t.customerDetails}</ModalTitle>
+              <CloseButton onClick={() => dispatch(setSelectedCustomer(null))}>
+                ×
+              </CloseButton>
             </ModalHeader>
-            
+
             <CustomerDetail>
               <DetailLabel>Name</DetailLabel>
               <DetailValue>{getCustomerName(selectedCustomer)}</DetailValue>
             </CustomerDetail>
-            
+
             <CustomerDetail>
               <DetailLabel>Email</DetailLabel>
               <DetailValue>{selectedCustomer.email}</DetailValue>
             </CustomerDetail>
-            
+
             <CustomerDetail>
               <DetailLabel>{t.phone}</DetailLabel>
               <DetailValue>{selectedCustomer.phone}</DetailValue>
             </CustomerDetail>
-            
+
             {selectedCustomer.address && (
               <CustomerDetail>
                 <DetailLabel>{t.address}</DetailLabel>
                 <DetailValue>{selectedCustomer.address}</DetailValue>
               </CustomerDetail>
             )}
-            
+
             <CustomerDetail>
               <DetailLabel>{t.totalOrders}</DetailLabel>
               <DetailValue>{selectedCustomer.total_orders}</DetailValue>
             </CustomerDetail>
-            
+
             <CustomerDetail>
               <DetailLabel>{t.totalSpent}</DetailLabel>
-              <DetailValue>{formatCurrency(selectedCustomer.total_spent)}</DetailValue>
+              <DetailValue>
+                {formatCurrency(selectedCustomer.total_spent)}
+              </DetailValue>
             </CustomerDetail>
-            
+
             <CustomerDetail>
               <DetailLabel>{t.memberSince}</DetailLabel>
-              <DetailValue>{formatDate(selectedCustomer.member_since)}</DetailValue>
+              <DetailValue>
+                {formatDate(selectedCustomer.member_since)}
+              </DetailValue>
             </CustomerDetail>
-            
+
             {selectedCustomer.orders && selectedCustomer.orders.length > 0 && (
               <CustomerDetail>
                 <DetailLabel>{t.orders}</DetailLabel>
                 <DetailValue>
-                  {selectedCustomer.orders.map((order: any) => (
-                    <div key={order.id}>
-                      Order #{order.order_number} - {formatCurrency(order.total)} - {order.status}
+                  {selectedCustomer.orders.map((order: unknown) => (
+                    <div key={(order as any).id}>
+                      Order #{(order as any).order_number} -{' '}
+                      {formatCurrency((order as any).total)} -{' '}
+                      {(order as any).status}
                     </div>
                   ))}
                 </DetailValue>
@@ -769,4 +858,4 @@ const AdminCustomers: React.FC = () => {
   );
 };
 
-export default AdminCustomers; 
+export default AdminCustomers;

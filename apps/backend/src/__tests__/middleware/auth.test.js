@@ -1,55 +1,54 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { authenticateToken, requireAdmin, optionalAuth } = require('../../middleware/auth');
 const { getSession } = require('../../config/redis');
 
-// Set up test environment
-process.env.JWT_SECRET = 'test-jwt-secret-key';
-process.env.NODE_ENV = 'test';
-
 // Mock dependencies
 jest.mock('../../config/redis');
-jest.mock('../../utils/logger', () => ({
-  error: jest.fn(),
-  info: jest.fn()
-}));
+jest.mock('../../utils/logger');
 
-describe('Authentication Middleware', () => {
+const mockGetSession = getSession;
+
+describe('Auth Middleware', () => {
   let mockReq;
   let mockRes;
   let mockNext;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    
     mockReq = {
       headers: {},
-      user: null
+      user: null,
     };
+    
     mockRes = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn().mockReturnThis(),
     };
+    
     mockNext = jest.fn();
-    jest.clearAllMocks();
   });
 
   describe('authenticateToken', () => {
-    it('should authenticate valid token successfully', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET
-      );
-      
-      mockReq.headers.authorization = `Bearer ${token}`;
-      getSession.mockResolvedValue({ userId: 1, email: 'test@example.com', isAdmin: false });
-
-      await authenticateToken(mockReq, mockRes, mockNext);
-
-      expect(mockReq.user).toEqual({
+    it('should authenticate valid token and set user', async () => {
+      const testUser = {
         id: 1,
         email: 'test@example.com',
         isAdmin: false,
-        sessionId: 'session-123'
-      });
-      expect(mockNext).toHaveBeenCalled();
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.authorization = `Bearer ${token}`;
+      
+      mockGetSession.mockResolvedValue(JSON.stringify(testUser));
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockReq.user).toEqual(testUser);
+      expect(mockNext).toHaveBeenCalledWith();
+      expect(mockGetSession).toHaveBeenCalledWith(testUser.sessionId);
     });
 
     it('should return 401 when no token provided', async () => {
@@ -57,8 +56,39 @@ describe('Authentication Middleware', () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
         error: 'Access token required',
-        message: 'Please provide a valid authentication token'
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should return 401 when token format is invalid', async () => {
+      mockReq.headers.authorization = 'InvalidToken';
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Access token required',
+        message: 'Please provide a valid authentication token',
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should return 401 when token is expired', async () => {
+      const expiredToken = jwt.sign(
+        { id: 1, email: 'test@example.com' },
+        process.env.JWT_SECRET,
+        { expiresIn: '-1h' }
+      );
+      mockReq.headers.authorization = `Bearer ${expiredToken}`;
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Token expired',
+        message: 'Authentication token has expired',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -71,184 +101,344 @@ describe('Authentication Middleware', () => {
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Invalid token',
-        message: 'Invalid authentication token'
+        message: 'Invalid authentication token',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should return 401 when token is expired', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET,
-        { expiresIn: '1ms' }
-      );
-      
+    it('should return 401 when session not found in Redis', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
       mockReq.headers.authorization = `Bearer ${token}`;
-
-      // Wait for token to expire
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      await authenticateToken(mockReq, mockRes, mockNext);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Token expired',
-        message: 'Authentication token has expired'
-      });
-      expect(mockNext).not.toHaveBeenCalled();
-    });
-
-    it('should return 401 when session not found', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET
-      );
       
-      mockReq.headers.authorization = `Bearer ${token}`;
-      getSession.mockResolvedValue(null);
+      mockGetSession.mockResolvedValue(null);
 
       await authenticateToken(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Invalid session',
-        message: 'Session expired or invalid'
+        message: 'Session expired or invalid',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should return 500 on unexpected error', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET
-      );
-      
+    it('should return 401 when session data is invalid JSON', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
       mockReq.headers.authorization = `Bearer ${token}`;
-      getSession.mockRejectedValue(new Error('Redis error'));
+      
+      mockGetSession.mockResolvedValue('invalid-json');
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid session data',
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should handle Redis errors gracefully', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.authorization = `Bearer ${token}`;
+      
+      mockGetSession.mockRejectedValue(new Error('Redis connection error'));
 
       await authenticateToken(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Authentication failed',
-        message: 'Internal server error during authentication'
+        message: 'Internal server error during authentication',
       });
       expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should handle missing sessionId in token', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        // Missing sessionId
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.authorization = `Bearer ${token}`;
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Authentication failed',
+        message: 'Internal server error during authentication',
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should handle case-insensitive authorization header', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        isAdmin: false,
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.AUTHORIZATION = `Bearer ${token}`;
+      
+      mockGetSession.mockResolvedValue(JSON.stringify(testUser));
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockReq.user).toEqual(testUser);
+      expect(mockNext).toHaveBeenCalledWith();
     });
   });
 
   describe('requireAdmin', () => {
-    it('should allow admin user to proceed', () => {
-      mockReq.user = { id: 1, isAdmin: true };
+    it('should allow admin users to proceed', () => {
+      mockReq.user = {
+        id: 1,
+        email: 'admin@example.com',
+        isAdmin: true,
+      };
 
       requireAdmin(mockReq, mockRes, mockNext);
 
-      expect(mockNext).toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalledWith();
     });
 
-    it('should deny non-admin user', () => {
-      mockReq.user = { id: 1, isAdmin: false };
+    it('should return 403 for non-admin users', () => {
+      mockReq.user = {
+        id: 1,
+        email: 'user@example.com',
+        isAdmin: false,
+      };
 
       requireAdmin(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Admin access required',
-        message: 'You do not have permission to access this resource'
+        message: 'You do not have permission to access this resource',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should deny user without admin property', () => {
-      mockReq.user = { id: 1 };
+    it('should return 403 when user is null', () => {
+      mockReq.user = null;
 
       requireAdmin(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Admin access required',
-        message: 'You do not have permission to access this resource'
+        message: 'You do not have permission to access this resource',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should deny request without user', () => {
+    it('should return 403 when user is undefined', () => {
+      mockReq.user = undefined;
+
       requireAdmin(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Admin access required',
-        message: 'You do not have permission to access this resource'
+        message: 'You do not have permission to access this resource',
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should handle missing isAdmin property', () => {
+      mockReq.user = {
+        id: 1,
+        email: 'user@example.com',
+        // Missing isAdmin property
+      };
+
+      requireAdmin(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Admin access required',
+        message: 'You do not have permission to access this resource',
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
   });
 
   describe('optionalAuth', () => {
-    it('should authenticate user when valid token provided', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET
-      );
-      
-      mockReq.headers.authorization = `Bearer ${token}`;
-      getSession.mockResolvedValue({ userId: 1, email: 'test@example.com', isAdmin: false });
-
-      await optionalAuth(mockReq, mockRes, mockNext);
-
-      expect(mockReq.user).toEqual({
+    it('should set user when valid token provided', async () => {
+      const testUser = {
         id: 1,
         email: 'test@example.com',
         isAdmin: false,
-        sessionId: 'session-123'
-      });
-      expect(mockNext).toHaveBeenCalled();
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.authorization = `Bearer ${token}`;
+      
+      mockGetSession.mockResolvedValue(JSON.stringify(testUser));
+
+      await optionalAuth(mockReq, mockRes, mockNext);
+
+      expect(mockReq.user).toEqual(testUser);
+      expect(mockNext).toHaveBeenCalledWith();
     });
 
-    it('should proceed without authentication when no token provided', async () => {
+    it('should proceed without user when no token provided', async () => {
       await optionalAuth(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeNull();
-      expect(mockNext).toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalledWith();
     });
 
-    it('should proceed without authentication when token is invalid', async () => {
+    it('should proceed without user when token is invalid', async () => {
       mockReq.headers.authorization = 'Bearer invalid-token';
 
       await optionalAuth(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeNull();
-      expect(mockNext).toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalledWith();
     });
 
-    it('should proceed without authentication when session not found', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET
+    it('should proceed without user when token is expired', async () => {
+      const expiredToken = jwt.sign(
+        { id: 1, email: 'test@example.com' },
+        process.env.JWT_SECRET,
+        { expiresIn: '-1h' }
       );
-      
-      mockReq.headers.authorization = `Bearer ${token}`;
-      getSession.mockResolvedValue(null);
+      mockReq.headers.authorization = `Bearer ${expiredToken}`;
 
       await optionalAuth(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeNull();
-      expect(mockNext).toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalledWith();
     });
 
-    it('should proceed without authentication on error', async () => {
-      const token = jwt.sign(
-        { userId: 1, email: 'test@example.com', isAdmin: false, sessionId: 'session-123' },
-        process.env.JWT_SECRET
-      );
-      
+    it('should proceed without user when session not found', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
       mockReq.headers.authorization = `Bearer ${token}`;
-      getSession.mockRejectedValue(new Error('Redis error'));
+      
+      mockGetSession.mockResolvedValue(null);
 
       await optionalAuth(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeNull();
-      expect(mockNext).toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalledWith();
+    });
+
+    it('should handle Redis errors gracefully and proceed without user', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.authorization = `Bearer ${token}`;
+      
+      mockGetSession.mockRejectedValue(new Error('Redis connection error'));
+
+      await optionalAuth(mockReq, mockRes, mockNext);
+
+      expect(mockReq.user).toBeNull();
+      expect(mockNext).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle malformed authorization header', async () => {
+      mockReq.headers.authorization = 'Bearer';
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid token format',
+      });
+    });
+
+    it('should handle empty authorization header', async () => {
+      mockReq.headers.authorization = '';
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access token required',
+      });
+    });
+
+    it('should handle null authorization header', async () => {
+      mockReq.headers.authorization = null;
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access token required',
+      });
+    });
+
+    it('should handle undefined authorization header', async () => {
+      mockReq.headers.authorization = undefined;
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access token required',
+      });
+    });
+
+    it('should handle token with extra whitespace', async () => {
+      const testUser = {
+        id: 1,
+        email: 'test@example.com',
+        isAdmin: false,
+        sessionId: 'test-session-id',
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      mockReq.headers.authorization = `  Bearer  ${token}  `;
+      
+      mockGetSession.mockResolvedValue(JSON.stringify(testUser));
+
+      await authenticateToken(mockReq, mockRes, mockNext);
+
+      expect(mockReq.user).toEqual(testUser);
+      expect(mockNext).toHaveBeenCalledWith();
     });
   });
 }); 

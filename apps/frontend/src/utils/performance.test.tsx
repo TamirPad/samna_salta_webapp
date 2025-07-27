@@ -1,3 +1,4 @@
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import {
   measurePerformance,
   debounce,
@@ -52,7 +53,7 @@ describe('Performance Utils', () => {
     it('should measure function execution time', () => {
       const mockFn = jest.fn();
       const result = measurePerformance('test', mockFn);
-      
+
       expect(mockFn).toHaveBeenCalled();
       expect(typeof result).toBe('number');
       expect(result).toBeGreaterThan(0);
@@ -192,7 +193,7 @@ describe('Performance Utils', () => {
   describe('getMemoryUsage', () => {
     it('should return memory usage or null', () => {
       getMemoryUsage();
-      
+
       // In test environment, it might return null
       // Note: memory info may not be available in test environment
       // This is expected behavior, so we don't assert on it
@@ -201,8 +202,12 @@ describe('Performance Utils', () => {
 
   describe('performanceMarks', () => {
     it('should create performance marks', () => {
-      const mockMark = jest.spyOn(performance, 'mark').mockImplementation(() => ({} as PerformanceMark));
-      const mockMeasure = jest.spyOn(performance, 'measure').mockReturnValue({} as PerformanceMeasure);
+      const mockMark = jest
+        .spyOn(performance, 'mark')
+        .mockImplementation(() => ({}) as PerformanceMark);
+      const mockMeasure = jest
+        .spyOn(performance, 'measure')
+        .mockReturnValue({} as PerformanceMeasure);
 
       performanceMarks.start('test');
       performanceMarks.end('test');
@@ -312,4 +317,4 @@ describe('Performance Utils', () => {
       jest.useRealTimers();
     });
   });
-}); 
+});

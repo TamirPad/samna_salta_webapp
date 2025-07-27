@@ -1,9 +1,20 @@
-import React, { useState, useCallback, memo, useMemo } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useCallback,
+  memo,
+  useMemo,
+} from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
-import { selectLanguage, setLanguage } from '../../features/language/languageSlice';
+import {
+  selectLanguage,
+  setLanguage,
+} from '../../features/language/languageSlice';
 import { selectCartItemsCount } from '../../features/cart/cartSlice';
 import { logoutUser } from '../../features/auth/authSlice';
 
@@ -17,7 +28,7 @@ interface NavItem {
 
 // Styled Components
 const HeaderContainer = styled.header`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
   color: white;
   padding: 1rem 0;
   position: sticky;
@@ -67,13 +78,13 @@ const Logo = styled(Link)`
   border-radius: 6px;
 
   &:hover {
-    color: #FFF8DC;
+    color: #fff8dc;
     background-color: rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 `;
@@ -106,17 +117,22 @@ const NavLink = styled(Link)<{ $active?: boolean }>`
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
-  ${(props): string => props.$active ? `
+  ${(props): string =>
+    props.$active
+      ? `
     background-color: rgba(255, 255, 255, 0.2);
     color: #FFF8DC;
-  ` : ''}
+  `
+      : ''}
 
   /* Active indicator */
-  ${(props): string => props.$active ? `
+  ${(props): string =>
+    props.$active
+      ? `
     &::after {
       content: '';
       position: absolute;
@@ -128,7 +144,8 @@ const NavLink = styled(Link)<{ $active?: boolean }>`
       background-color: #FFF8DC;
       border-radius: 1px;
     }
-  ` : ''}
+  `
+      : ''}
 `;
 
 const MobileMenuButton = styled.button`
@@ -151,7 +168,7 @@ const MobileMenuButton = styled.button`
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
@@ -176,7 +193,7 @@ const MobileMenu = styled(motion.div)`
   top: 100%;
   left: 0;
   right: 0;
-  background: #8B4513;
+  background: #8b4513;
   padding: 1rem;
   flex-direction: column;
   gap: 0.5rem;
@@ -205,14 +222,17 @@ const MobileNavLink = styled(Link)<{ $active?: boolean }>`
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
-  ${(props): string => props.$active ? `
+  ${(props): string =>
+    props.$active
+      ? `
     background-color: rgba(255, 255, 255, 0.2);
     color: #FFF8DC;
-  ` : ''}
+  `
+      : ''}
 `;
 
 const HeaderActions = styled.div`
@@ -242,7 +262,7 @@ const LanguageToggle = styled.button`
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
@@ -276,7 +296,7 @@ const CartButton = styled(Link)`
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
@@ -289,7 +309,7 @@ const CartButton = styled(Link)`
 `;
 
 const CartBadge = styled(motion.span)`
-  background: #D2691E;
+  background: #d2691e;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -309,7 +329,7 @@ const SkipLink = styled.a`
   position: absolute;
   top: -40px;
   left: 6px;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   padding: 8px 16px;
   text-decoration: none;
@@ -372,48 +392,53 @@ const Header: React.FC = (): JSX.Element => {
   const isAdmin = useAppSelector(state => state.auth.user?.isAdmin || false);
 
   // Memoized navigation items
-  const navItems = useMemo((): NavItem[] => [
-    { path: '/home', label: language === 'he' ? 'בית' : 'Home' },
-    { path: '/menu', label: language === 'he' ? 'תפריט' : 'Menu' },
-    { 
-      path: '/admin', 
-      label: language === 'he' ? 'דשבורד' : 'Dashboard',
-      requiresAuth: true,
-      adminOnly: true
-    },
-    { 
-      path: '/admin/orders', 
-      label: language === 'he' ? 'הזמנות' : 'Orders',
-      requiresAuth: true,
-      adminOnly: true
-    },
-    { 
-      path: '/admin/analytics', 
-      label: language === 'he' ? 'ניתוח' : 'Analytics',
-      requiresAuth: true,
-      adminOnly: true
-    },
-    { 
-      path: '/admin/products', 
-      label: language === 'he' ? 'מוצרים' : 'Products',
-      requiresAuth: true,
-      adminOnly: true
-    },
-    { 
-      path: '/admin/customers', 
-      label: language === 'he' ? 'לקוחות' : 'Customers',
-      requiresAuth: true,
-      adminOnly: true
-    },
-  ], [language]);
+  const navItems = useMemo(
+    (): NavItem[] => [
+      { path: '/home', label: language === 'he' ? 'בית' : 'Home' },
+      { path: '/menu', label: language === 'he' ? 'תפריט' : 'Menu' },
+      {
+        path: '/admin',
+        label: language === 'he' ? 'דשבורד' : 'Dashboard',
+        requiresAuth: true,
+        adminOnly: true,
+      },
+      {
+        path: '/admin/orders',
+        label: language === 'he' ? 'הזמנות' : 'Orders',
+        requiresAuth: true,
+        adminOnly: true,
+      },
+      {
+        path: '/admin/analytics',
+        label: language === 'he' ? 'ניתוח' : 'Analytics',
+        requiresAuth: true,
+        adminOnly: true,
+      },
+      {
+        path: '/admin/products',
+        label: language === 'he' ? 'מוצרים' : 'Products',
+        requiresAuth: true,
+        adminOnly: true,
+      },
+      {
+        path: '/admin/customers',
+        label: language === 'he' ? 'לקוחות' : 'Customers',
+        requiresAuth: true,
+        adminOnly: true,
+      },
+    ],
+    [language]
+  );
 
   // Filter navigation items based on auth and admin status
-  const filteredNavItems = useMemo((): NavItem[] => 
-    navItems.filter(item => {
-      if (item.requiresAuth && !isAuthenticated) return false;
-      if (item.adminOnly && !isAdmin) return false;
-      return true;
-    }), [navItems, isAuthenticated, isAdmin]
+  const filteredNavItems = useMemo(
+    (): NavItem[] =>
+      navItems.filter(item => {
+        if (item.requiresAuth && !isAuthenticated) return false;
+        if (item.adminOnly && !isAdmin) return false;
+        return true;
+      }),
+    [navItems, isAuthenticated, isAdmin]
   );
 
   const toggleLanguage = useCallback((): void => {
@@ -428,7 +453,10 @@ const Header: React.FC = (): JSX.Element => {
     setIsMobileMenuOpen(false);
   }, []);
 
-  const isActive = useCallback((path: string): boolean => location.pathname === path, [location.pathname]);
+  const isActive = useCallback(
+    (path: string): boolean => location.pathname === path,
+    [location.pathname]
+  );
 
   const handleLogout = useCallback((): void => {
     localStorage.removeItem('token');
@@ -454,7 +482,7 @@ const Header: React.FC = (): JSX.Element => {
 
     document.addEventListener('keydown', handleEscape);
     document.addEventListener('click', handleClickOutside);
-    
+
     return (): void => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('click', handleClickOutside);
@@ -486,20 +514,28 @@ const Header: React.FC = (): JSX.Element => {
 
   return (
     <HeaderContainer>
-      <SkipLink href="#main-content">
+      <SkipLink href='#main-content'>
         {language === 'he' ? 'דלג לתוכן הראשי' : 'Skip to main content'}
       </SkipLink>
-      
+
       <Nav>
-        <Logo to="/home" aria-label={language === 'he' ? 'סמנה סלטה - דף הבית' : 'Samna Salta - Home'}>
+        <Logo
+          to='/home'
+          aria-label={
+            language === 'he' ? 'סמנה סלטה - דף הבית' : 'Samna Salta - Home'
+          }
+        >
           🍞 {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}
         </Logo>
 
-        <NavLinks role="navigation" aria-label={language === 'he' ? 'ניווט ראשי' : 'Main navigation'}>
-          {filteredNavItems.map((item) => (
-            <NavLink 
-              key={item.path} 
-              to={item.path} 
+        <NavLinks
+          role='navigation'
+          aria-label={language === 'he' ? 'ניווט ראשי' : 'Main navigation'}
+        >
+          {filteredNavItems.map(item => (
+            <NavLink
+              key={item.path}
+              to={item.path}
               $active={isActive(item.path)}
               aria-current={isActive(item.path) ? 'page' : undefined}
             >
@@ -514,16 +550,20 @@ const Header: React.FC = (): JSX.Element => {
               {language === 'he' ? 'התנתק' : 'Logout'}
             </LogoutButton>
           )}
-          
-          <LanguageToggle 
+
+          <LanguageToggle
             onClick={toggleLanguage}
-            aria-label={language === 'he' ? 'החלף שפה לאנגלית' : 'Switch language to Hebrew'}
+            aria-label={
+              language === 'he'
+                ? 'החלף שפה לאנגלית'
+                : 'Switch language to Hebrew'
+            }
           >
             {language === 'he' ? 'EN' : 'עב'}
           </LanguageToggle>
-          
-          <CartButton 
-            to="/cart"
+
+          <CartButton
+            to='/cart'
             aria-label={language === 'he' ? 'עגלת קניות' : 'Shopping cart'}
           >
             🛒 {language === 'he' ? 'עגלה' : 'Cart'}
@@ -531,18 +571,18 @@ const Header: React.FC = (): JSX.Element => {
               <CartBadge
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               >
                 {cartItemsCount}
               </CartBadge>
             )}
           </CartButton>
 
-          <MobileMenuButton 
+          <MobileMenuButton
             onClick={toggleMobileMenu}
             aria-label={language === 'he' ? 'תפריט ניווט' : 'Navigation menu'}
             aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
+            aria-controls='mobile-menu'
           >
             {isMobileMenuOpen ? '✕' : '☰'}
           </MobileMenuButton>
@@ -552,16 +592,16 @@ const Header: React.FC = (): JSX.Element => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <MobileMenu
-            id="mobile-menu"
+            id='mobile-menu'
             data-mobile-menu
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            role="navigation"
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            role='navigation'
             aria-label={language === 'he' ? 'ניווט נייד' : 'Mobile navigation'}
           >
-            {filteredNavItems.map((item) => (
+            {filteredNavItems.map(item => (
               <MobileNavLink
                 key={item.path}
                 to={item.path}
@@ -589,4 +629,4 @@ const Header: React.FC = (): JSX.Element => {
   );
 };
 
-export default memo(Header); 
+export default memo(Header);

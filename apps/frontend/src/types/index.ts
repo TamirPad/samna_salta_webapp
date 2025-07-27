@@ -307,4 +307,61 @@ export interface BusinessSettings {
   welcome_message?: string;
   about_us?: string;
   contact_info?: string;
-} 
+}
+
+// Admin page specific types
+export interface AdminTranslations {
+  title: string;
+  subtitle: string;
+  searchPlaceholder: string;
+  filter: string;
+  addProduct: string;
+  resultsCount: string;
+  view: string;
+  edit: string;
+  delete: string;
+  active: string;
+  inactive: string;
+  minutes: string;
+  errorOccurred: string;
+  confirmDelete: string;
+  phone: string;
+  address: string;
+  totalOrders: string;
+  totalSpent: string;
+  memberSince: string;
+  orders: string;
+}
+
+export interface DashboardData {
+  today: {
+    orders: number;
+    revenue: number;
+  };
+  customers: number;
+  pendingOrders: number;
+}
+
+export interface StatusMap {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+
+// Styled component types
+export interface StyledComponentProps {
+  children?: React.ReactNode;
+  $color?: string;
+  $isLive?: boolean;
+  status?: string;
+  active?: boolean;
+  emoji?: string;
+}
+
+// Utility function types
+export type FormatCurrencyFunction = (amount: number) => string;
+export type FormatDateFunction = (date: string) => string;
+export type GetProductNameFunction = (product: Product) => string;
+export type GetCategoryNameFunction = (category: string) => string;
+export type GetStatusTextFunction = (status: string) => string;
+export type DebounceFunction = (func: Function, delay: number) => Function;

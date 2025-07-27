@@ -28,14 +28,23 @@ const initialState: ProductsState = {
 // Async thunks
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
-  async (params: { category?: string; search?: string; page?: number; limit?: number } = {}, { rejectWithValue }) => {
+  async (
+    params: {
+      category?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    } = {},
+    { rejectWithValue }
+  ) => {
     try {
       const response = await apiService.getProducts(params);
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch products'
-        : 'Failed to fetch products';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message || 'Failed to fetch products'
+          : 'Failed to fetch products';
       return rejectWithValue(errorMessage);
     }
   }
@@ -48,9 +57,11 @@ export const fetchCategories = createAsyncThunk(
       const response = await apiService.getCategories();
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to fetch categories'
-        : 'Failed to fetch categories';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message ||
+            'Failed to fetch categories'
+          : 'Failed to fetch categories';
       return rejectWithValue(errorMessage);
     }
   }
@@ -63,9 +74,10 @@ export const createProduct = createAsyncThunk(
       const response = await apiService.createProduct(productData);
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to create product'
-        : 'Failed to create product';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message || 'Failed to create product'
+          : 'Failed to create product';
       return rejectWithValue(errorMessage);
     }
   }
@@ -73,14 +85,18 @@ export const createProduct = createAsyncThunk(
 
 export const updateProductAsync = createAsyncThunk(
   'products/updateProduct',
-  async ({ id, productData }: { id: number; productData: Partial<Product> }, { rejectWithValue }) => {
+  async (
+    { id, productData }: { id: number; productData: Partial<Product> },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await apiService.updateProduct(id, productData);
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to update product'
-        : 'Failed to update product';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message || 'Failed to update product'
+          : 'Failed to update product';
       return rejectWithValue(errorMessage);
     }
   }
@@ -93,9 +109,10 @@ export const deleteProduct = createAsyncThunk(
       await apiService.deleteProduct(productId);
       return productId;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error && 'response' in error 
-        ? (error as any).response?.data?.message || 'Failed to delete product'
-        : 'Failed to delete product';
+      const errorMessage =
+        error instanceof Error && 'response' in error
+          ? (error as any).response?.data?.message || 'Failed to delete product'
+          : 'Failed to delete product';
       return rejectWithValue(errorMessage);
     }
   }
@@ -127,29 +144,33 @@ const productsSlice = createSlice({
       state.error = action.payload;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // Fetch products
-      .addCase(fetchProducts.pending, (state) => {
+      .addCase(fetchProducts.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.products = Array.isArray(action.payload) ? action.payload : (action.payload.data || []);
+        state.products = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload.data || [];
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
       // Fetch categories
-      .addCase(fetchCategories.pending, (state) => {
+      .addCase(fetchCategories.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.categories = Array.isArray(action.payload) ? action.payload : (action.payload.data || []);
+        state.categories = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload.data || [];
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.isLoading = false;
@@ -168,9 +189,16 @@ export const {
 } = productsSlice.actions;
 
 // Selectors
-export const selectProducts = (state: { products: ProductsState }): Product[] => state.products.products;
-export const selectCategories = (state: { products: ProductsState }): Category[] => state.products.categories;
-export const selectProductsLoading = (state: { products: ProductsState }): boolean => state.products.isLoading;
-export const selectProductsError = (state: { products: ProductsState }): string | null => state.products.error;
+export const selectProducts = (state: { products: ProductsState }): Product[] =>
+  state.products.products;
+export const selectCategories = (state: {
+  products: ProductsState;
+}): Category[] => state.products.categories;
+export const selectProductsLoading = (state: {
+  products: ProductsState;
+}): boolean => state.products.isLoading;
+export const selectProductsError = (state: {
+  products: ProductsState;
+}): string | null => state.products.error;
 
-export default productsSlice.reducer; 
+export default productsSlice.reducer;

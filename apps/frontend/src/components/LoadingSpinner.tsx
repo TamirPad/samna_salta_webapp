@@ -32,7 +32,7 @@ const Spinner = styled.div`
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #8B4513;
+  border-top: 4px solid #8b4513;
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
   margin-bottom: 1rem;
@@ -61,23 +61,29 @@ const LoadingText = styled.div`
 // Types
 interface LoadingSpinnerProps {
   text?: string;
+  size?: 'small' | 'medium' | 'large' | 'default';
+  className?: string;
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  text = 'Loading...'
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  text = 'Loading...',
+  size = 'default',
+  className,
 }) => {
+  const sizeClass = `loading-spinner--${size}`;
+  const combinedClassName = className ? `${sizeClass} ${className}` : sizeClass;
 
   return (
-    <SpinnerContainer role="status" aria-live="polite">
-      <Spinner 
-        aria-hidden="true"
-        role="presentation"
-      />
-      <LoadingText>
-        {text}
-      </LoadingText>
+    <SpinnerContainer
+      role='status'
+      aria-live='polite'
+      className={combinedClassName}
+      data-testid='loading-spinner'
+    >
+      <Spinner aria-hidden='true' role='presentation' />
+      <LoadingText>{text}</LoadingText>
     </SpinnerContainer>
   );
 };
 
-export default memo(LoadingSpinner); 
+export default memo(LoadingSpinner);

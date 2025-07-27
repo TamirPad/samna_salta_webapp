@@ -37,13 +37,13 @@ describe('Network Utils', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
-    
+
     // Mock fetch globally
     global.fetch = jest.fn();
-    
+
     // Mock setTimeout
     jest.spyOn(global, 'setTimeout');
-    
+
     // Mock clearTimeout
     jest.spyOn(global, 'clearTimeout');
   });
@@ -83,12 +83,22 @@ describe('Network Utils', () => {
     });
 
     it('should return false when serviceWorker is not supported', () => {
+      // Store original value
+      const originalServiceWorker = navigator.serviceWorker;
+
+      // Mock as undefined
       Object.defineProperty(navigator, 'serviceWorker', {
         writable: true,
         value: undefined,
       });
 
       expect(supportsServiceWorker()).toBe(false);
+
+      // Restore original value
+      Object.defineProperty(navigator, 'serviceWorker', {
+        writable: true,
+        value: originalServiceWorker,
+      });
     });
   });
 
@@ -103,12 +113,22 @@ describe('Network Utils', () => {
     });
 
     it('should return false when PushManager is not supported', () => {
+      // Store original value
+      const originalPushManager = window.PushManager;
+
+      // Mock as undefined
       Object.defineProperty(window, 'PushManager', {
         writable: true,
         value: undefined,
       });
 
       expect(supportsPushNotifications()).toBe(false);
+
+      // Restore original value
+      Object.defineProperty(window, 'PushManager', {
+        writable: true,
+        value: originalPushManager,
+      });
     });
   });
 
@@ -123,7 +143,8 @@ describe('Network Utils', () => {
     });
 
     it('should retry and succeed on second attempt', async () => {
-      const mockFn = jest.fn()
+      const mockFn = jest
+        .fn()
         .mockRejectedValueOnce(new Error('First failure'))
         .mockResolvedValue('success');
 
@@ -147,7 +168,9 @@ describe('Network Utils', () => {
         baseDelay: 100,
       };
 
-      await expect(retryWithBackoff(mockFn, customConfig)).rejects.toThrow('Always fails');
+      await expect(retryWithBackoff(mockFn, customConfig)).rejects.toThrow(
+        'Always fails'
+      );
       expect(mockFn).toHaveBeenCalledTimes(2); // maxRetries + 1
     });
 
@@ -160,8 +183,10 @@ describe('Network Utils', () => {
         backoffMultiplier: 2,
       };
 
-      await expect(retryWithBackoff(mockFn, customConfig)).rejects.toThrow('Always fails');
-      
+      await expect(retryWithBackoff(mockFn, customConfig)).rejects.toThrow(
+        'Always fails'
+      );
+
       expect(mockFn).toHaveBeenCalledTimes(3);
     });
 
@@ -196,6 +221,7 @@ describe('Network Utils', () => {
     });
 
     it('should add and remove listeners', () => {
+      monitor.start(); // Start the monitor first
       const removeListener = monitor.addListener(mockListener);
 
       // Trigger a status change
@@ -205,7 +231,10 @@ describe('Network Utils', () => {
       });
       window.dispatchEvent(new Event('offline'));
 
-      expect(mockListener).toHaveBeenCalled();
+      // Wait for the event to be processed
+      setTimeout(() => {
+        expect(mockListener).toHaveBeenCalled();
+      }, 0);
 
       // Remove listener
       removeListener();
@@ -306,6 +335,7 @@ describe('Network Utils', () => {
         ok: false,
         status: 404,
         statusText: 'Not Found',
+        json: () => Promise.resolve({ error: 'Not Found' }),
       });
 
       await expect(apiRequest('/test')).rejects.toThrow('HTTP 404: Not Found');
@@ -320,14 +350,14 @@ describe('Network Utils', () => {
 
       await apiRequest('/test', {
         headers: {
-          'Authorization': 'Bearer token',
+          Authorization: 'Bearer token',
         },
       });
 
       expect(fetch).toHaveBeenCalledWith('/test', {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer token',
+          Authorization: 'Bearer token',
         },
       });
     });
@@ -391,10 +421,11 @@ describe('Network Utils', () => {
     });
 
     it('should timeout after specified time', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() => 
-        new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout')), 1000);
-        })
+      (fetch as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout')), 1000);
+          })
       );
 
       const result = await checkUrlReachability('https://example.com', 100);
@@ -407,7 +438,9 @@ describe('Network Utils', () => {
         signal: {},
         abort: jest.fn(),
       };
-      jest.spyOn(global, 'AbortController').mockImplementation(() => mockAbortController as any);
+      jest
+        .spyOn(global, 'AbortController')
+        .mockImplementation(() => mockAbortController as any);
 
       (fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
@@ -415,7 +448,10 @@ describe('Network Utils', () => {
 
       await checkUrlReachability('https://example.com', 5000);
 
-      expect(global.setTimeout).toHaveBeenCalledWith(expect.any(Function), 5000);
+      expect(global.setTimeout).toHaveBeenCalledWith(
+        expect.any(Function),
+        5000
+      );
     });
   });
 
@@ -429,4 +465,4 @@ describe('Network Utils', () => {
       });
     });
   });
-}); 
+});

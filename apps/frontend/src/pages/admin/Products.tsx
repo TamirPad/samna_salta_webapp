@@ -1,7 +1,23 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Filter, Edit, Trash2, Eye, Package, AlertCircle } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Eye,
+  Package,
+  AlertCircle,
+} from 'lucide-react';
 import { useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
 import { debounce } from '../../utils/performance';
@@ -64,7 +80,7 @@ const ProductsHeader = styled.div`
 const ProductsTitle = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin-bottom: 0.5rem;
 
   @media (max-width: 768px) {
@@ -115,7 +131,7 @@ const SearchField = styled.input`
   font-size: 1rem;
 
   &:focus {
-    border-color: #8B4513;
+    border-color: #8b4513;
     box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
   }
 
@@ -148,13 +164,13 @@ const FilterButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    border-color: #8B4513;
+    border-color: #8b4513;
     background: #f8f9fa;
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 `;
@@ -164,7 +180,7 @@ const AddButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   border-radius: 8px;
@@ -174,13 +190,13 @@ const AddButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #D2691E;
+    background: #d2691e;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 `;
@@ -209,7 +225,7 @@ const ProductCard = styled(motion.div)`
   }
 
   &:focus-within {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 `;
@@ -217,10 +233,10 @@ const ProductCard = styled(motion.div)`
 const ProductImage = styled.div<{ emoji?: string }>`
   width: 100%;
   height: 200px;
-  background: ${props => props.emoji 
-    ? 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-    : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-  };
+  background: ${props =>
+    props.emoji
+      ? 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
+      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,7 +249,7 @@ const ProductStatus = styled.span<{ active: boolean }>`
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: ${props => props.active ? '#28a745' : '#dc3545'};
+  background: ${props => (props.active ? '#28a745' : '#dc3545')};
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -255,7 +271,7 @@ const ProductHeader = styled.div`
 const ProductName = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0;
   flex: 1;
   line-height: 1.3;
@@ -264,7 +280,7 @@ const ProductName = styled.h3`
 const ProductPrice = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #8B4513;
+  color: #8b4513;
   margin-left: 1rem;
 `;
 
@@ -288,7 +304,9 @@ const ProductActions = styled.div`
   gap: 0.5rem;
 `;
 
-const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
+const ActionButton = styled.button<{
+  variant?: 'primary' | 'secondary' | 'danger';
+}>`
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -397,151 +415,161 @@ const AdminProducts: React.FC = () => {
   const [error, setError] = useState<string>('');
 
   // Memoized translations
-  const translations = useMemo(() => ({
-    he: {
-      title: 'ניהול מוצרים',
-      subtitle: 'נהל את המוצרים שלך, הוסף חדשים ועדכן קיימים',
-      searchPlaceholder: 'חפש מוצרים...',
-      filter: 'פילטר',
-      addProduct: 'הוסף מוצר',
-      active: 'פעיל',
-      inactive: 'לא פעיל',
-      view: 'צפה',
-      edit: 'ערוך',
-      delete: 'מחק',
-      noProducts: 'לא נמצאו מוצרים',
-      noProductsDesc: 'הוסף מוצרים חדשים כדי להתחיל',
-      category: 'קטגוריה',
-      price: 'מחיר',
-      prepTime: 'זמן הכנה',
-      minutes: 'דקות',
-      resultsCount: 'נמצאו {count} מוצרים',
-      errorOccurred: 'אירעה שגיאה',
-      confirmDelete: 'האם אתה בטוח שברצונך למחוק מוצר זה?',
-    },
-    en: {
-      title: 'Product Management',
-      subtitle: 'Manage your products, add new ones and update existing ones',
-      searchPlaceholder: 'Search products...',
-      filter: 'Filter',
-      addProduct: 'Add Product',
-      active: 'Active',
-      inactive: 'Inactive',
-      view: 'View',
-      edit: 'Edit',
-      delete: 'Delete',
-      noProducts: 'No products found',
-      noProductsDesc: 'Add new products to get started',
-      category: 'Category',
-      price: 'Price',
-      prepTime: 'Prep Time',
-      minutes: 'min',
-      resultsCount: 'Found {count} products',
-      errorOccurred: 'An error occurred',
-      confirmDelete: 'Are you sure you want to delete this product?',
-    }
-  }), []);
+  const translations = useMemo(
+    () => ({
+      he: {
+        title: 'ניהול מוצרים',
+        subtitle: 'נהל את המוצרים שלך, הוסף חדשים ועדכן קיימים',
+        searchPlaceholder: 'חפש מוצרים...',
+        filter: 'פילטר',
+        addProduct: 'הוסף מוצר',
+        active: 'פעיל',
+        inactive: 'לא פעיל',
+        view: 'צפה',
+        edit: 'ערוך',
+        delete: 'מחק',
+        noProducts: 'לא נמצאו מוצרים',
+        noProductsDesc: 'הוסף מוצרים חדשים כדי להתחיל',
+        category: 'קטגוריה',
+        price: 'מחיר',
+        prepTime: 'זמן הכנה',
+        minutes: 'דקות',
+        resultsCount: 'נמצאו {count} מוצרים',
+        errorOccurred: 'אירעה שגיאה',
+        confirmDelete: 'האם אתה בטוח שברצונך למחוק מוצר זה?',
+      },
+      en: {
+        title: 'Product Management',
+        subtitle: 'Manage your products, add new ones and update existing ones',
+        searchPlaceholder: 'Search products...',
+        filter: 'Filter',
+        addProduct: 'Add Product',
+        active: 'Active',
+        inactive: 'Inactive',
+        view: 'View',
+        edit: 'Edit',
+        delete: 'Delete',
+        noProducts: 'No products found',
+        noProductsDesc: 'Add new products to get started',
+        category: 'Category',
+        price: 'Price',
+        prepTime: 'Prep Time',
+        minutes: 'min',
+        resultsCount: 'Found {count} products',
+        errorOccurred: 'An error occurred',
+        confirmDelete: 'Are you sure you want to delete this product?',
+      },
+    }),
+    []
+  );
 
-  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language]
+  );
 
   // Memoized mock products data
-  const mockProducts = useMemo((): Product[] => [
-    {
-      id: '1',
-      name: 'Kubaneh',
-      name_en: 'Kubaneh',
-      name_he: 'כובאנה',
-      price: 25,
-      category: 'breads',
-      category_en: 'Breads',
-      category_he: 'לחמים',
-      emoji: '🍞',
-      preparation_time: 30,
-      is_active: true,
-    },
-    {
-      id: '2',
-      name: 'Samneh',
-      name_en: 'Samneh',
-      name_he: 'סמנה',
-      price: 15,
-      category: 'dairy',
-      category_en: 'Dairy',
-      category_he: 'מוצרי חלב',
-      emoji: '🧈',
-      preparation_time: 15,
-      is_active: true,
-    },
-    {
-      id: '3',
-      name: 'Red Bisbas',
-      name_en: 'Red Bisbas',
-      name_he: 'ביסבוס אדום',
-      price: 12,
-      category: 'spices',
-      category_en: 'Spices',
-      category_he: 'תבלינים',
-      emoji: '🌶️',
-      preparation_time: 5,
-      is_active: false,
-    },
-    {
-      id: '4',
-      name: 'Hilbeh',
-      name_en: 'Hilbeh',
-      name_he: 'חילבה',
-      price: 10,
-      category: 'spices',
-      category_en: 'Spices',
-      category_he: 'תבלינים',
-      emoji: '🌿',
-      preparation_time: 5,
-      is_active: true,
-    },
-    {
-      id: '5',
-      name: 'Jachnun',
-      name_en: 'Jachnun',
-      name_he: 'ג\'חנון',
-      price: 20,
-      category: 'pastries',
-      category_en: 'Pastries',
-      category_he: 'מאפים',
-      emoji: '🥐',
-      preparation_time: 45,
-      is_active: true,
-    },
-    {
-      id: '6',
-      name: 'Malawach',
-      name_en: 'Malawach',
-      name_he: 'מלאווח',
-      price: 18,
-      category: 'breads',
-      category_en: 'Breads',
-      category_he: 'לחמים',
-      emoji: '🥖',
-      preparation_time: 25,
-      is_active: true,
-    },
-  ], []);
-
-
+  const mockProducts = useMemo(
+    (): Product[] => [
+      {
+        id: '1',
+        name: 'Kubaneh',
+        name_en: 'Kubaneh',
+        name_he: 'כובאנה',
+        price: 25,
+        category: 'breads',
+        category_en: 'Breads',
+        category_he: 'לחמים',
+        emoji: '🍞',
+        preparation_time: 30,
+        is_active: true,
+      },
+      {
+        id: '2',
+        name: 'Samneh',
+        name_en: 'Samneh',
+        name_he: 'סמנה',
+        price: 15,
+        category: 'dairy',
+        category_en: 'Dairy',
+        category_he: 'מוצרי חלב',
+        emoji: '🧈',
+        preparation_time: 15,
+        is_active: true,
+      },
+      {
+        id: '3',
+        name: 'Red Bisbas',
+        name_en: 'Red Bisbas',
+        name_he: 'ביסבוס אדום',
+        price: 12,
+        category: 'spices',
+        category_en: 'Spices',
+        category_he: 'תבלינים',
+        emoji: '🌶️',
+        preparation_time: 5,
+        is_active: false,
+      },
+      {
+        id: '4',
+        name: 'Hilbeh',
+        name_en: 'Hilbeh',
+        name_he: 'חילבה',
+        price: 10,
+        category: 'spices',
+        category_en: 'Spices',
+        category_he: 'תבלינים',
+        emoji: '🌿',
+        preparation_time: 5,
+        is_active: true,
+      },
+      {
+        id: '5',
+        name: 'Jachnun',
+        name_en: 'Jachnun',
+        name_he: "ג'חנון",
+        price: 20,
+        category: 'pastries',
+        category_en: 'Pastries',
+        category_he: 'מאפים',
+        emoji: '🥐',
+        preparation_time: 45,
+        is_active: true,
+      },
+      {
+        id: '6',
+        name: 'Malawach',
+        name_en: 'Malawach',
+        name_he: 'מלאווח',
+        price: 18,
+        category: 'breads',
+        category_en: 'Breads',
+        category_he: 'לחמים',
+        emoji: '🥖',
+        preparation_time: 25,
+        is_active: true,
+      },
+    ],
+    []
+  );
 
   // Memoized filtered products
   const filteredProducts = useMemo((): Product[] => {
     let filtered = mockProducts;
 
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+      filtered = filtered.filter(
+        product => product.category === selectedCategory
+      );
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(product => 
-        product.name.toLowerCase().includes(query) ||
-        (product.name_en && product.name_en.toLowerCase().includes(query)) ||
-        (product.name_he && product.name_he.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        product =>
+          product.name.toLowerCase().includes(query) ||
+          (product.name_en && product.name_en.toLowerCase().includes(query)) ||
+          (product.name_he && product.name_he.toLowerCase().includes(query))
       );
     }
 
@@ -559,11 +587,12 @@ const AdminProducts: React.FC = () => {
   );
 
   // Memoized handlers
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSearch(e.target.value);
-  }, [debouncedSearch]);
-
-
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      debouncedSearch(e.target.value);
+    },
+    [debouncedSearch]
+  );
 
   const handleAddProduct = useCallback(() => {
     try {
@@ -573,40 +602,59 @@ const AdminProducts: React.FC = () => {
     }
   }, [t.errorOccurred]);
 
-  const handleViewProduct = useCallback((_productId: string) => {
-    try {
-      // TODO: Implement view product functionality
-    } catch (err) {
-      setError(t.errorOccurred);
-    }
-  }, [t.errorOccurred]);
-
-  const handleEditProduct = useCallback((_productId: string) => {
-    try {
-      // TODO: Implement edit product functionality
-    } catch (err) {
-      setError(t.errorOccurred);
-    }
-  }, [t.errorOccurred]);
-
-  const handleDeleteProduct = useCallback((_productId: string) => {
-    try {
-      if (window.confirm(t.confirmDelete)) {
-        // TODO: Implement delete product functionality
+  const handleViewProduct = useCallback(
+    (_productId: string) => {
+      try {
+        // TODO: Implement view product functionality
+      } catch (err) {
+        setError(t.errorOccurred);
       }
-    } catch (err) {
-      setError(t.errorOccurred);
-    }
-  }, [t.confirmDelete, t.errorOccurred]);
+    },
+    [t.errorOccurred]
+  );
+
+  const handleEditProduct = useCallback(
+    (_productId: string) => {
+      try {
+        // TODO: Implement edit product functionality
+      } catch (err) {
+        setError(t.errorOccurred);
+      }
+    },
+    [t.errorOccurred]
+  );
+
+  const handleDeleteProduct = useCallback(
+    (_productId: string) => {
+      try {
+        if (window.confirm(t.confirmDelete)) {
+          // TODO: Implement delete product functionality
+        }
+      } catch (err) {
+        setError(t.errorOccurred);
+      }
+    },
+    [t.confirmDelete, t.errorOccurred]
+  );
 
   // Utility functions
-  const getProductName = useCallback((product: Product): string => {
-    return language === 'he' ? product.name_he || product.name : product.name_en || product.name;
-  }, [language]);
+  const getProductName = useCallback(
+    (product: Product): string => {
+      return language === 'he'
+        ? product.name_he || product.name
+        : product.name_en || product.name;
+    },
+    [language]
+  );
 
-  const getCategoryName = useCallback((category: Category): string => {
-    return language === 'he' ? category.name_he || category.name : category.name_en || category.name;
-  }, [language]);
+  const getCategoryName = useCallback(
+    (category: Category): string => {
+      return language === 'he'
+        ? category.name_he || category.name
+        : category.name_en || category.name;
+    },
+    [language]
+  );
 
   return (
     <ProductsContainer>
@@ -614,30 +662,30 @@ const AdminProducts: React.FC = () => {
         <ProductsHeader>
           <ProductsTitle>{t.title}</ProductsTitle>
           <ProductsSubtitle>{t.subtitle}</ProductsSubtitle>
-          
+
           {error && (
             <ErrorMessage>
               <AlertCircle size={16} />
               {error}
             </ErrorMessage>
           )}
-          
+
           <ProductsActions>
             <SearchInput>
               <SearchIcon />
               <SearchField
-                type="text"
+                type='text'
                 placeholder={t.searchPlaceholder}
                 onChange={handleSearchChange}
                 aria-label={t.searchPlaceholder}
               />
             </SearchInput>
-            
+
             <FilterButton aria-label={t.filter}>
               <Filter size={16} />
               {t.filter}
             </FilterButton>
-            
+
             <AddButton onClick={handleAddProduct} aria-label={t.addProduct}>
               <Plus size={16} />
               {t.addProduct}
@@ -646,10 +694,13 @@ const AdminProducts: React.FC = () => {
         </ProductsHeader>
 
         <ResultsCount>
-          {t.resultsCount.replace('{count}', filteredProducts.length.toString())}
+          {t.resultsCount.replace(
+            '{count}',
+            filteredProducts.length.toString()
+          )}
         </ResultsCount>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode='wait'>
           {filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map((product, index) => (
@@ -660,9 +711,9 @@ const AdminProducts: React.FC = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                   tabIndex={0}
-                  role="button"
+                  role='button'
                   aria-label={`View ${getProductName(product)} - ₪${product.price}`}
-                  onKeyDown={(e) => {
+                  onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       handleViewProduct(product.id);
@@ -670,28 +721,29 @@ const AdminProducts: React.FC = () => {
                   }}
                 >
                   <ProductImage emoji={product.emoji || ''}>
-                    <span role="img" aria-label={getProductName(product)}>
+                    <span role='img' aria-label={getProductName(product)}>
                       {product.emoji}
                     </span>
                     <ProductStatus active={product.is_active}>
                       {product.is_active ? t.active : t.inactive}
                     </ProductStatus>
                   </ProductImage>
-                  
+
                   <ProductInfo>
                     <ProductHeader>
                       <ProductName>{getProductName(product)}</ProductName>
                       <ProductPrice>₪{product.price}</ProductPrice>
                     </ProductHeader>
-                    
+
                     <ProductMeta>
                       <MetaItem>
                         <Package size={14} />
-                                                {getCategoryName({
+                        {getCategoryName({
                           id: product.category,
-                          name: product.category_en || product.category_he || '',
+                          name:
+                            product.category_en || product.category_he || '',
                           name_en: product.category_en || '',
-                          name_he: product.category_he || ''
+                          name_he: product.category_he || '',
                         })}
                       </MetaItem>
                       <MetaItem>
@@ -699,25 +751,25 @@ const AdminProducts: React.FC = () => {
                         {product.preparation_time} {t.minutes}
                       </MetaItem>
                     </ProductMeta>
-                    
+
                     <ProductActions>
-                      <ActionButton 
+                      <ActionButton
                         onClick={() => handleViewProduct(product.id)}
                         aria-label={`View ${getProductName(product)}`}
                       >
                         <Eye size={14} />
                         {t.view}
                       </ActionButton>
-                      <ActionButton 
-                        variant="secondary" 
+                      <ActionButton
+                        variant='secondary'
                         onClick={() => handleEditProduct(product.id)}
                         aria-label={`Edit ${getProductName(product)}`}
                       >
                         <Edit size={14} />
                         {t.edit}
                       </ActionButton>
-                      <ActionButton 
-                        variant="danger" 
+                      <ActionButton
+                        variant='danger'
                         onClick={() => handleDeleteProduct(product.id)}
                         aria-label={`Delete ${getProductName(product)}`}
                       >
@@ -742,4 +794,4 @@ const AdminProducts: React.FC = () => {
   );
 };
 
-export default React.memo(AdminProducts); 
+export default React.memo(AdminProducts);

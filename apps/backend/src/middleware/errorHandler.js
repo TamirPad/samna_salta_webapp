@@ -80,9 +80,23 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = error.statusCode || err.statusCode || err.status || 500;
   const message = error.message || 'Server Error';
 
+  // Log error with additional context
+  logger.error('Error response sent:', {
+    statusCode,
+    message,
+    url: req.url,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    userId: req.user?.id,
+    requestId: req.id
+  });
+
   res.status(statusCode).json({
     success: false,
     error: message,
+    requestId: req.id,
+    timestamp: new Date().toISOString(),
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };

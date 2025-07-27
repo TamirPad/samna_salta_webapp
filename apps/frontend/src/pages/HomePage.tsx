@@ -1,4 +1,11 @@
-import React, { useMemo, useCallback } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -25,7 +32,7 @@ const HomeContainer = styled.div`
 `;
 
 const HeroSection = styled.section`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
   color: white;
   padding: 4rem 0;
   text-align: center;
@@ -107,7 +114,7 @@ const HeroButtons = styled.div`
 
 const CTAButton = styled(Link)`
   display: inline-block;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   padding: 1rem 2rem;
   border-radius: 8px;
@@ -121,13 +128,13 @@ const CTAButton = styled(Link)`
   justify-content: center;
 
   &:hover {
-    background: #D2691E;
+    background: #d2691e;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
   }
 
   &:focus {
-    outline: 2px solid #FFF8DC;
+    outline: 2px solid #fff8dc;
     outline-offset: 2px;
   }
 
@@ -139,7 +146,7 @@ const CTAButton = styled(Link)`
 
 const FeaturesSection = styled.section`
   padding: 4rem 0;
-  background: #FFF8DC;
+  background: #fff8dc;
 
   @media (max-width: 768px) {
     padding: 2rem 0;
@@ -160,7 +167,7 @@ const SectionTitle = styled.h2`
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 3rem;
-  color: #2F2F2F;
+  color: #2f2f2f;
 
   @media (max-width: 768px) {
     font-size: 2rem;
@@ -198,7 +205,7 @@ const FeatureCard = styled.div`
   }
 
   &:focus-within {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 
@@ -211,7 +218,7 @@ const FeatureCard = styled.div`
   h3 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    color: #8B4513;
+    color: #8b4513;
   }
 
   p {
@@ -264,14 +271,14 @@ const ProductCard = styled.div`
   }
 
   &:focus-within {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #8b4513;
     outline-offset: 2px;
   }
 
   .product-image {
     width: 100%;
     height: 200px;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -284,7 +291,7 @@ const ProductCard = styled.div`
     h3 {
       font-size: 1.25rem;
       margin-bottom: 0.5rem;
-      color: #2F2F2F;
+      color: #2f2f2f;
     }
 
     p {
@@ -296,7 +303,7 @@ const ProductCard = styled.div`
     .price {
       font-size: 1.5rem;
       font-weight: 600;
-      color: #8B4513;
+      color: #8b4513;
     }
   }
 `;
@@ -305,7 +312,7 @@ const SkipLink = styled.a`
   position: absolute;
   top: -40px;
   left: 6px;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   padding: 8px 16px;
   text-decoration: none;
@@ -323,103 +330,121 @@ const HomePage: React.FC = () => {
   const language = useAppSelector(selectLanguage);
 
   // Memoized translations
-  const translations = useMemo(() => ({
-    he: {
-      heroTitle: 'ברוכים הבאים לסמנה סלטה',
-      heroSubtitle: 'המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים',
-      viewMenu: 'צפה בתפריט',
-      orderNow: 'הזמן עכשיו',
-      featuresTitle: 'למה לבחור בנו?',
-      freshBread: 'לחם טרי',
-      freshBreadDesc: 'כל הלחמים שלנו נאפים טריים כל יום עם המרכיבים האיכותיים ביותר',
-      traditionalRecipes: 'מתכונים מסורתיים',
-      traditionalRecipesDesc: 'אנו משתמשים במתכונים מסורתיים שעברו מדור לדור',
-      fastDelivery: 'משלוח מהיר',
-      fastDeliveryDesc: 'משלוח מהיר ואמין לכל רחבי העיר תוך 30 דקות',
-      productsTitle: 'המוצרים שלנו',
-      kubaneh: 'כובאנה',
-      kubanehDesc: 'לחם תימני מסורתי עם טעם ייחודי',
-      samneh: 'סמנה',
-      samnehDesc: 'חמאה מזוקקת מסורתית',
-      redBisbas: 'ביסבוס אדום',
-      redBisbasDesc: 'תבלין תימני מסורתי',
-      hilbeh: 'חילבה',
-      hilbehDesc: 'תבלין תימני מסורתי',
-      price: '₪',
-    },
-    en: {
-      heroTitle: 'Welcome to Samna Salta',
-      heroSubtitle: 'The best bakery in town with a wide variety of fresh breads and pastries',
-      viewMenu: 'View Menu',
-      orderNow: 'Order Now',
-      featuresTitle: 'Why Choose Us?',
-      freshBread: 'Fresh Bread',
-      freshBreadDesc: 'All our breads are baked fresh daily with the finest ingredients',
-      traditionalRecipes: 'Traditional Recipes',
-      traditionalRecipesDesc: 'We use traditional recipes passed down from generation to generation',
-      fastDelivery: 'Fast Delivery',
-      fastDeliveryDesc: 'Fast and reliable delivery throughout the city within 30 minutes',
-      productsTitle: 'Our Products',
-      kubaneh: 'Kubaneh',
-      kubanehDesc: 'Traditional Yemenite bread with unique flavor',
-      samneh: 'Samneh',
-      samnehDesc: 'Traditional clarified butter',
-      redBisbas: 'Red Bisbas',
-      redBisbasDesc: 'Traditional Yemenite spice',
-      hilbeh: 'Hilbeh',
-      hilbehDesc: 'Traditional Yemenite spice',
-      price: '$',
-    }
-  }), []);
+  const translations = useMemo(
+    () => ({
+      he: {
+        heroTitle: 'ברוכים הבאים לסמנה סלטה',
+        heroSubtitle:
+          'המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים',
+        viewMenu: 'צפה בתפריט',
+        orderNow: 'הזמן עכשיו',
+        featuresTitle: 'למה לבחור בנו?',
+        freshBread: 'לחם טרי',
+        freshBreadDesc:
+          'כל הלחמים שלנו נאפים טריים כל יום עם המרכיבים האיכותיים ביותר',
+        traditionalRecipes: 'מתכונים מסורתיים',
+        traditionalRecipesDesc: 'אנו משתמשים במתכונים מסורתיים שעברו מדור לדור',
+        fastDelivery: 'משלוח מהיר',
+        fastDeliveryDesc: 'משלוח מהיר ואמין לכל רחבי העיר תוך 30 דקות',
+        productsTitle: 'המוצרים שלנו',
+        kubaneh: 'כובאנה',
+        kubanehDesc: 'לחם תימני מסורתי עם טעם ייחודי',
+        samneh: 'סמנה',
+        samnehDesc: 'חמאה מזוקקת מסורתית',
+        redBisbas: 'ביסבוס אדום',
+        redBisbasDesc: 'תבלין תימני מסורתי',
+        hilbeh: 'חילבה',
+        hilbehDesc: 'תבלין תימני מסורתי',
+        price: '₪',
+      },
+      en: {
+        heroTitle: 'Welcome to Samna Salta',
+        heroSubtitle:
+          'The best bakery in town with a wide variety of fresh breads and pastries',
+        viewMenu: 'View Menu',
+        orderNow: 'Order Now',
+        featuresTitle: 'Why Choose Us?',
+        freshBread: 'Fresh Bread',
+        freshBreadDesc:
+          'All our breads are baked fresh daily with the finest ingredients',
+        traditionalRecipes: 'Traditional Recipes',
+        traditionalRecipesDesc:
+          'We use traditional recipes passed down from generation to generation',
+        fastDelivery: 'Fast Delivery',
+        fastDeliveryDesc:
+          'Fast and reliable delivery throughout the city within 30 minutes',
+        productsTitle: 'Our Products',
+        kubaneh: 'Kubaneh',
+        kubanehDesc: 'Traditional Yemenite bread with unique flavor',
+        samneh: 'Samneh',
+        samnehDesc: 'Traditional clarified butter',
+        redBisbas: 'Red Bisbas',
+        redBisbasDesc: 'Traditional Yemenite spice',
+        hilbeh: 'Hilbeh',
+        hilbehDesc: 'Traditional Yemenite spice',
+        price: '$',
+      },
+    }),
+    []
+  );
 
-  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language]
+  );
 
   // Memoized features data
-  const features = useMemo((): Feature[] => [
-    {
-      icon: '🍞',
-      title: t.freshBread,
-      description: t.freshBreadDesc,
-    },
-    {
-      icon: '👨‍🍳',
-      title: t.traditionalRecipes,
-      description: t.traditionalRecipesDesc,
-    },
-    {
-      icon: '🚚',
-      title: t.fastDelivery,
-      description: t.fastDeliveryDesc,
-    },
-  ], [t]);
+  const features = useMemo(
+    (): Feature[] => [
+      {
+        icon: '🍞',
+        title: t.freshBread,
+        description: t.freshBreadDesc,
+      },
+      {
+        icon: '👨‍🍳',
+        title: t.traditionalRecipes,
+        description: t.traditionalRecipesDesc,
+      },
+      {
+        icon: '🚚',
+        title: t.fastDelivery,
+        description: t.fastDeliveryDesc,
+      },
+    ],
+    [t]
+  );
 
   // Memoized products data
-  const products = useMemo((): Product[] => [
-    {
-      icon: '🍞',
-      name: t.kubaneh,
-      description: t.kubanehDesc,
-      price: '25',
-    },
-    {
-      icon: '🧈',
-      name: t.samneh,
-      description: t.samnehDesc,
-      price: '15',
-    },
-    {
-      icon: '🌶️',
-      name: t.redBisbas,
-      description: t.redBisbasDesc,
-      price: '12',
-    },
-    {
-      icon: '🌿',
-      name: t.hilbeh,
-      description: t.hilbehDesc,
-      price: '10',
-    },
-  ], [t]);
+  const products = useMemo(
+    (): Product[] => [
+      {
+        icon: '🍞',
+        name: t.kubaneh,
+        description: t.kubanehDesc,
+        price: '25',
+      },
+      {
+        icon: '🧈',
+        name: t.samneh,
+        description: t.samnehDesc,
+        price: '15',
+      },
+      {
+        icon: '🌶️',
+        name: t.redBisbas,
+        description: t.redBisbasDesc,
+        price: '12',
+      },
+      {
+        icon: '🌿',
+        name: t.hilbeh,
+        description: t.hilbehDesc,
+        price: '10',
+      },
+    ],
+    [t]
+  );
 
   // Memoized handlers with useCallback
   const handleFeatureClick = useCallback((_feature: Feature): void => {
@@ -431,24 +456,30 @@ const HomePage: React.FC = () => {
   }, []);
 
   // Memoized animation variants
-  const containerVariants = useMemo(() => ({
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  }), []);
+  const containerVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.2,
+        },
+      },
+    }),
+    []
+  );
 
-  const itemVariants = useMemo(() => ({
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 }
-  }), []);
+  const itemVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 30 },
+      visible: { opacity: 1, y: 0 },
+    }),
+    []
+  );
 
   return (
     <HomeContainer>
-      <SkipLink href="#main-content">
+      <SkipLink href='#main-content'>
         {language === 'he' ? 'דלג לתוכן הראשי' : 'Skip to main content'}
       </SkipLink>
 
@@ -474,10 +505,10 @@ const HomePage: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <HeroButtons>
-              <CTAButton to="/menu" aria-label={t.viewMenu}>
+              <CTAButton to='/menu' aria-label={t.viewMenu}>
                 {t.viewMenu}
               </CTAButton>
-              <CTAButton to="/cart" aria-label={t.orderNow}>
+              <CTAButton to='/cart' aria-label={t.orderNow}>
                 {t.orderNow}
               </CTAButton>
             </HeroButtons>
@@ -485,13 +516,13 @@ const HomePage: React.FC = () => {
         </HeroContent>
       </HeroSection>
 
-      <FeaturesSection id="main-content">
+      <FeaturesSection id='main-content'>
         <FeaturesContainer>
           <SectionTitle>{t.featuresTitle}</SectionTitle>
           <motion.div
             variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
+            initial='hidden'
+            whileInView='visible'
             viewport={{ once: true, amount: 0.3 }}
           >
             <FeaturesGrid>
@@ -504,16 +535,20 @@ const HomePage: React.FC = () => {
                   <FeatureCard
                     onClick={(): void => handleFeatureClick(feature)}
                     tabIndex={0}
-                    role="button"
+                    role='button'
                     aria-label={`Learn more about ${feature.title}`}
-                    onKeyDown={(e): void => {
+                    onKeyDown={(e: React.KeyboardEvent): void => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         handleFeatureClick(feature);
                       }
                     }}
                   >
-                    <span className="icon" role="img" aria-label={feature.title}>
+                    <span
+                      className='icon'
+                      role='img'
+                      aria-label={feature.title}
+                    >
                       {feature.icon}
                     </span>
                     <h3>{feature.title}</h3>
@@ -531,8 +566,8 @@ const HomePage: React.FC = () => {
           <SectionTitle>{t.productsTitle}</SectionTitle>
           <motion.div
             variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
+            initial='hidden'
+            whileInView='visible'
             viewport={{ once: true, amount: 0.3 }}
           >
             <ProductsGrid>
@@ -545,22 +580,29 @@ const HomePage: React.FC = () => {
                   <ProductCard
                     onClick={(): void => handleProductClick(product)}
                     tabIndex={0}
-                    role="button"
+                    role='button'
                     aria-label={`View ${product.name} - ${t.price}${product.price}`}
-                    onKeyDown={(e): void => {
+                    onKeyDown={(e: React.KeyboardEvent): void => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         handleProductClick(product);
                       }
                     }}
                   >
-                    <div className="product-image" role="img" aria-label={product.name}>
+                    <div
+                      className='product-image'
+                      role='img'
+                      aria-label={product.name}
+                    >
                       {product.icon}
                     </div>
-                    <div className="product-info">
+                    <div className='product-info'>
                       <h3>{product.name}</h3>
                       <p>{product.description}</p>
-                      <div className="price">{t.price}{product.price}</div>
+                      <div className='price'>
+                        {t.price}
+                        {product.price}
+                      </div>
                     </div>
                   </ProductCard>
                 </motion.div>
@@ -573,4 +615,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default React.memo(HomePage); 
+export default React.memo(HomePage);

@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
-import { selectIsAuthenticated, selectIsAuthInitialized, selectUser } from '../features/auth/authSlice';
+import {
+  selectIsAuthenticated,
+  selectIsAuthInitialized,
+  selectUser,
+} from '../features/auth/authSlice';
 import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -10,10 +14,10 @@ interface ProtectedRouteProps {
   fallbackPath?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAdmin = false, 
-  fallbackPath = '/login' 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requireAdmin = false,
+  fallbackPath = '/login',
 }) => {
   const location = useLocation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -23,13 +27,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Show loading while auth is being initialized
   if (!isAuthInitialized) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
+        }}
+      >
         <LoadingSpinner />
       </div>
     );
@@ -42,10 +48,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to home if admin access required but user is not admin
   if (requireAdmin && !user?.isAdmin) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to='/home' replace />;
   }
 
   return <>{children}</>;
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

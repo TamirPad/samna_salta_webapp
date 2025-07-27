@@ -8,13 +8,17 @@ export interface RouteState {
 }
 
 // Save current route to session storage
-export const saveRouteState = (pathname: string, search: string = '', hash: string = ''): void => {
+export const saveRouteState = (
+  pathname: string,
+  search = '',
+  hash = ''
+): void => {
   try {
     const routeState: RouteState = {
       pathname,
       search,
       hash,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     sessionStorage.setItem('samna-salta-route', JSON.stringify(routeState));
   } catch (error) {
@@ -61,7 +65,7 @@ export const isValidRoute = (pathname: string): boolean => {
     '/admin/orders',
     '/admin/products',
     '/admin/customers',
-    '/admin/analytics'
+    '/admin/analytics',
   ];
 
   // Check exact matches
@@ -86,7 +90,7 @@ export const handlePageRefresh = (): void => {
     const keysToRemove = Object.keys(sessionStorage).filter(
       key => !keysToKeep.includes(key)
     );
-    
+
     keysToRemove.forEach(key => {
       sessionStorage.removeItem(key);
     });
@@ -103,23 +107,26 @@ export const wasPageRefreshed = (): boolean => {
 // Handle navigation errors
 export const handleNavigationError = (error: Error, pathname: string): void => {
   console.error('Navigation error:', error);
-  
+
   // Save the failed route for debugging
   try {
     const errorInfo = {
       pathname,
       error: error.message,
       timestamp: Date.now(),
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
     };
-    sessionStorage.setItem('samna-salta-navigation-error', JSON.stringify(errorInfo));
+    sessionStorage.setItem(
+      'samna-salta-navigation-error',
+      JSON.stringify(errorInfo)
+    );
   } catch (e) {
     console.warn('Failed to save navigation error:', e);
   }
 };
 
 // Get navigation error info
-export const getNavigationError = (): any => {
+export const getNavigationError = (): unknown => {
   try {
     const saved = sessionStorage.getItem('samna-salta-navigation-error');
     if (saved) {
@@ -148,7 +155,7 @@ export const isAppReady = (): boolean => {
     if (!persistedState) {
       return false;
     }
-    
+
     const parsed = JSON.parse(persistedState);
     return !!parsed.auth && !!parsed.language;
   } catch (error) {
@@ -158,24 +165,24 @@ export const isAppReady = (): boolean => {
 };
 
 // Wait for app to be ready
-export const waitForAppReady = (timeout: number = 5000): Promise<boolean> => {
-  return new Promise((resolve) => {
+export const waitForAppReady = (timeout = 5000): Promise<boolean> => {
+  return new Promise(resolve => {
     const startTime = Date.now();
-    
+
     const checkReady = () => {
       if (isAppReady()) {
         resolve(true);
         return;
       }
-      
+
       if (Date.now() - startTime > timeout) {
         resolve(false);
         return;
       }
-      
+
       setTimeout(checkReady, 100);
     };
-    
+
     checkReady();
   });
-}; 
+};

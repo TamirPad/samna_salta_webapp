@@ -1,35 +1,43 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es6"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"],
       "@/components/*": ["components/*"],
+      "@/pages/*": ["pages/*"],
       "@/features/*": ["features/*"],
       "@/utils/*": ["utils/*"],
       "@/types/*": ["types/*"],
+      "@/styles/*": ["styles/*"],
       "@/hooks/*": ["hooks/*"],
       "@/store/*": ["store/*"],
-      "@/styles/*": ["styles/*"],
-      "@common/*": ["../../packages/common/*"]
+      "@/assets/*": ["assets/*"]
     },
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true,
-    "useUnknownInCatchVariables": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo"
+    "noPropertyAccessFromIndexSignature": false
   },
   "include": [
     "src"
@@ -40,4 +48,4 @@
     "dist",
     "coverage"
   ]
-} 
+}

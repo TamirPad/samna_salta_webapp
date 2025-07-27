@@ -1,25 +1,31 @@
-import React, { useState, useMemo } from 'react';
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useEffect,
+  useMemo,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  CreditCard, 
-  Banknote, 
-  Lock, 
+import {
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  CreditCard,
+  Banknote,
+  Lock,
   CheckCircle,
   ArrowLeft,
-  Truck
+  Truck,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { selectLanguage } from '../features/language/languageSlice';
-import { 
-  selectCartItems, 
+import {
+  selectCartItems,
   selectCartTotal,
   clearCart,
-  CartItem
+  CartItem,
 } from '../features/cart/cartSlice';
 // import { apiService } from '../utils/api'; // TODO: Uncomment when backend API is ready
 
@@ -44,7 +50,7 @@ const CheckoutContent = styled.div`
 `;
 
 const CheckoutHeader = styled.div`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -123,7 +129,7 @@ const FormSection = styled.div`
 const SectionTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
@@ -147,7 +153,7 @@ const FormGroup = styled.div`
 
 const FormLabel = styled.label`
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -163,7 +169,7 @@ const FormInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #8B4513;
+    border-color: #8b4513;
   }
 
   &.error {
@@ -182,7 +188,7 @@ const FormTextarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #8B4513;
+    border-color: #8b4513;
   }
 
   &.error {
@@ -201,13 +207,13 @@ const PaymentOption = styled.label<{ selected: boolean }>`
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border: 2px solid ${props => props.selected ? '#8B4513' : '#e0e0e0'};
+  border: 2px solid ${props => (props.selected ? '#8B4513' : '#e0e0e0')};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #8B4513;
+    border-color: #8b4513;
   }
 `;
 
@@ -221,7 +227,7 @@ const PaymentOptionContent = styled.div`
 
 const PaymentOptionTitle = styled.div`
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -250,7 +256,7 @@ const OrderSummary = styled.div`
 const SummaryTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   margin: 0 0 1.5rem 0;
 `;
 
@@ -280,10 +286,10 @@ const ItemImage = styled.div<{ imageUrl?: string }>`
   width: 40px;
   height: 40px;
   border-radius: 6px;
-  background: ${props => props.imageUrl 
-    ? `url(${props.imageUrl}) center/cover` 
-    : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-  };
+  background: ${props =>
+    props.imageUrl
+      ? `url(${props.imageUrl}) center/cover`
+      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
   flex-shrink: 0;
 `;
 
@@ -293,7 +299,7 @@ const ItemDetails = styled.div`
 
 const ItemName = styled.div`
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
   font-size: 0.9rem;
 `;
 
@@ -304,7 +310,7 @@ const ItemQuantity = styled.div`
 
 const ItemPrice = styled.div`
   font-weight: 600;
-  color: #8B4513;
+  color: #8b4513;
 `;
 
 const SummaryRow = styled.div`
@@ -324,12 +330,12 @@ const SummaryTotal = styled.div`
   border-top: 2px solid #e0e0e0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #2F2F2F;
+  color: #2f2f2f;
 `;
 
 const PlaceOrderButton = styled.button`
   width: 100%;
-  background: #8B4513;
+  background: #8b4513;
   color: white;
   border: none;
   padding: 1rem;
@@ -344,7 +350,7 @@ const PlaceOrderButton = styled.button`
   gap: 0.5rem;
 
   &:hover {
-    background: #D2691E;
+    background: #d2691e;
   }
 
   &:disabled {
@@ -385,74 +391,84 @@ const CheckoutPage: React.FC = () => {
     special_instructions: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'online'>('cash');
-  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
+  const [paymentMethod, setPaymentMethod] = useState<
+    'cash' | 'card' | 'online'
+  >('cash');
+  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>(
+    'pickup'
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const translations = useMemo(() => ({
-    he: {
-      checkoutTitle: 'השלמת הזמנה',
-      checkoutSubtitle: 'הזן את פרטי ההזמנה שלך',
-      backToCart: 'חזור לעגלה',
-      customerInfo: 'פרטי לקוח',
-      name: 'שם מלא',
-      phone: 'מספר טלפון',
-      email: 'כתובת אימייל',
-      deliveryInfo: 'פרטי משלוח',
-      deliveryAddress: 'כתובת משלוח',
-      deliveryInstructions: 'הוראות משלוח',
-      specialInstructions: 'הוראות מיוחדות',
-      paymentMethod: 'אמצעי תשלום',
-      cash: 'מזומן',
-      card: 'כרטיס אשראי',
-      online: 'תשלום מקוון',
-      cashDesc: 'תשלום במזומן בעת קבלת ההזמנה',
-      cardDesc: 'תשלום בכרטיס אשראי בעת קבלת ההזמנה',
-      onlineDesc: 'תשלום מקוון מאובטח',
-      orderSummary: 'סיכום הזמנה',
-      subtotal: 'סכום ביניים',
-      deliveryFee: 'דמי משלוח',
-      total: 'סה"כ',
-      placeOrder: 'השלמת הזמנה',
-      orderPlaced: 'ההזמנה הושלמה בהצלחה!',
-      requiredField: 'שדה זה הוא חובה',
-      invalidEmail: 'כתובת אימייל לא תקינה',
-      invalidPhone: 'מספר טלפון לא תקין',
-    },
-    en: {
-      checkoutTitle: 'Complete Order',
-      checkoutSubtitle: 'Enter your order details',
-      backToCart: 'Back to Cart',
-      customerInfo: 'Customer Information',
-      name: 'Full Name',
-      phone: 'Phone Number',
-      email: 'Email Address',
-      deliveryInfo: 'Delivery Information',
-      deliveryAddress: 'Delivery Address',
-      deliveryInstructions: 'Delivery Instructions',
-      specialInstructions: 'Special Instructions',
-      paymentMethod: 'Payment Method',
-      cash: 'Cash',
-      card: 'Credit Card',
-      online: 'Online Payment',
-      cashDesc: 'Pay with cash upon delivery',
-      cardDesc: 'Pay with credit card upon delivery',
-      onlineDesc: 'Secure online payment',
-      orderSummary: 'Order Summary',
-      subtotal: 'Subtotal',
-      deliveryFee: 'Delivery Fee',
-      total: 'Total',
-      placeOrder: 'Place Order',
-      orderPlaced: 'Order placed successfully!',
-      requiredField: 'This field is required',
-      invalidEmail: 'Invalid email address',
-      invalidPhone: 'Invalid phone number',
-    }
-  }), []);
+  const translations = useMemo(
+    () => ({
+      he: {
+        checkoutTitle: 'השלמת הזמנה',
+        checkoutSubtitle: 'הזן את פרטי ההזמנה שלך',
+        backToCart: 'חזור לעגלה',
+        customerInfo: 'פרטי לקוח',
+        name: 'שם מלא',
+        phone: 'מספר טלפון',
+        email: 'כתובת אימייל',
+        deliveryInfo: 'פרטי משלוח',
+        deliveryAddress: 'כתובת משלוח',
+        deliveryInstructions: 'הוראות משלוח',
+        specialInstructions: 'הוראות מיוחדות',
+        paymentMethod: 'אמצעי תשלום',
+        cash: 'מזומן',
+        card: 'כרטיס אשראי',
+        online: 'תשלום מקוון',
+        cashDesc: 'תשלום במזומן בעת קבלת ההזמנה',
+        cardDesc: 'תשלום בכרטיס אשראי בעת קבלת ההזמנה',
+        onlineDesc: 'תשלום מקוון מאובטח',
+        orderSummary: 'סיכום הזמנה',
+        subtotal: 'סכום ביניים',
+        deliveryFee: 'דמי משלוח',
+        total: 'סה"כ',
+        placeOrder: 'השלמת הזמנה',
+        orderPlaced: 'ההזמנה הושלמה בהצלחה!',
+        requiredField: 'שדה זה הוא חובה',
+        invalidEmail: 'כתובת אימייל לא תקינה',
+        invalidPhone: 'מספר טלפון לא תקין',
+      },
+      en: {
+        checkoutTitle: 'Complete Order',
+        checkoutSubtitle: 'Enter your order details',
+        backToCart: 'Back to Cart',
+        customerInfo: 'Customer Information',
+        name: 'Full Name',
+        phone: 'Phone Number',
+        email: 'Email Address',
+        deliveryInfo: 'Delivery Information',
+        deliveryAddress: 'Delivery Address',
+        deliveryInstructions: 'Delivery Instructions',
+        specialInstructions: 'Special Instructions',
+        paymentMethod: 'Payment Method',
+        cash: 'Cash',
+        card: 'Credit Card',
+        online: 'Online Payment',
+        cashDesc: 'Pay with cash upon delivery',
+        cardDesc: 'Pay with credit card upon delivery',
+        onlineDesc: 'Secure online payment',
+        orderSummary: 'Order Summary',
+        subtotal: 'Subtotal',
+        deliveryFee: 'Delivery Fee',
+        total: 'Total',
+        placeOrder: 'Place Order',
+        orderPlaced: 'Order placed successfully!',
+        requiredField: 'This field is required',
+        invalidEmail: 'Invalid email address',
+        invalidPhone: 'Invalid phone number',
+      },
+    }),
+    []
+  );
 
-  const t = useMemo(() => translations[language as keyof typeof translations], [translations, language]);
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language]
+  );
 
   const deliveryFee = deliveryMethod === 'delivery' ? 15 : 0;
   const finalTotal = cartTotal + deliveryFee;
@@ -466,12 +482,17 @@ const CheckoutPage: React.FC = () => {
 
     if (!formData.customer_phone.trim()) {
       newErrors['customer_phone'] = t.requiredField;
-    } else if (!/^[\+]?[1-9][\d]{0,15}$/.test(formData.customer_phone.replace(/\s/g, ''))) {
-              newErrors['customer_phone'] = t.invalidPhone;
+    } else if (
+      !/^[\+]?[1-9][\d]{0,15}$/.test(formData.customer_phone.replace(/\s/g, ''))
+    ) {
+      newErrors['customer_phone'] = t.invalidPhone;
     }
 
-    if (formData.customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)) {
-              newErrors['customer_email'] = t.invalidEmail;
+    if (
+      formData.customer_email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)
+    ) {
+      newErrors['customer_email'] = t.invalidEmail;
     }
 
     if (deliveryMethod === 'delivery' && !formData.delivery_address.trim()) {
@@ -491,7 +512,7 @@ const CheckoutPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -522,21 +543,21 @@ const CheckoutPage: React.FC = () => {
 
       // Submit order to API (mocked for now)
       // const response = await apiService.createOrder(orderData);
-      
+
       // Mock successful order creation
       const mockResponse = {
         data: {
           success: true,
           data: {
-            id: Math.floor(Math.random() * 10000) + 1000
-          }
-        }
+            id: Math.floor(Math.random() * 10000) + 1000,
+          },
+        },
       };
-      
+
       if (mockResponse.data?.success) {
         setSubmitSuccess(true);
         dispatch(clearCart());
-        
+
         // Redirect to order tracking page after a short delay
         setTimeout(() => {
           navigate(`/order/${mockResponse.data.data.id}`);
@@ -586,41 +607,53 @@ const CheckoutPage: React.FC = () => {
                       {t.name} *
                     </FormLabel>
                     <FormInput
-                      type="text"
+                      type='text'
                       value={formData.customer_name}
-                      onChange={(e) => handleInputChange('customer_name', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange('customer_name', e.target.value)
+                      }
                       className={errors['customer_name'] ? 'error' : ''}
                     />
-                    {errors['customer_name'] && <ErrorMessage>{errors['customer_name']}</ErrorMessage>}
+                    {errors['customer_name'] && (
+                      <ErrorMessage>{errors['customer_name']}</ErrorMessage>
+                    )}
                   </FormGroup>
-                  
+
                   <FormGroup>
                     <FormLabel>
                       <Phone size={16} />
                       {t.phone} *
                     </FormLabel>
                     <FormInput
-                      type="tel"
+                      type='tel'
                       value={formData.customer_phone}
-                      onChange={(e) => handleInputChange('customer_phone', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange('customer_phone', e.target.value)
+                      }
                       className={errors['customer_phone'] ? 'error' : ''}
                     />
-                    {errors['customer_phone'] && <ErrorMessage>{errors['customer_phone']}</ErrorMessage>}
+                    {errors['customer_phone'] && (
+                      <ErrorMessage>{errors['customer_phone']}</ErrorMessage>
+                    )}
                   </FormGroup>
                 </FormGrid>
-                
+
                 <FormGroup style={{ marginTop: '1rem' }}>
                   <FormLabel>
                     <Mail size={16} />
                     {t.email}
                   </FormLabel>
                   <FormInput
-                    type="email"
+                    type='email'
                     value={formData.customer_email}
-                    onChange={(e) => handleInputChange('customer_email', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange('customer_email', e.target.value)
+                    }
                     className={errors['customer_email'] ? 'error' : ''}
                   />
-                  {errors['customer_email'] && <ErrorMessage>{errors['customer_email']}</ErrorMessage>}
+                  {errors['customer_email'] && (
+                    <ErrorMessage>{errors['customer_email']}</ErrorMessage>
+                  )}
                 </FormGroup>
               </FormSection>
 
@@ -629,26 +662,47 @@ const CheckoutPage: React.FC = () => {
                   <MapPin size={20} />
                   {t.deliveryInfo}
                 </SectionTitle>
-                
+
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
                     <input
-                      type="radio"
-                      name="deliveryMethod"
-                      value="pickup"
+                      type='radio'
+                      name='deliveryMethod'
+                      value='pickup'
                       checked={deliveryMethod === 'pickup'}
-                      onChange={(e) => setDeliveryMethod(e.target.value as 'pickup' | 'delivery')}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setDeliveryMethod(
+                          e.target.value as 'pickup' | 'delivery'
+                        )
+                      }
                     />
                     <Truck size={16} />
                     {language === 'he' ? 'איסוף' : 'Pickup'}
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
                     <input
-                      type="radio"
-                      name="deliveryMethod"
-                      value="delivery"
+                      type='radio'
+                      name='deliveryMethod'
+                      value='delivery'
                       checked={deliveryMethod === 'delivery'}
-                      onChange={(e) => setDeliveryMethod(e.target.value as 'pickup' | 'delivery')}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setDeliveryMethod(
+                          e.target.value as 'pickup' | 'delivery'
+                        )
+                      }
                     />
                     <Truck size={16} />
                     {language === 'he' ? 'משלוח' : 'Delivery'}
@@ -662,12 +716,16 @@ const CheckoutPage: React.FC = () => {
                       {t.deliveryAddress} *
                     </FormLabel>
                     <FormInput
-                      type="text"
+                      type='text'
                       value={formData.delivery_address}
-                      onChange={(e) => handleInputChange('delivery_address', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange('delivery_address', e.target.value)
+                      }
                       className={errors['delivery_address'] ? 'error' : ''}
                     />
-                    {errors['delivery_address'] && <ErrorMessage>{errors['delivery_address']}</ErrorMessage>}
+                    {errors['delivery_address'] && (
+                      <ErrorMessage>{errors['delivery_address']}</ErrorMessage>
+                    )}
                   </FormGroup>
                 )}
 
@@ -675,7 +733,9 @@ const CheckoutPage: React.FC = () => {
                   <FormLabel>{t.deliveryInstructions}</FormLabel>
                   <FormTextarea
                     value={formData.delivery_instructions}
-                    onChange={(e) => handleInputChange('delivery_instructions', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      handleInputChange('delivery_instructions', e.target.value)
+                    }
                     placeholder={t.deliveryInstructions}
                   />
                 </FormGroup>
@@ -684,7 +744,9 @@ const CheckoutPage: React.FC = () => {
                   <FormLabel>{t.specialInstructions}</FormLabel>
                   <FormTextarea
                     value={formData.special_instructions}
-                    onChange={(e) => handleInputChange('special_instructions', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      handleInputChange('special_instructions', e.target.value)
+                    }
                     placeholder={t.specialInstructions}
                   />
                 </FormGroup>
@@ -695,50 +757,68 @@ const CheckoutPage: React.FC = () => {
                   <CreditCard size={20} />
                   {t.paymentMethod}
                 </SectionTitle>
-                
+
                 <PaymentOptions>
                   <PaymentOption selected={paymentMethod === 'cash'}>
                     <PaymentOptionInput
-                      type="radio"
-                      name="paymentMethod"
-                      value="cash"
+                      type='radio'
+                      name='paymentMethod'
+                      value='cash'
                       checked={paymentMethod === 'cash'}
-                      onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'card' | 'online')}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPaymentMethod(
+                          e.target.value as 'cash' | 'card' | 'online'
+                        )
+                      }
                     />
                     <Banknote size={20} />
                     <PaymentOptionContent>
                       <PaymentOptionTitle>{t.cash}</PaymentOptionTitle>
-                      <PaymentOptionDescription>{t.cashDesc}</PaymentOptionDescription>
+                      <PaymentOptionDescription>
+                        {t.cashDesc}
+                      </PaymentOptionDescription>
                     </PaymentOptionContent>
                   </PaymentOption>
-                  
+
                   <PaymentOption selected={paymentMethod === 'card'}>
                     <PaymentOptionInput
-                      type="radio"
-                      name="paymentMethod"
-                      value="card"
+                      type='radio'
+                      name='paymentMethod'
+                      value='card'
                       checked={paymentMethod === 'card'}
-                      onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'card' | 'online')}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPaymentMethod(
+                          e.target.value as 'cash' | 'card' | 'online'
+                        )
+                      }
                     />
                     <CreditCard size={20} />
                     <PaymentOptionContent>
                       <PaymentOptionTitle>{t.card}</PaymentOptionTitle>
-                      <PaymentOptionDescription>{t.cardDesc}</PaymentOptionDescription>
+                      <PaymentOptionDescription>
+                        {t.cardDesc}
+                      </PaymentOptionDescription>
                     </PaymentOptionContent>
                   </PaymentOption>
-                  
+
                   <PaymentOption selected={paymentMethod === 'online'}>
                     <PaymentOptionInput
-                      type="radio"
-                      name="paymentMethod"
-                      value="online"
+                      type='radio'
+                      name='paymentMethod'
+                      value='online'
                       checked={paymentMethod === 'online'}
-                      onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'card' | 'online')}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPaymentMethod(
+                          e.target.value as 'cash' | 'card' | 'online'
+                        )
+                      }
                     />
                     <Lock size={20} />
                     <PaymentOptionContent>
                       <PaymentOptionTitle>{t.online}</PaymentOptionTitle>
-                      <PaymentOptionDescription>{t.onlineDesc}</PaymentOptionDescription>
+                      <PaymentOptionDescription>
+                        {t.onlineDesc}
+                      </PaymentOptionDescription>
                     </PaymentOptionContent>
                   </PaymentOption>
                 </PaymentOptions>
@@ -747,7 +827,7 @@ const CheckoutPage: React.FC = () => {
 
             <OrderSummary>
               <SummaryTitle>{t.orderSummary}</SummaryTitle>
-              
+
               <OrderItems>
                 {cartItems.map(item => (
                   <OrderItem key={item.id}>
@@ -762,34 +842,36 @@ const CheckoutPage: React.FC = () => {
                   </OrderItem>
                 ))}
               </OrderItems>
-              
+
               <SummaryRow>
                 <span>{t.subtotal}</span>
                 <span>₪{cartTotal}</span>
               </SummaryRow>
-              
+
               {deliveryMethod === 'delivery' && (
                 <SummaryRow>
                   <span>{t.deliveryFee}</span>
                   <span>₪{deliveryFee}</span>
                 </SummaryRow>
               )}
-              
+
               <SummaryTotal>
                 <span>{t.total}</span>
                 <span>₪{finalTotal}</span>
               </SummaryTotal>
-              
+
               {submitSuccess && (
                 <SuccessMessage>
                   <CheckCircle size={16} />
                   {t.orderPlaced}
                 </SuccessMessage>
               )}
-              
-              {errors['submit'] && <ErrorMessage>{errors['submit']}</ErrorMessage>}
-              
-              <PlaceOrderButton type="submit" disabled={isSubmitting}>
+
+              {errors['submit'] && (
+                <ErrorMessage>{errors['submit']}</ErrorMessage>
+              )}
+
+              <PlaceOrderButton type='submit' disabled={isSubmitting}>
                 <Lock size={20} />
                 {isSubmitting ? 'Processing...' : t.placeOrder}
               </PlaceOrderButton>
@@ -801,4 +883,4 @@ const CheckoutPage: React.FC = () => {
   );
 };
 
-export default CheckoutPage; 
+export default CheckoutPage;
