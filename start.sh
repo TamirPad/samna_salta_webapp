@@ -3,6 +3,8 @@
 # Set default port if not provided
 export PORT=${PORT:-3000}
 
+echo "Starting Samna Salta application on port $PORT..."
+
 # Start backend in background with proper port handling
 echo "Starting backend server on port $PORT..."
 npm run start:backend &
@@ -24,10 +26,22 @@ if ! kill -0 $BACKEND_PID 2>/dev/null; then
     sleep 3
 fi
 
+# Check if backend is still running after retry
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo "Backend failed to start even with alternative port. Starting frontend only..."
+    # Start frontend even if backend fails
+    serve -s frontend/build -l $PORT &
+    FRONTEND_PID=$!
+    wait $FRONTEND_PID
+    exit 0
+fi
+
 # Start frontend server
 echo "Starting frontend server on port $PORT..."
 serve -s frontend/build -l $PORT &
 FRONTEND_PID=$!
+
+echo "Both servers started successfully!"
 
 # Function to cleanup processes
 cleanup() {

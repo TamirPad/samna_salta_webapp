@@ -243,6 +243,16 @@ app.get('/health', (req, res) => {
   res.status(statusCode).json(healthStatus);
 });
 
+// Simple test endpoint that doesn't require database
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Backend API is working!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // API Routes with rate limiting
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', generalLimiter, productRoutes);
@@ -319,7 +329,10 @@ const startServer = async () => {
         server.listen(port + 1);
       } else {
         logger.error('Server error:', error);
-        process.exit(1);
+        // Don't exit process in production, just log the error
+        if (process.env.NODE_ENV !== 'production') {
+          process.exit(1);
+        }
       }
     });
     
@@ -328,7 +341,10 @@ const startServer = async () => {
     });
   } catch (error) {
     logger.error('Failed to start server:', { service: 'samna-salta-api', error: error.message });
-    process.exit(1);
+    // Don't exit process in production, just log the error
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
 };
 

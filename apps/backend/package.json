@@ -12,7 +12,8 @@
     "lint:check": "eslint src --ext .js",
     "migrate": "node src/database/migrate.js",
     "seed": "node src/database/seed.js",
-    "type-check": "echo 'Backend is JavaScript, no type checking needed'"
+    "type-check": "echo 'Backend is JavaScript, no type checking needed'",
+    "debug": "node src/debug.js"
   },
   "dependencies": {
     "@samna-salta/common": "file:../../packages/common",

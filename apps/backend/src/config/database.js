@@ -114,6 +114,7 @@ const connectDB = async () => {
       return;
     }
     
+    // Only throw in non-production environments
     throw error;
   }
 };
