@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copy root package files
 COPY package*.json ./
+COPY package-lock.json ./
 COPY tsconfig.base.json ./
 
 # Copy workspace configurations
@@ -14,7 +15,7 @@ COPY apps/backend/package*.json ./apps/backend/
 COPY packages/common/package*.json ./packages/common/
 
 # Install all dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY apps/frontend/src ./apps/frontend/src
@@ -52,6 +53,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 
+# Copy startup script
+COPY start.sh ./
+
 # Install serve for frontend
 RUN npm install -g serve
 
@@ -66,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
 
 # Start the application
-CMD ["dumb-init", "sh", "-c", "serve -s frontend/build -l ${PORT:-3000}"] 
+CMD ["dumb-init", "./start.sh"] 

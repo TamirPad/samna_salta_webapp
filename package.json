@@ -15,6 +15,7 @@
     "build:frontend": "npm run build --workspace=apps/frontend",
     "build:backend": "npm run build --workspace=apps/backend",
     "build:common": "npm run build --workspace=packages/common",
+    "start:backend": "npm run start --workspace=apps/backend",
     "test": "npm run test --workspaces",
     "test:coverage": "./test-coverage.sh",
     "test:frontend": "npm run test --workspace=apps/frontend",
