@@ -41,7 +41,8 @@
     "update": "npm update"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "css-minimizer-webpack-plugin": "^7.0.2"
   },
   "engines": {
     "node": ">=16.0.0",
@@ -63,4 +64,4 @@
   ],
   "author": "Your Name",
   "license": "MIT"
-} 
+}

@@ -564,7 +564,7 @@ const CheckoutPage: React.FC = () => {
         }, 2000);
       }
     } catch (error) {
-      console.error('Error placing order:', error);
+      // console.error('Error placing order:', error);
       setErrors({ submit: 'Failed to place order. Please try again.' });
     } finally {
       setIsSubmitting(false);

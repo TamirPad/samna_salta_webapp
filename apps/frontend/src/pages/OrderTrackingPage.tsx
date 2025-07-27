@@ -599,7 +599,7 @@ const OrderTrackingPage: React.FC = () => {
         setLoading(false);
       }, 1000);
     } catch (error) {
-      console.error('Error fetching order:', error);
+      // console.error('Error fetching order:', error);
       setError('Failed to fetch order details');
       setLoading(false);
     }

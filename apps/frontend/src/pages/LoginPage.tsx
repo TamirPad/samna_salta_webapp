@@ -1,5 +1,5 @@
-import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import {
   loginStart,
@@ -12,6 +12,7 @@ import {
 } from '../features/auth/authSlice';
 import { apiService } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import AuthRedirect from '../components/AuthRedirect';
 
 const LoginPage: React.FC = (): JSX.Element => {
   const [email, setEmail] = useState<string>('');
@@ -21,6 +22,7 @@ const LoginPage: React.FC = (): JSX.Element => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const isAuthInitialized = useAppSelector(selectIsAuthInitialized);
 
@@ -68,35 +70,11 @@ const LoginPage: React.FC = (): JSX.Element => {
     setPassword('admin123');
   };
 
-  // Redirect if already authenticated (only after auth is initialized)
-  useEffect(() => {
-    if (isAuthInitialized && isAuthenticated) {
-      if (user?.isAdmin) {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/home', { replace: true });
-      }
-    }
-  }, [isAuthenticated, user, navigate, isAuthInitialized]);
-
-  // Show loading while auth is being initialized
-  if (!isAuthInitialized) {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
-        }}
-      >
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  // Don't redirect here - let the routing handle it
+  // The LoginPage should only show the login form
 
   return (
+    <AuthRedirect>
     <div
       style={{
         minHeight: '100vh',
@@ -247,6 +225,7 @@ const LoginPage: React.FC = (): JSX.Element => {
         </form>
       </div>
     </div>
+    </AuthRedirect>
   );
 };
 

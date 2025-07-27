@@ -1,6 +1,18 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { User } from '@samna-salta/common';
 import { apiService } from '../../utils/api';
+
+// Define User type locally to avoid import issues
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  phone?: string;
+  isAdmin: boolean;
+  language?: 'he' | 'en';
+  createdAt?: string;
+  lastLogin?: string;
+  updatedAt?: string;
+}
 
 interface AuthState {
   user: User | null;

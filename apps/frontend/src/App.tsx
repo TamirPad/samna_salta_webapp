@@ -117,12 +117,14 @@ const RoutePersistence: React.FC = () => {
 
     // Clear any navigation errors when successfully navigating
     clearNavigationError();
-  }, [location]);
+  }, [location.pathname, location.search, location.hash]);
 
   useEffect(() => {
-    // Handle page refresh
+    // Handle page refresh - only run once
     if (wasPageRefreshed()) {
       handlePageRefresh();
+      // Mark that we've handled the refresh to prevent re-running
+      sessionStorage.setItem('samna-salta-refresh-handled', 'true');
     }
   }, []);
 

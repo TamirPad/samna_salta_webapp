@@ -127,19 +127,19 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Error caught by boundary:', error, errorInfo);
+    // console.error('Error caught by boundary:', error, errorInfo);
 
     // Log error to external service in production
     if (process.env.NODE_ENV === 'production') {
       // You can integrate with Sentry, LogRocket, or other error tracking services here
-      console.error('Production error:', {
-        error: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString(),
-      });
+      // console.error('Production error:', {
+      //   error: error.message,
+      //   stack: error.stack,
+      //   componentStack: errorInfo.componentStack,
+      //   url: window.location.href,
+      //   userAgent: navigator.userAgent,
+      //   timestamp: new Date().toISOString(),
+      // });
     }
 
     // Update state with error info

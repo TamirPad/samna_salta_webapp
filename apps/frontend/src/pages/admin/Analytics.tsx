@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
@@ -297,7 +297,7 @@ const AdminAnalytics: React.FC = () => {
       });
       setSalesData(response.data.data.sales);
     } catch (error) {
-      console.error('Error fetching sales data:', error);
+      // console.error('Error fetching sales data:', error);
     } finally {
       setLoadingData(false);
     }
@@ -312,7 +312,7 @@ const AdminAnalytics: React.FC = () => {
       });
       setProductData(response.data.data.products);
     } catch (error) {
-      console.error('Error fetching product data:', error);
+      // console.error('Error fetching product data:', error);
     } finally {
       setLoadingData(false);
     }
@@ -327,7 +327,7 @@ const AdminAnalytics: React.FC = () => {
       });
       setCustomerData(response.data.data.customers);
     } catch (error) {
-      console.error('Error fetching customer data:', error);
+      // console.error('Error fetching customer data:', error);
     } finally {
       setLoadingData(false);
     }
@@ -536,7 +536,7 @@ const AdminAnalytics: React.FC = () => {
                   </thead>
                   <tbody>
                     {salesData.map((sale, index) => (
-                      <Tr key={index}>
+                      <Tr key={`sale-${sale.period}`}>
                         <Td>{sale.period}</Td>
                         <Td>{sale.orders}</Td>
                         <Td>{formatCurrency(sale.revenue)}</Td>

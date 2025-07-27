@@ -22,7 +22,7 @@ export const saveRouteState = (
     };
     sessionStorage.setItem('samna-salta-route', JSON.stringify(routeState));
   } catch (error) {
-    console.warn('Failed to save route state:', error);
+    // console.warn('Failed to save route state:', error);
   }
 };
 
@@ -38,7 +38,7 @@ export const getRouteState = (): RouteState | null => {
       }
     }
   } catch (error) {
-    console.warn('Failed to get route state:', error);
+    // console.warn('Failed to get route state:', error);
   }
   return null;
 };
@@ -48,7 +48,7 @@ export const clearRouteState = (): void => {
   try {
     sessionStorage.removeItem('samna-salta-route');
   } catch (error) {
-    console.warn('Failed to clear route state:', error);
+    // console.warn('Failed to clear route state:', error);
   }
 };
 
@@ -95,18 +95,24 @@ export const handlePageRefresh = (): void => {
       sessionStorage.removeItem(key);
     });
   } catch (error) {
-    console.warn('Failed to clean up session storage:', error);
+    // console.warn('Failed to clean up session storage:', error);
   }
 };
 
 // Detect if page was refreshed
 export const wasPageRefreshed = (): boolean => {
+  // Check if we've already handled this refresh
+  const alreadyHandled = sessionStorage.getItem('samna-salta-refresh-handled');
+  if (alreadyHandled) {
+    return false;
+  }
+  
   return window.performance.navigation.type === 1;
 };
 
 // Handle navigation errors
 export const handleNavigationError = (error: Error, pathname: string): void => {
-  console.error('Navigation error:', error);
+  // console.error('Navigation error:', error);
 
   // Save the failed route for debugging
   try {
@@ -121,7 +127,7 @@ export const handleNavigationError = (error: Error, pathname: string): void => {
       JSON.stringify(errorInfo)
     );
   } catch (e) {
-    console.warn('Failed to save navigation error:', e);
+    // console.warn('Failed to save navigation error:', e);
   }
 };
 
@@ -133,7 +139,7 @@ export const getNavigationError = (): unknown => {
       return JSON.parse(saved);
     }
   } catch (error) {
-    console.warn('Failed to get navigation error:', error);
+    // console.warn('Failed to get navigation error:', error);
   }
   return null;
 };
@@ -143,7 +149,7 @@ export const clearNavigationError = (): void => {
   try {
     sessionStorage.removeItem('samna-salta-navigation-error');
   } catch (error) {
-    console.warn('Failed to clear navigation error:', error);
+    // console.warn('Failed to clear navigation error:', error);
   }
 };
 
@@ -159,7 +165,7 @@ export const isAppReady = (): boolean => {
     const parsed = JSON.parse(persistedState);
     return !!parsed.auth && !!parsed.language;
   } catch (error) {
-    console.warn('Failed to check app readiness:', error);
+    // console.warn('Failed to check app readiness:', error);
     return false;
   }
 };

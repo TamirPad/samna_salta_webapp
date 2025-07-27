@@ -208,7 +208,7 @@ api.interceptors.response.use(
 
         case 404:
           // Not found - don't show toast for 404 errors as they're usually expected
-          console.warn('Resource not found:', error.config?.url);
+          // console.warn('Resource not found:', error.config?.url);
           break;
 
         case 422:

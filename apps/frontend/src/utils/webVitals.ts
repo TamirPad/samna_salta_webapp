@@ -34,7 +34,7 @@ export const observePerformance = (
       observer.observe({ entryTypes: ['navigation', 'resource', 'paint'] });
       return observer;
     } catch (error) {
-      console.warn('PerformanceObserver not supported:', error);
+      // console.warn('PerformanceObserver not supported:', error);
       return null;
     }
   }

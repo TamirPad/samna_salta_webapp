@@ -184,7 +184,7 @@ export const getBundleSize = async (url: string): Promise<number> => {
     const blob = await response.blob();
     return blob.size;
   } catch (error) {
-    console.error('Failed to get bundle size:', error);
+    // console.error('Failed to get bundle size:', error);
     return 0;
   }
 };
@@ -236,7 +236,7 @@ export const performanceMarks = {
       const measure = entries[0] as PerformanceMeasure | undefined;
       return measure?.duration || 0;
     } catch (error) {
-      console.warn('Performance measure failed:', error);
+      // console.warn('Performance measure failed:', error);
       return 0;
     }
   },
@@ -293,7 +293,7 @@ export const cacheUtils = {
       };
       localStorage.setItem(key, JSON.stringify(item));
     } catch (error) {
-      console.warn('Failed to set cache item:', error);
+      // console.warn('Failed to set cache item:', error);
     }
   },
 
@@ -312,7 +312,7 @@ export const cacheUtils = {
 
       return value;
     } catch (error) {
-      console.warn('Failed to get cache item:', error);
+      // console.warn('Failed to get cache item:', error);
       return null;
     }
   },
@@ -323,7 +323,7 @@ export const cacheUtils = {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to remove cache item:', error);
+      // console.warn('Failed to remove cache item:', error);
     }
   },
 
@@ -333,7 +333,7 @@ export const cacheUtils = {
     try {
       localStorage.clear();
     } catch (error) {
-      console.warn('Failed to clear cache:', error);
+      // console.warn('Failed to clear cache:', error);
     }
   },
 };

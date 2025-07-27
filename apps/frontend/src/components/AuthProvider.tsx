@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode, useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import {
   initializeAuth,
@@ -18,10 +18,10 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Initialize authentication on app startup
-    if (!isInitialized) {
+    if (!isInitialized && !isLoading) {
       dispatch(initializeAuth());
     }
-  }, [dispatch, isInitialized]);
+  }, [dispatch, isInitialized, isLoading]);
 
   // Show loading spinner while initializing authentication
   if (!isInitialized || isLoading) {
