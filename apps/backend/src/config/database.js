@@ -5,8 +5,22 @@ const logger = require('../utils/logger');
 const getDatabaseConfig = () => {
   // Check if using Supabase
   if (process.env.SUPABASE_CONNECTION_STRING) {
+    // Parse the connection string to modify it for IPv4
+    let connectionString = process.env.SUPABASE_CONNECTION_STRING;
+    
+    // Try to resolve IPv6 hostname to IPv4
+    if (connectionString.includes('db.kwrwxtccbnvadqedaqdd.supabase.co')) {
+      // Replace with direct IPv4 connection if possible
+      // For now, let's try with additional connection parameters
+      if (!connectionString.includes('?')) {
+        connectionString += '?sslmode=require&connect_timeout=10';
+      } else {
+        connectionString += '&sslmode=require&connect_timeout=10';
+      }
+    }
+    
     return {
-      connectionString: process.env.SUPABASE_CONNECTION_STRING,
+      connectionString: connectionString,
       ssl: {
         rejectUnauthorized: false
       },

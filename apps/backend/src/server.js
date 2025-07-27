@@ -274,11 +274,28 @@ app.use('*', (req, res) => {
 
 const startServer = async () => {
   try {
-    // Connect to database
-    await connectDB();
+    // Try to connect to database (but don't fail if it doesn't work)
+    try {
+      await connectDB();
+      logger.info('Database connection established', { service: 'samna-salta-api' });
+    } catch (dbError) {
+      logger.warn('Database connection failed, server will start without database:', { 
+        service: 'samna-salta-api', 
+        error: dbError.message 
+      });
+      logger.warn('Some features may not work properly without database connection');
+    }
     
-    // Connect to Redis
-    await connectRedis();
+    // Try to connect to Redis (but don't fail if it doesn't work)
+    try {
+      await connectRedis();
+      logger.info('Redis connection established', { service: 'samna-salta-api' });
+    } catch (redisError) {
+      logger.warn('Redis connection failed, using in-memory fallback:', { 
+        service: 'samna-salta-api', 
+        error: redisError.message 
+      });
+    }
     
     const port = process.env.PORT || 3001;
     
