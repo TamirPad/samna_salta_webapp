@@ -231,7 +231,7 @@ router.post('/', authenticateToken, requireAdmin, validateProduct, async (req, r
     } = req.body;
 
     const result = await dbQuery(
-      `INSERT INTO products (name, name_en, name_he, description, description_en, description_he,
+      `INSERT INTO menu_products (name, name_en, name_he, description, description_en, description_he,
        price, category_id, image_url, emoji, preparation_time, is_active, is_new, is_popular, available,
        created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
@@ -283,7 +283,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
     } = req.body;
 
     const result = await dbQuery(
-      `UPDATE products SET 
+      `UPDATE menu_products SET 
        name = $1, name_en = $2, name_he = $3, description = $4, description_en = $5, description_he = $6,
        price = $7, category_id = $8, image_url = $9, emoji = $10, preparation_time = $11,
        is_active = $12, is_new = $13, is_popular = $14, available = $15, updated_at = NOW()
@@ -330,7 +330,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
 
     const result = await dbQuery(
-      'DELETE FROM products WHERE id = $1 RETURNING *',
+      'DELETE FROM menu_products WHERE id = $1 RETURNING *',
       [id]
     );
 
@@ -379,7 +379,7 @@ router.post('/categories', authenticateToken, requireAdmin, validateCategory, as
     const { name, name_en, name_he, description, description_en, description_he, image_url, sort_order } = req.body;
 
     const result = await dbQuery(
-      `INSERT INTO categories (name, name_en, name_he, description, description_en, description_he,
+      `INSERT INTO menu_categories (name, name_en, name_he, description, description_en, description_he,
        image_url, sort_order, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
        RETURNING *`,
@@ -422,7 +422,7 @@ router.put('/categories/:id', authenticateToken, requireAdmin, validateCategory,
     const { name, name_en, name_he, description, description_en, description_he, image_url, sort_order, is_active } = req.body;
 
     const result = await dbQuery(
-      `UPDATE categories SET 
+      `UPDATE menu_categories SET 
        name = $1, name_en = $2, name_he = $3, description = $4, description_en = $5, description_he = $6,
        image_url = $7, sort_order = $8, is_active = $9, updated_at = NOW()
        WHERE id = $10
@@ -465,7 +465,7 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
 
     // Check if category has products
     const productsResult = await dbQuery(
-      'SELECT COUNT(*) as count FROM products WHERE category_id = $1',
+      'SELECT COUNT(*) as count FROM menu_products WHERE category_id = $1',
       [id]
     );
 
@@ -478,7 +478,7 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
     }
 
     const result = await dbQuery(
-      'DELETE FROM categories WHERE id = $1 RETURNING *',
+      'DELETE FROM menu_categories WHERE id = $1 RETURNING *',
       [id]
     );
 

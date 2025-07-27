@@ -15,15 +15,12 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('Service Worker installed');
         return self.skipWaiting();
       })
   );
@@ -31,19 +28,16 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches and take control
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('Service Worker activated');
       return self.clients.claim();
     })
   );
@@ -144,7 +138,6 @@ async function handleStaticRequest(request) {
     console.warn('Static asset fetch failed:', error);
     // Return a fallback response for critical assets
     if (request.url.includes('bundle.js')) {
-      return new Response('console.log("App failed to load");', {
         headers: { 'Content-Type': 'application/javascript' }
       });
     }
@@ -189,7 +182,6 @@ self.addEventListener('sync', (event) => {
 async function doBackgroundSync() {
   try {
     // Handle any pending offline actions
-    console.log('Performing background sync');
   } catch (error) {
     console.error('Background sync failed:', error);
   }

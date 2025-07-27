@@ -17,7 +17,6 @@ export default reportWebVitals;
 // Performance monitoring utilities
 export const measureWebVitals = (): void => {
   reportWebVitals(metric => {
-    console.log('Web Vital:', metric);
     // Here you could send metrics to your analytics service
   });
 };

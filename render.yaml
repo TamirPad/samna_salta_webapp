@@ -3,7 +3,7 @@ services:
   - type: web
     name: samna-salta-frontend
     env: static
-    buildCommand: npm install && npm run build:common && npm run build:frontend
+    buildCommand: npm install && npm run build:frontend
     staticPublishPath: ./apps/frontend/build
     envVars:
       - key: NODE_VERSION
@@ -25,11 +25,11 @@ services:
         source: /*
         destination: /index.html
 
-  # Backend API Service (optional - can be deployed separately)
+  # Backend API Service
   - type: web
     name: samna-salta-backend
     env: node
-    buildCommand: npm install && npm run build:common && npm run build:backend
+    buildCommand: npm install && npm run build:backend
     startCommand: npm run start --workspace=apps/backend
     envVars:
       - key: NODE_VERSION
@@ -38,6 +38,10 @@ services:
         value: production
       - key: PORT
         value: 3001
+      # Supabase Database Configuration
+      - key: SUPABASE_CONNECTION_STRING
+        sync: false
+      # Legacy DB vars (for compatibility)
       - key: DB_HOST
         sync: false
       - key: DB_PORT
@@ -48,29 +52,36 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      # Redis Configuration (optional - can use in-memory fallback)
       - key: REDIS_URL
         sync: false
+      # Security
       - key: JWT_SECRET
         sync: false
+      # Frontend URL
       - key: FRONTEND_URL
         fromService:
           type: web
           name: samna-salta-frontend
           property: url
+      # Payment Processing
       - key: STRIPE_SECRET_KEY
         sync: false
+      # File Upload (Cloudinary)
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      # SMS/Communication (Twilio)
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
         sync: false
       - key: TWILIO_PHONE_NUMBER
         sync: false
+      # Email (SMTP)
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -79,16 +90,9 @@ services:
         sync: false
       - key: SMTP_PASS
         sync: false
+      # Additional CORS origins
+      - key: ADDITIONAL_CORS_ORIGINS
+        sync: false
 
-  # PostgreSQL Database
-  - type: pserv
-    name: samna-salta-db
-    env: postgres
-    plan: free
-    ipAllowList: []
-
-  # Redis Cache
-  - type: redis
-    name: samna-salta-redis
-    plan: free
-    ipAllowList: [] 
+  # Note: PostgreSQL and Redis services removed since we're using Supabase
+  # If you need Redis, you can add it back or use a managed Redis service 
