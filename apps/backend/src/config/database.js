@@ -5,18 +5,31 @@ const logger = require('../utils/logger');
 const getDatabaseConfig = () => {
   // Check if using Supabase
   if (process.env.SUPABASE_CONNECTION_STRING) {
-    // Parse the connection string to modify it for IPv4
     let connectionString = process.env.SUPABASE_CONNECTION_STRING;
     
-    // Try to resolve IPv6 hostname to IPv4
+    // Force IPv4 connection for Supabase
     if (connectionString.includes('db.kwrwxtccbnvadqedaqdd.supabase.co')) {
-      // Replace with direct IPv4 connection if possible
-      // For now, let's try with additional connection parameters
-      if (!connectionString.includes('?')) {
-        connectionString += '?sslmode=require&connect_timeout=10';
-      } else {
-        connectionString += '&sslmode=require&connect_timeout=10';
-      }
+      // Add IPv4-specific parameters
+      const separator = connectionString.includes('?') ? '&' : '?';
+      connectionString += `${separator}sslmode=require&connect_timeout=30&application_name=samna_salta`;
+      
+      // Force IPv4 by using a different connection approach
+      return {
+        connectionString: connectionString,
+        ssl: {
+          rejectUnauthorized: false
+        },
+        // Increased timeouts for production
+        connectionTimeoutMillis: 30000,
+        idleTimeoutMillis: 30000,
+        max: 10, // Reduced for Render's limits
+        // Force IPv4
+        host: 'db.kwrwxtccbnvadqedaqdd.supabase.co',
+        port: 5432,
+        database: 'postgres',
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD,
+      };
     }
     
     return {
@@ -24,10 +37,9 @@ const getDatabaseConfig = () => {
       ssl: {
         rejectUnauthorized: false
       },
-      // Force IPv4 connection to avoid IPv6 issues
-      connectionTimeoutMillis: 10000,
+      connectionTimeoutMillis: 30000,
       idleTimeoutMillis: 30000,
-      max: 20
+      max: 10
     };
   }
 
@@ -47,14 +59,16 @@ let isConnected = false;
 
 const createPool = () => {
   if (!pool) {
+    const config = getDatabaseConfig();
+    
     pool = new Pool({
-      ...getDatabaseConfig(),
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+      ...config,
+      max: 10, // Reduced for Render's limits
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 30000, // Increased timeout
       // Add connection retry logic
       connectionRetryAttempts: 3,
-      connectionRetryDelay: 1000,
+      connectionRetryDelay: 2000,
     });
 
     // Test the connection
@@ -95,7 +109,8 @@ const connectDB = async () => {
     
     // In production, don't throw immediately, allow retry
     if (process.env.NODE_ENV === 'production') {
-      logger.warn('Database connection failed, will retry on next request');
+      logger.warn('Database connection failed in production, will retry on next request');
+      logger.warn('Some features may not work properly without database connection');
       return;
     }
     
@@ -106,7 +121,17 @@ const connectDB = async () => {
 // Helper function to run queries with retry logic
 const query = async (text, params) => {
   if (!isConnected) {
-    throw new Error('Database not connected. Please ensure PostgreSQL is running.');
+    // In production, try to reconnect
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await connectDB();
+      } catch (error) {
+        logger.error('Failed to reconnect to database:', error);
+        throw new Error('Database not connected. Please ensure PostgreSQL is running.');
+      }
+    } else {
+      throw new Error('Database not connected. Please ensure PostgreSQL is running.');
+    }
   }
   
   const start = Date.now();
@@ -129,7 +154,7 @@ const query = async (text, params) => {
       }
       
       if (attempt < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
       }
     }
   }

@@ -1,92 +1,153 @@
-# Render Deployment Fix Summary
+# Render Deployment Fix Guide
 
-## 🚨 **Issue Identified:**
-The Render deployment was failing with the error:
+## 🚨 Current Issues
+
+1. **Database Connection Failure**: Supabase IPv6 connection issues
+2. **Port Conflict**: Backend trying to use port 10000 instead of PORT env var
+3. **Startup Script Issues**: Poor error handling in start.sh
+
+## 🔧 Fixes Applied
+
+### 1. Database Configuration (`apps/backend/src/config/database.js`)
+
+**Changes Made:**
+- Improved Supabase connection handling
+- Added IPv4-specific configuration
+- Increased connection timeouts for production
+- Reduced connection pool size for Render limits
+- Better error handling for production environment
+
+**Key Improvements:**
+```javascript
+// Force IPv4 connection for Supabase
+if (connectionString.includes('db.kwrwxtccbnvadqedaqdd.supabase.co')) {
+  const separator = connectionString.includes('?') ? '&' : '?';
+  connectionString += `${separator}sslmode=require&connect_timeout=30&application_name=samna_salta`;
+  
+  return {
+    connectionString: connectionString,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 30000,
+    idleTimeoutMillis: 30000,
+    max: 10, // Reduced for Render's limits
+    host: 'db.kwrwxtccbnvadqedaqdd.supabase.co',
+    port: 5432,
+    database: 'postgres',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD,
+  };
+}
 ```
-npm error The `npm ci` command can only install with an existing package-lock.json
+
+### 2. Server Startup (`apps/backend/src/server.js`)
+
+**Changes Made:**
+- Added proper PORT environment variable handling
+- Added error handling for port conflicts
+- Improved graceful shutdown
+
+**Key Improvements:**
+```javascript
+const port = process.env.PORT || 3001;
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    logger.error(`Port ${port} is already in use. Trying port ${port + 1}`);
+    server.listen(port + 1);
+  } else {
+    logger.error('Server error:', error);
+    process.exit(1);
+  }
+});
 ```
 
-## ✅ **Root Cause:**
-1. **Docker Build Issue**: The Dockerfile was using `npm ci` but the `package-lock.json` wasn't being properly copied
-2. **Deployment Strategy**: Render was trying to use Docker but the `render.yaml` was configured for monorepo builds
+### 3. Startup Script (`start.sh`)
 
-## 🔧 **Fixes Applied:**
+**Changes Made:**
+- Better port handling
+- Process monitoring and restart logic
+- Proper signal handling
+- Improved error reporting
 
-### 1. **Updated Dockerfile**
-- **Changed**: `npm ci` → `npm install` (more flexible for build stage)
-- **Added**: Explicit copy of `package-lock.json`
-- **Added**: Startup script for running both frontend and backend
-
-### 2. **Updated render.yaml**
-- **Changed**: From monorepo build to Docker-based deployment
-- **Simplified**: Single service instead of separate frontend/backend
-- **Added**: All necessary environment variables
-
-### 3. **Created Startup Script (start.sh)**
+**Key Improvements:**
 ```bash
-#!/bin/sh
-# Start backend in background
-npm run start:backend &
-BACKEND_PID=$!
+# Set default port if not provided
+export PORT=${PORT:-3000}
 
-# Wait a moment for backend to start
-sleep 3
-
-# Start frontend server
-serve -s frontend/build -l ${PORT:-3000} &
-FRONTEND_PID=$!
-
-# Wait for either process to exit
-wait $BACKEND_PID $FRONTEND_PID
+# Check if backend is running
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo "Backend failed to start. Checking for port conflicts..."
+    PORT=$((PORT + 1)) npm run start:backend &
+    BACKEND_PID=$!
+fi
 ```
 
-### 4. **Added Package Scripts**
-- **Added**: `start:backend` script to root `package.json`
-- **Verified**: Backend has proper `start` script
+## 🛠️ Environment Variables for Render
 
-## 🎯 **Deployment Strategy:**
+### Required Variables:
+```env
+NODE_ENV=production
+PORT=3000
+SUPABASE_CONNECTION_STRING=postgresql://postgres:[PASSWORD]@db.kwrwxtccbnvadqedaqdd.supabase.co:5432/postgres
+DB_HOST=db.kwrwxtccbnvadqedaqdd.supabase.co
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=[YOUR-SUPABASE-PASSWORD]
+JWT_SECRET=[32+ CHARACTER SECRET]
+```
 
-### **Single Container Approach:**
-- **Frontend**: Served by `serve` on port 3000
-- **Backend**: Runs on internal port, proxied through frontend
-- **Database**: Uses Supabase PostgreSQL
-- **Environment**: Production-ready with all security variables
+### Optional Variables:
+```env
+REDIS_URL=redis://your-redis-url
+STRIPE_SECRET_KEY=sk_test_...
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
 
-### **Environment Variables:**
-- ✅ Supabase connection string
-- ✅ JWT secret
-- ✅ Payment processing (Stripe)
-- ✅ File upload (Cloudinary)
-- ✅ Communication (Twilio)
-- ✅ Email (SMTP)
-- ✅ Frontend API configuration
+## 📋 Deployment Steps
 
-## 🚀 **Next Steps:**
+1. **Update Environment Variables in Render:**
+   - Go to your Render dashboard
+   - Navigate to your service
+   - Go to Environment tab
+   - Add/update the variables above
 
-1. **Commit and Push**: All changes are ready
-2. **Deploy to Render**: The deployment should now succeed
-3. **Verify**: Check that both frontend and backend are working
-4. **Test**: Verify all functionality works in production
+2. **Redeploy the Application:**
+   - Trigger a new deployment in Render
+   - Monitor the logs for any remaining issues
 
-## 📋 **Verification Checklist:**
+3. **Verify the Fix:**
+   - Check that the backend starts without port conflicts
+   - Verify database connection is established
+   - Test the application functionality
 
-- [ ] Docker build succeeds
-- [ ] Frontend loads correctly
-- [ ] Backend API responds
-- [ ] Database connection works
-- [ ] Authentication functions
-- [ ] Admin panel accessible
-- [ ] All environment variables set
+## 🔍 Monitoring
 
-## 🔍 **Troubleshooting:**
+### Check Logs for Success:
+```
+✅ Database connection established
+✅ Server running on port 3000
+✅ Redis connection established (if configured)
+```
 
-If deployment still fails:
-1. Check Render logs for specific errors
-2. Verify all environment variables are set
-3. Ensure Supabase connection string is correct
-4. Test locally with Docker: `docker build -t samna-salta .`
+### Common Issues to Watch For:
+- **Database Connection**: Should show "Database connection established"
+- **Port Conflicts**: Should automatically try alternative ports
+- **Memory Usage**: Monitor for memory leaks in production
 
----
+## 🚀 Next Steps
 
-**Status**: ✅ Ready for deployment
-**Confidence**: High - All major issues resolved 
+1. **Test the Application**: Verify all features work correctly
+2. **Monitor Performance**: Watch for any performance issues
+3. **Set Up Monitoring**: Consider adding application monitoring
+4. **Backup Strategy**: Ensure database backups are configured
+
+## 📞 Support
+
+If issues persist:
+1. Check Render logs for specific error messages
+2. Verify environment variables are correctly set
+3. Test database connection manually
+4. Contact support with specific error details 

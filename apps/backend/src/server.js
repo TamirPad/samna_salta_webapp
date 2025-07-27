@@ -217,18 +217,30 @@ app.get('/health', (req, res) => {
   const { isDBConnected } = require('./config/database');
   const { isRedisConnected } = require('./config/redis');
   
-  res.status(200).json({ 
-    status: 'healthy', 
+  const healthStatus = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
-    memory: process.memoryUsage(),
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      external: Math.round(process.memoryUsage().external / 1024 / 1024)
+    },
     services: {
       database: isDBConnected ? 'connected' : 'disconnected',
       redis: isRedisConnected ? 'connected' : 'disconnected'
-    }
-  });
+    },
+    port: process.env.PORT || 3001,
+    requestId: req.id
+  };
+
+  // Set status based on critical services
+  const isHealthy = isDBConnected && isRedisConnected;
+  const statusCode = isHealthy ? 200 : 503;
+  
+  res.status(statusCode).json(healthStatus);
 });
 
 // API Routes with rate limiting
@@ -297,7 +309,19 @@ const startServer = async () => {
       });
     }
     
+    // Use PORT from environment or default to 3001
     const port = process.env.PORT || 3001;
+    
+    // Add error handling for port conflicts
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        logger.error(`Port ${port} is already in use. Trying port ${port + 1}`);
+        server.listen(port + 1);
+      } else {
+        logger.error('Server error:', error);
+        process.exit(1);
+      }
+    });
     
     server.listen(port, () => {
       logger.info(`Server running on port ${port}`, { service: 'samna-salta-api' });
