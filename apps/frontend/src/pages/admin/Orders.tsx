@@ -248,7 +248,7 @@ const AdminOrders: React.FC = () => {
     );
   }
 
-  if (isLoading && !orders.length) {
+  if (isLoading && (!orders || !orders.length)) {
     return <LoadingSpinner />;
   }
 
@@ -282,7 +282,7 @@ const AdminOrders: React.FC = () => {
           <div>Actions</div>
         </TableHeader>
 
-        {orders.length === 0 ? (
+        {(!orders || orders.length === 0) ? (
           <EmptyState>
             <p>No orders found</p>
           </EmptyState>
@@ -309,7 +309,7 @@ const AdminOrders: React.FC = () => {
         )}
       </OrdersTable>
 
-      {!orders.length && !error && (
+      {(!orders || !orders.length) && !error && (
         <DemoModeBanner>
           <p style={{ color: '#1976d2', margin: 0 }}>
             <strong>Demo Mode:</strong> Showing sample data. Connect to backend

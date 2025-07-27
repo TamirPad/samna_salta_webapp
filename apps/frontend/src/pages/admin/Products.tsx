@@ -696,12 +696,12 @@ const AdminProducts: React.FC = () => {
         <ResultsCount>
           {t.resultsCount.replace(
             '{count}',
-            filteredProducts.length.toString()
+            (filteredProducts?.length || 0).toString()
           )}
         </ResultsCount>
 
         <AnimatePresence mode='wait'>
-          {filteredProducts.length > 0 ? (
+          {filteredProducts && filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map((product, index) => (
                 <ProductCard

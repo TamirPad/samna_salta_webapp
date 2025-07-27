@@ -635,7 +635,7 @@ const AdminCustomers: React.FC = () => {
     );
   }
 
-  if (isLoading && customers.length === 0) {
+  if (isLoading && (!customers || customers.length === 0)) {
     return <LoadingSpinner />;
   }
 
@@ -678,7 +678,7 @@ const AdminCustomers: React.FC = () => {
           </div>
         )}
 
-        {customers.length > 0 ? (
+        {customers && customers.length > 0 ? (
           <>
             <CustomersGrid>
               {customers.map((customer: unknown) => (
