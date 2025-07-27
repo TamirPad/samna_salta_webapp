@@ -9,7 +9,11 @@ const getDatabaseConfig = () => {
       connectionString: process.env.SUPABASE_CONNECTION_STRING,
       ssl: {
         rejectUnauthorized: false
-      }
+      },
+      // Force IPv4 connection to avoid IPv6 issues
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
+      max: 20
     };
   }
 
