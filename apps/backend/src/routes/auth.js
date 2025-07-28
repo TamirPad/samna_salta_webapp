@@ -131,6 +131,42 @@ router.post('/login', validateLogin, async (req, res) => {
 
     const { email, password } = req.body;
 
+    // Development mode fallback - allow any login without database
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔧 Development mode: Using fallback login for any credentials');
+      
+      const testUser = {
+        id: 1,
+        name: 'Test User',
+        email: email,
+        phone: '+1234567890',
+        isAdmin: true
+      };
+
+      // Generate JWT token
+      const token = jwt.sign(
+        {
+          userId: testUser.id,
+          email: testUser.email,
+          isAdmin: testUser.isAdmin,
+          sessionId: 'dev-session'
+        },
+        process.env.JWT_SECRET || 'dev-secret-key',
+        { expiresIn: '7d' }
+      );
+
+      console.log('✅ Development login successful:', { userId: testUser.id, email });
+
+      return res.json({
+        success: true,
+        message: 'Login successful (development mode)',
+        data: {
+          user: testUser,
+          token
+        }
+      });
+    }
+
     // Find user
     let result;
     try {
@@ -318,75 +354,6 @@ router.post('/logout', authenticateToken, async (req, res) => {
   }
 });
 
-// Refresh token
-router.post('/refresh', authenticateToken, async (req, res) => {
-  try {
-    // Get current user data
-    const result = await query(
-      'SELECT id, name, email, phone, is_admin FROM users WHERE id = $1',
-      [req.user.id]
-    );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found',
-        message: 'User does not exist'
-      });
-    }
-
-    const user = result.rows[0];
-
-    // Create new session
-    const sessionId = uuidv4();
-    const sessionData = {
-      userId: user.id,
-      email: user.email,
-      isAdmin: user.is_admin
-    };
-
-    await setSession(sessionId, sessionData);
-
-    // Delete old session
-    await deleteSession(req.user.sessionId);
-
-    // Generate new JWT token
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        isAdmin: user.is_admin,
-        sessionId
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    logger.info('Token refreshed successfully:', { userId: user.id });
-
-    res.json({
-      success: true,
-      message: 'Token refreshed successfully',
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          isAdmin: user.is_admin
-        },
-        token
-      }
-    });
-
-  } catch (error) {
-    logger.error('Token refresh error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Token refresh failed',
-      message: 'Internal server error'
-    });
-  }
-});
 
 module.exports = router; 

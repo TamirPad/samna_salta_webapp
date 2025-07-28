@@ -6,17 +6,17 @@ import React, {
   useCallback,
   memo,
   useMemo,
-} from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+} from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAppSelector, useAppDispatch } from "../../hooks/redux";
 import {
   selectLanguage,
   setLanguage,
-} from '../../features/language/languageSlice';
-import { selectCartItemsCount } from '../../features/cart/cartSlice';
-import { logoutUser } from '../../features/auth/authSlice';
+} from "../../features/language/languageSlice";
+import { selectCartItemsCount } from "../../features/cart/cartSlice";
+import { logoutUser } from "../../features/auth/authSlice";
 
 // Types
 interface NavItem {
@@ -127,7 +127,7 @@ const NavLink = styled(Link)<{ $active?: boolean }>`
     background-color: rgba(255, 255, 255, 0.2);
     color: #FFF8DC;
   `
-      : ''}
+      : ""}
 
   /* Active indicator */
   ${(props): string =>
@@ -145,7 +145,7 @@ const NavLink = styled(Link)<{ $active?: boolean }>`
       border-radius: 1px;
     }
   `
-      : ''}
+      : ""}
 `;
 
 const MobileMenuButton = styled.button`
@@ -232,7 +232,7 @@ const MobileNavLink = styled(Link)<{ $active?: boolean }>`
     background-color: rgba(255, 255, 255, 0.2);
     color: #FFF8DC;
   `
-      : ''}
+      : ""}
 `;
 
 const HeaderActions = styled.div`
@@ -388,65 +388,65 @@ const Header: React.FC = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const language = useAppSelector(selectLanguage);
   const cartItemsCount = useAppSelector(selectCartItemsCount);
-  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
-  const isAdmin = useAppSelector(state => state.auth.user?.isAdmin || false);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const isAdmin = useAppSelector((state) => state.auth.user?.isAdmin || false);
 
   // Memoized navigation items
   const navItems = useMemo(
     (): NavItem[] => [
-      { path: '/home', label: language === 'he' ? 'בית' : 'Home' },
-      { path: '/menu', label: language === 'he' ? 'תפריט' : 'Menu' },
+      { path: "/home", label: language === "he" ? "בית" : "Home" },
+      { path: "/menu", label: language === "he" ? "תפריט" : "Menu" },
       {
-        path: '/admin',
-        label: language === 'he' ? 'דשבורד' : 'Dashboard',
+        path: "/admin",
+        label: language === "he" ? "דשבורד" : "Dashboard",
         requiresAuth: true,
         adminOnly: true,
       },
       {
-        path: '/admin/orders',
-        label: language === 'he' ? 'הזמנות' : 'Orders',
+        path: "/admin/orders",
+        label: language === "he" ? "הזמנות" : "Orders",
         requiresAuth: true,
         adminOnly: true,
       },
       {
-        path: '/admin/analytics',
-        label: language === 'he' ? 'ניתוח' : 'Analytics',
+        path: "/admin/analytics",
+        label: language === "he" ? "ניתוח" : "Analytics",
         requiresAuth: true,
         adminOnly: true,
       },
       {
-        path: '/admin/products',
-        label: language === 'he' ? 'מוצרים' : 'Products',
+        path: "/admin/products",
+        label: language === "he" ? "מוצרים" : "Products",
         requiresAuth: true,
         adminOnly: true,
       },
       {
-        path: '/admin/customers',
-        label: language === 'he' ? 'לקוחות' : 'Customers',
+        path: "/admin/customers",
+        label: language === "he" ? "לקוחות" : "Customers",
         requiresAuth: true,
         adminOnly: true,
       },
     ],
-    [language]
+    [language],
   );
 
   // Filter navigation items based on auth and admin status
   const filteredNavItems = useMemo(
     (): NavItem[] =>
-      navItems.filter(item => {
+      navItems.filter((item) => {
         if (item.requiresAuth && !isAuthenticated) return false;
         if (item.adminOnly && !isAdmin) return false;
         return true;
       }),
-    [navItems, isAuthenticated, isAdmin]
+    [navItems, isAuthenticated, isAdmin],
   );
 
   const toggleLanguage = useCallback((): void => {
-    dispatch(setLanguage(language === 'he' ? 'en' : 'he'));
+    dispatch(setLanguage(language === "he" ? "en" : "he"));
   }, [dispatch, language]);
 
   const toggleMobileMenu = useCallback((): void => {
-    setIsMobileMenuOpen(prev => !prev);
+    setIsMobileMenuOpen((prev) => !prev);
   }, []);
 
   const closeMobileMenu = useCallback((): void => {
@@ -455,37 +455,37 @@ const Header: React.FC = (): JSX.Element => {
 
   const isActive = useCallback(
     (path: string): boolean => location.pathname === path,
-    [location.pathname]
+    [location.pathname],
   );
 
   const handleLogout = useCallback((): void => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     dispatch(logoutUser());
-    navigate('/');
+    navigate("/");
   }, [dispatch, navigate]);
 
   // Handle escape key to close mobile menu
   React.useEffect((): (() => void) => {
     const handleEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && isMobileMenuOpen) {
+      if (event.key === "Escape" && isMobileMenuOpen) {
         setIsMobileMenuOpen(false);
       }
     };
 
     const handleClickOutside = (event: MouseEvent): void => {
       const target = event.target as Element;
-      if (isMobileMenuOpen && !target.closest('[data-mobile-menu]')) {
+      if (isMobileMenuOpen && !target.closest("[data-mobile-menu]")) {
         setIsMobileMenuOpen(false);
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("click", handleClickOutside);
 
     return (): void => {
-      document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, [isMobileMenuOpen]);
 
@@ -497,47 +497,47 @@ const Header: React.FC = (): JSX.Element => {
   // Prevent body scroll when mobile menu is open
   React.useEffect((): (() => void) => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return (): void => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
 
   // Don't show header on login page
-  if (location.pathname === '/' || location.pathname === '/login') {
+  if (location.pathname === "/" || location.pathname === "/login") {
     return <></>;
   }
 
   return (
     <HeaderContainer>
-      <SkipLink href='#main-content'>
-        {language === 'he' ? 'דלג לתוכן הראשי' : 'Skip to main content'}
+      <SkipLink href="#main-content">
+        {language === "he" ? "דלג לתוכן הראשי" : "Skip to main content"}
       </SkipLink>
 
       <Nav>
         <Logo
-          to='/home'
+          to="/home"
           aria-label={
-            language === 'he' ? 'סמנה סלטה - דף הבית' : 'Samna Salta - Home'
+            language === "he" ? "סמנה סלטה - דף הבית" : "Samna Salta - Home"
           }
         >
-          🍞 {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}
+          🍞 {language === "he" ? "סמנה סלטה" : "Samna Salta"}
         </Logo>
 
         <NavLinks
-          role='navigation'
-          aria-label={language === 'he' ? 'ניווט ראשי' : 'Main navigation'}
+          role="navigation"
+          aria-label={language === "he" ? "ניווט ראשי" : "Main navigation"}
         >
-          {filteredNavItems.map(item => (
+          {filteredNavItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               $active={isActive(item.path)}
-              aria-current={isActive(item.path) ? 'page' : undefined}
+              aria-current={isActive(item.path) ? "page" : undefined}
             >
               {item.label}
             </NavLink>
@@ -547,31 +547,31 @@ const Header: React.FC = (): JSX.Element => {
         <HeaderActions>
           {isAuthenticated && isAdmin && (
             <LogoutButton onClick={handleLogout}>
-              {language === 'he' ? 'התנתק' : 'Logout'}
+              {language === "he" ? "התנתק" : "Logout"}
             </LogoutButton>
           )}
 
           <LanguageToggle
             onClick={toggleLanguage}
             aria-label={
-              language === 'he'
-                ? 'החלף שפה לאנגלית'
-                : 'Switch language to Hebrew'
+              language === "he"
+                ? "החלף שפה לאנגלית"
+                : "Switch language to Hebrew"
             }
           >
-            {language === 'he' ? 'EN' : 'עב'}
+            {language === "he" ? "EN" : "עב"}
           </LanguageToggle>
 
           <CartButton
-            to='/cart'
-            aria-label={language === 'he' ? 'עגלת קניות' : 'Shopping cart'}
+            to="/cart"
+            aria-label={language === "he" ? "עגלת קניות" : "Shopping cart"}
           >
-            🛒 {language === 'he' ? 'עגלה' : 'Cart'}
+            🛒 {language === "he" ? "עגלה" : "Cart"}
             {cartItemsCount > 0 && (
               <CartBadge
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
               >
                 {cartItemsCount}
               </CartBadge>
@@ -580,11 +580,11 @@ const Header: React.FC = (): JSX.Element => {
 
           <MobileMenuButton
             onClick={toggleMobileMenu}
-            aria-label={language === 'he' ? 'תפריט ניווט' : 'Navigation menu'}
+            aria-label={language === "he" ? "תפריט ניווט" : "Navigation menu"}
             aria-expanded={isMobileMenuOpen}
-            aria-controls='mobile-menu'
+            aria-controls="mobile-menu"
           >
-            {isMobileMenuOpen ? '✕' : '☰'}
+            {isMobileMenuOpen ? "✕" : "☰"}
           </MobileMenuButton>
         </HeaderActions>
       </Nav>
@@ -592,22 +592,22 @@ const Header: React.FC = (): JSX.Element => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <MobileMenu
-            id='mobile-menu'
+            id="mobile-menu"
             data-mobile-menu
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            role='navigation'
-            aria-label={language === 'he' ? 'ניווט נייד' : 'Mobile navigation'}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            role="navigation"
+            aria-label={language === "he" ? "ניווט נייד" : "Mobile navigation"}
           >
-            {filteredNavItems.map(item => (
+            {filteredNavItems.map((item) => (
               <MobileNavLink
                 key={item.path}
                 to={item.path}
                 $active={isActive(item.path)}
                 onClick={closeMobileMenu}
-                aria-current={isActive(item.path) ? 'page' : undefined}
+                aria-current={isActive(item.path) ? "page" : undefined}
               >
                 {item.label}
               </MobileNavLink>
@@ -619,7 +619,7 @@ const Header: React.FC = (): JSX.Element => {
                   closeMobileMenu();
                 }}
               >
-                {language === 'he' ? 'התנתק' : 'Logout'}
+                {language === "he" ? "התנתק" : "Logout"}
               </MobileLogoutButton>
             )}
           </MobileMenu>

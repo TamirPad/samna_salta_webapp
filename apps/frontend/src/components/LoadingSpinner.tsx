@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import styled, { keyframes } from 'styled-components';
+import React, { memo } from "react";
+import styled, { keyframes } from "styled-components";
 
 // Animation keyframes
 const spin = keyframes`
@@ -61,13 +61,13 @@ const LoadingText = styled.div`
 // Types
 interface LoadingSpinnerProps {
   text?: string;
-  size?: 'small' | 'medium' | 'large' | 'default';
+  size?: "small" | "medium" | "large" | "default";
   className?: string;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  text = 'Loading...',
-  size = 'default',
+  text = "Loading...",
+  size = "default",
   className,
 }) => {
   const sizeClass = `loading-spinner--${size}`;
@@ -75,12 +75,12 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <SpinnerContainer
-      role='status'
-      aria-live='polite'
+      role="status"
+      aria-live="polite"
       className={combinedClassName}
-      data-testid='loading-spinner'
+      data-testid="loading-spinner"
     >
-      <Spinner aria-hidden='true' role='presentation' />
+      <Spinner aria-hidden="true" role="presentation" />
       <LoadingText>{text}</LoadingText>
     </SpinnerContainer>
   );

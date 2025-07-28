@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiService } from '../../utils/api';
-import { RootState } from '../../store';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { apiService } from "../../utils/api";
+import { RootState } from "../../store";
 
 export interface DashboardAnalytics {
   today: {
@@ -45,34 +45,52 @@ const initialState: AnalyticsState = {
 
 // Async thunks
 export const fetchDashboardAnalytics = createAsyncThunk(
-  'analytics/fetchDashboard',
-  async (_, { rejectWithValue }) => {
+  "analytics/fetchDashboard",
+  async (_, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState;
+      const { analytics } = state;
+
+      // Prevent excessive retries
+      if (analytics.error && analytics.error.includes("Too many requests")) {
+        return rejectWithValue(
+          "Rate limit exceeded. Please wait before retrying.",
+        );
+      }
+
       const response = await apiService.getDashboardAnalytics();
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
+        error instanceof Error && "response" in error
           ? (error as any).response?.data?.message ||
-            'Failed to fetch dashboard analytics'
-          : 'Failed to fetch dashboard analytics';
+            "Failed to fetch dashboard analytics"
+          : "Failed to fetch dashboard analytics";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
+  {
+    // Add condition to prevent retries on rate limit errors
+    condition: (_, { getState }) => {
+      const state = getState() as RootState;
+      const { analytics } = state;
+      return !analytics.error?.includes("Too many requests");
+    },
+  },
 );
 
 const analyticsSlice = createSlice({
-  name: 'analytics',
+  name: "analytics",
   initialState,
   reducers: {
-    clearAnalyticsError: state => {
+    clearAnalyticsError: (state) => {
       state.error = null;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
       // Fetch dashboard analytics
-      .addCase(fetchDashboardAnalytics.pending, state => {
+      .addCase(fetchDashboardAnalytics.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -91,7 +109,7 @@ export const { clearAnalyticsError } = analyticsSlice.actions;
 
 // Selectors
 export const selectDashboardAnalytics = (
-  state: RootState
+  state: RootState,
 ): DashboardAnalytics | null => state.analytics.dashboard;
 export const selectAnalyticsLoading = (state: RootState): boolean =>
   state.analytics.isLoading;

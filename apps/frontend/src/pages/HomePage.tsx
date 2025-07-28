@@ -5,12 +5,12 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
-} from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { useAppSelector } from '../hooks/redux';
-import { selectLanguage } from '../features/language/languageSlice';
+} from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { useAppSelector } from "../hooks/redux";
+import { selectLanguage } from "../features/language/languageSlice";
 
 // Types
 interface Feature {
@@ -40,7 +40,7 @@ const HeroSection = styled.section`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -333,126 +333,126 @@ const HomePage: React.FC = () => {
   const translations = useMemo(
     () => ({
       he: {
-        heroTitle: 'ברוכים הבאים לסמנה סלטה',
+        heroTitle: "ברוכים הבאים לסמנה סלטה",
         heroSubtitle:
-          'המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים',
-        viewMenu: 'צפה בתפריט',
-        orderNow: 'הזמן עכשיו',
-        featuresTitle: 'למה לבחור בנו?',
-        freshBread: 'לחם טרי',
+          "המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים",
+        viewMenu: "צפה בתפריט",
+        orderNow: "הזמן עכשיו",
+        featuresTitle: "למה לבחור בנו?",
+        freshBread: "לחם טרי",
         freshBreadDesc:
-          'כל הלחמים שלנו נאפים טריים כל יום עם המרכיבים האיכותיים ביותר',
-        traditionalRecipes: 'מתכונים מסורתיים',
-        traditionalRecipesDesc: 'אנו משתמשים במתכונים מסורתיים שעברו מדור לדור',
-        fastDelivery: 'משלוח מהיר',
-        fastDeliveryDesc: 'משלוח מהיר ואמין לכל רחבי העיר תוך 30 דקות',
-        productsTitle: 'המוצרים שלנו',
-        kubaneh: 'כובאנה',
-        kubanehDesc: 'לחם תימני מסורתי עם טעם ייחודי',
-        samneh: 'סמנה',
-        samnehDesc: 'חמאה מזוקקת מסורתית',
-        redBisbas: 'ביסבוס אדום',
-        redBisbasDesc: 'תבלין תימני מסורתי',
-        hilbeh: 'חילבה',
-        hilbehDesc: 'תבלין תימני מסורתי',
-        price: '₪',
+          "כל הלחמים שלנו נאפים טריים כל יום עם המרכיבים האיכותיים ביותר",
+        traditionalRecipes: "מתכונים מסורתיים",
+        traditionalRecipesDesc: "אנו משתמשים במתכונים מסורתיים שעברו מדור לדור",
+        fastDelivery: "משלוח מהיר",
+        fastDeliveryDesc: "משלוח מהיר ואמין לכל רחבי העיר תוך 30 דקות",
+        productsTitle: "המוצרים שלנו",
+        kubaneh: "כובאנה",
+        kubanehDesc: "לחם תימני מסורתי עם טעם ייחודי",
+        samneh: "סמנה",
+        samnehDesc: "חמאה מזוקקת מסורתית",
+        redBisbas: "ביסבוס אדום",
+        redBisbasDesc: "תבלין תימני מסורתי",
+        hilbeh: "חילבה",
+        hilbehDesc: "תבלין תימני מסורתי",
+        price: "₪",
       },
       en: {
-        heroTitle: 'Welcome to Samna Salta',
+        heroTitle: "Welcome to Samna Salta",
         heroSubtitle:
-          'The best bakery in town with a wide variety of fresh breads and pastries',
-        viewMenu: 'View Menu',
-        orderNow: 'Order Now',
-        featuresTitle: 'Why Choose Us?',
-        freshBread: 'Fresh Bread',
+          "The best bakery in town with a wide variety of fresh breads and pastries",
+        viewMenu: "View Menu",
+        orderNow: "Order Now",
+        featuresTitle: "Why Choose Us?",
+        freshBread: "Fresh Bread",
         freshBreadDesc:
-          'All our breads are baked fresh daily with the finest ingredients',
-        traditionalRecipes: 'Traditional Recipes',
+          "All our breads are baked fresh daily with the finest ingredients",
+        traditionalRecipes: "Traditional Recipes",
         traditionalRecipesDesc:
-          'We use traditional recipes passed down from generation to generation',
-        fastDelivery: 'Fast Delivery',
+          "We use traditional recipes passed down from generation to generation",
+        fastDelivery: "Fast Delivery",
         fastDeliveryDesc:
-          'Fast and reliable delivery throughout the city within 30 minutes',
-        productsTitle: 'Our Products',
-        kubaneh: 'Kubaneh',
-        kubanehDesc: 'Traditional Yemenite bread with unique flavor',
-        samneh: 'Samneh',
-        samnehDesc: 'Traditional clarified butter',
-        redBisbas: 'Red Bisbas',
-        redBisbasDesc: 'Traditional Yemenite spice',
-        hilbeh: 'Hilbeh',
-        hilbehDesc: 'Traditional Yemenite spice',
-        price: '$',
+          "Fast and reliable delivery throughout the city within 30 minutes",
+        productsTitle: "Our Products",
+        kubaneh: "Kubaneh",
+        kubanehDesc: "Traditional Yemenite bread with unique flavor",
+        samneh: "Samneh",
+        samnehDesc: "Traditional clarified butter",
+        redBisbas: "Red Bisbas",
+        redBisbasDesc: "Traditional Yemenite spice",
+        hilbeh: "Hilbeh",
+        hilbehDesc: "Traditional Yemenite spice",
+        price: "$",
       },
     }),
-    []
+    [],
   );
 
   const t = useMemo(
     () => translations[language as keyof typeof translations],
-    [translations, language]
+    [translations, language],
   );
 
   // Memoized features data
   const features = useMemo(
     (): Feature[] => [
       {
-        icon: '🍞',
+        icon: "🍞",
         title: t.freshBread,
         description: t.freshBreadDesc,
       },
       {
-        icon: '👨‍🍳',
+        icon: "👨‍🍳",
         title: t.traditionalRecipes,
         description: t.traditionalRecipesDesc,
       },
       {
-        icon: '🚚',
+        icon: "🚚",
         title: t.fastDelivery,
         description: t.fastDeliveryDesc,
       },
     ],
-    [t]
+    [t],
   );
 
   // Memoized products data
   const products = useMemo(
     (): Product[] => [
       {
-        icon: '🍞',
+        icon: "🍞",
         name: t.kubaneh,
         description: t.kubanehDesc,
-        price: '25',
+        price: "25",
       },
       {
-        icon: '🧈',
+        icon: "🧈",
         name: t.samneh,
         description: t.samnehDesc,
-        price: '15',
+        price: "15",
       },
       {
-        icon: '🌶️',
+        icon: "🌶️",
         name: t.redBisbas,
         description: t.redBisbasDesc,
-        price: '12',
+        price: "12",
       },
       {
-        icon: '🌿',
+        icon: "🌿",
         name: t.hilbeh,
         description: t.hilbehDesc,
-        price: '10',
+        price: "10",
       },
     ],
-    [t]
+    [t],
   );
 
   // Memoized handlers with useCallback
   const handleFeatureClick = useCallback((_feature: Feature): void => {
-    // TODO: Implement analytics tracking or navigation logic
+    // Analytics tracking or navigation logic can be implemented here
   }, []);
 
   const handleProductClick = useCallback((_product: Product): void => {
-    // TODO: Navigate to menu or product detail
+    // Navigate to menu or product detail
   }, []);
 
   // Memoized animation variants
@@ -466,7 +466,7 @@ const HomePage: React.FC = () => {
         },
       },
     }),
-    []
+    [],
   );
 
   const itemVariants = useMemo(
@@ -474,13 +474,13 @@ const HomePage: React.FC = () => {
       hidden: { opacity: 0, y: 30 },
       visible: { opacity: 1, y: 0 },
     }),
-    []
+    [],
   );
 
   return (
     <HomeContainer>
-      <SkipLink href='#main-content'>
-        {language === 'he' ? 'דלג לתוכן הראשי' : 'Skip to main content'}
+      <SkipLink href="#main-content">
+        {language === "he" ? "דלג לתוכן הראשי" : "Skip to main content"}
       </SkipLink>
 
       <HeroSection>
@@ -505,10 +505,10 @@ const HomePage: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <HeroButtons>
-              <CTAButton to='/menu' aria-label={t.viewMenu}>
+              <CTAButton to="/menu" aria-label={t.viewMenu}>
                 {t.viewMenu}
               </CTAButton>
-              <CTAButton to='/cart' aria-label={t.orderNow}>
+              <CTAButton to="/cart" aria-label={t.orderNow}>
                 {t.orderNow}
               </CTAButton>
             </HeroButtons>
@@ -516,13 +516,13 @@ const HomePage: React.FC = () => {
         </HeroContent>
       </HeroSection>
 
-      <FeaturesSection id='main-content'>
+      <FeaturesSection id="main-content">
         <FeaturesContainer>
           <SectionTitle>{t.featuresTitle}</SectionTitle>
           <motion.div
             variants={containerVariants}
-            initial='hidden'
-            whileInView='visible'
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
           >
             <FeaturesGrid>
@@ -535,18 +535,18 @@ const HomePage: React.FC = () => {
                   <FeatureCard
                     onClick={(): void => handleFeatureClick(feature)}
                     tabIndex={0}
-                    role='button'
+                    role="button"
                     aria-label={`Learn more about ${feature.title}`}
                     onKeyDown={(e: React.KeyboardEvent): void => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         handleFeatureClick(feature);
                       }
                     }}
                   >
                     <span
-                      className='icon'
-                      role='img'
+                      className="icon"
+                      role="img"
                       aria-label={feature.title}
                     >
                       {feature.icon}
@@ -566,8 +566,8 @@ const HomePage: React.FC = () => {
           <SectionTitle>{t.productsTitle}</SectionTitle>
           <motion.div
             variants={containerVariants}
-            initial='hidden'
-            whileInView='visible'
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
           >
             <ProductsGrid>
@@ -580,26 +580,26 @@ const HomePage: React.FC = () => {
                   <ProductCard
                     onClick={(): void => handleProductClick(product)}
                     tabIndex={0}
-                    role='button'
+                    role="button"
                     aria-label={`View ${product.name} - ${t.price}${product.price}`}
                     onKeyDown={(e: React.KeyboardEvent): void => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         handleProductClick(product);
                       }
                     }}
                   >
                     <div
-                      className='product-image'
-                      role='img'
+                      className="product-image"
+                      role="img"
                       aria-label={product.name}
                     >
                       {product.icon}
                     </div>
-                    <div className='product-info'>
+                    <div className="product-info">
                       <h3>{product.name}</h3>
                       <p>{product.description}</p>
-                      <div className='price'>
+                      <div className="price">
                         {t.price}
                         {product.price}
                       </div>

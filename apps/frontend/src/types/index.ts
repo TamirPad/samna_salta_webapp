@@ -99,7 +99,7 @@ export interface CartItem {
 
 export interface Cart {
   items: CartItem[];
-  delivery_method: 'pickup' | 'delivery';
+  delivery_method: "pickup" | "delivery";
   delivery_address?: string;
   subtotal: number;
   delivery_charge: number;
@@ -115,8 +115,8 @@ export interface Order {
   status: OrderStatus;
   delivery_address?: string;
   delivery_instructions?: string;
-  order_type: 'pickup' | 'delivery';
-  payment_method: 'cash' | 'card' | 'online';
+  order_type: "pickup" | "delivery";
+  payment_method: "cash" | "card" | "online";
   subtotal: number;
   delivery_charge: number;
   total: number;
@@ -160,7 +160,7 @@ export interface Customer {
   name: string;
   phone?: string;
   email?: string;
-  language?: 'he' | 'en';
+  language?: "he" | "en";
   delivery_address?: string;
   is_admin?: boolean;
   created_at?: string;
@@ -175,7 +175,7 @@ export interface User {
   email: string;
   phone?: string;
   isAdmin: boolean;
-  language?: 'he' | 'en';
+  language?: "he" | "en";
   createdAt?: string;
   lastLogin?: string;
 }
@@ -195,12 +195,12 @@ export interface UIState {
   modalOpen: boolean;
   modalType: string | null;
   notifications: Notification[];
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
 }
 
 export interface Notification {
   id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: "success" | "error" | "warning" | "info";
   title: string;
   message: string;
   duration?: number;
@@ -208,7 +208,7 @@ export interface Notification {
 
 // Language Types
 export interface LanguageState {
-  currentLanguage: 'he' | 'en';
+  currentLanguage: "he" | "en";
   translations: Record<string, Record<string, string>>;
 }
 
@@ -235,10 +235,10 @@ export interface CheckoutForm {
   customer_name: string;
   customer_phone: string;
   customer_email?: string;
-  delivery_method: 'pickup' | 'delivery';
+  delivery_method: "pickup" | "delivery";
   delivery_address?: string;
   delivery_instructions?: string;
-  payment_method: 'cash' | 'card' | 'online';
+  payment_method: "cash" | "card" | "online";
   special_instructions?: string;
 }
 

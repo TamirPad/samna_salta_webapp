@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 // import { selectLanguage } from '../../features/language/languageSlice';
-import { selectAuth } from '../../features/auth/authSlice';
+import { selectAuth } from "../../features/auth/authSlice";
 import {
   fetchDashboardAnalytics,
   clearAnalyticsError,
-} from '../../features/analytics/analyticsSlice';
-import { apiService } from '../../utils/api';
-import LoadingSpinner from '../../components/LoadingSpinner';
+} from "../../features/analytics/analyticsSlice";
+import { apiService } from "../../utils/api";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 // Styled Components
 const AnalyticsContainer = styled.div`
@@ -40,8 +40,8 @@ const TabContainer = styled.div`
 `;
 
 const Tab = styled.button<{ $active: boolean }>`
-  background: ${props => (props.$active ? '#8B4513' : 'transparent')};
-  color: ${props => (props.$active ? 'white' : '#8B4513')};
+  background: ${(props) => (props.$active ? "#8B4513" : "transparent")};
+  color: ${(props) => (props.$active ? "white" : "#8B4513")};
   border: 2px solid #8b4513;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
@@ -50,7 +50,7 @@ const Tab = styled.button<{ $active: boolean }>`
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${props => (props.$active ? '#8B4513' : '#f8f9fa')};
+    background: ${(props) => (props.$active ? "#8B4513" : "#f8f9fa")};
     transform: translateY(-1px);
   }
 `;
@@ -252,29 +252,34 @@ const AdminAnalytics: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const { dashboard, isLoading, error } = useAppSelector(
-    state => state.analytics
+    (state) => state.analytics,
   );
 
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'sales' | 'products' | 'customers'
-  >('dashboard');
+    "dashboard" | "sales" | "products" | "customers"
+  >("dashboard");
   const [salesData, setSalesData] = useState<SalesData[]>([]);
   const [productData, setProductData] = useState<ProductData[]>([]);
   const [customerData, setCustomerData] = useState<CustomerData[]>([]);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       .toISOString()
-      .split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+      .split("T")[0],
+    endDate: new Date().toISOString().split("T")[0],
   });
   const [loadingData, setLoadingData] = useState(false);
 
   // Fetch dashboard data on component mount
   useEffect(() => {
     if (isAuthenticated && user?.isAdmin) {
-      dispatch(fetchDashboardAnalytics());
+      // Add a small delay to prevent rapid successive calls
+      const timer = setTimeout(() => {
+        dispatch(fetchDashboardAnalytics());
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, user?.isAdmin]);
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -284,7 +289,7 @@ const AdminAnalytics: React.FC = () => {
   }, [dispatch]);
 
   const handleLogin = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
   const fetchSalesData = async () => {
@@ -293,7 +298,7 @@ const AdminAnalytics: React.FC = () => {
       const response = await apiService.getSalesReport({
         ...(dateRange.startDate && { start_date: dateRange.startDate }),
         ...(dateRange.endDate && { end_date: dateRange.endDate }),
-        group_by: 'day',
+        group_by: "day",
       });
       setSalesData(response.data.data.sales);
     } catch (error) {
@@ -334,14 +339,14 @@ const AdminAnalytics: React.FC = () => {
   };
 
   const handleTabChange = (
-    tab: 'dashboard' | 'sales' | 'products' | 'customers'
+    tab: "dashboard" | "sales" | "products" | "customers",
   ) => {
     setActiveTab(tab);
-    if (tab === 'sales') {
+    if (tab === "sales") {
       fetchSalesData();
-    } else if (tab === 'products') {
+    } else if (tab === "products") {
       fetchProductData();
-    } else if (tab === 'customers') {
+    } else if (tab === "customers") {
       fetchCustomerData();
     }
   };
@@ -360,7 +365,7 @@ const AdminAnalytics: React.FC = () => {
         <Title>Analytics Dashboard</Title>
         <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>Please login to access analytics.</p>
+          <p style={{ margin: "1rem 0" }}>Please login to access analytics.</p>
           <ButtonGroup>
             <AuthButton onClick={handleLogin}>
               Login to Access Analytics
@@ -377,11 +382,11 @@ const AdminAnalytics: React.FC = () => {
         <Title>Analytics Dashboard</Title>
         <AuthCard>
           <strong>Access Denied</strong>
-          <p style={{ margin: '1rem 0' }}>
+          <p style={{ margin: "1rem 0" }}>
             Admin privileges required to access analytics.
           </p>
           <ButtonGroup>
-            <AuthButton onClick={() => navigate('/')}>Go to Home</AuthButton>
+            <AuthButton onClick={() => navigate("/")}>Go to Home</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -402,33 +407,33 @@ const AdminAnalytics: React.FC = () => {
 
       <TabContainer>
         <Tab
-          $active={activeTab === 'dashboard'}
-          onClick={() => handleTabChange('dashboard')}
+          $active={activeTab === "dashboard"}
+          onClick={() => handleTabChange("dashboard")}
         >
           Dashboard
         </Tab>
         <Tab
-          $active={activeTab === 'sales'}
-          onClick={() => handleTabChange('sales')}
+          $active={activeTab === "sales"}
+          onClick={() => handleTabChange("sales")}
         >
           Sales Reports
         </Tab>
         <Tab
-          $active={activeTab === 'products'}
-          onClick={() => handleTabChange('products')}
+          $active={activeTab === "products"}
+          onClick={() => handleTabChange("products")}
         >
           Product Analytics
         </Tab>
         <Tab
-          $active={activeTab === 'customers'}
-          onClick={() => handleTabChange('customers')}
+          $active={activeTab === "customers"}
+          onClick={() => handleTabChange("customers")}
         >
           Customer Analytics
         </Tab>
       </TabContainer>
 
       <ContentContainer>
-        {activeTab === 'dashboard' && (
+        {activeTab === "dashboard" && (
           <>
             {isLoading ? (
               <LoadingSpinner />
@@ -479,14 +484,14 @@ const AdminAnalytics: React.FC = () => {
                                 order_count: number;
                                 total_quantity: number;
                               },
-                              index: number
+                              index: number,
                             ) => (
                               <Tr key={`product-${product.name}-${index}`}>
                                 <Td>{product.name}</Td>
                                 <Td>{product.order_count}</Td>
                                 <Td>{product.total_quantity}</Td>
                               </Tr>
-                            )
+                            ),
                           )}
                         </tbody>
                       </Table>
@@ -497,14 +502,14 @@ const AdminAnalytics: React.FC = () => {
           </>
         )}
 
-        {activeTab === 'sales' && (
+        {activeTab === "sales" && (
           <>
             <DateFilterContainer>
               <DateInput
-                type='date'
+                type="date"
                 value={dateRange.startDate}
-                onChange={e =>
-                  setDateRange(prev => ({
+                onChange={(e) =>
+                  setDateRange((prev) => ({
                     ...prev,
                     startDate: e.target.value,
                   }))
@@ -512,10 +517,10 @@ const AdminAnalytics: React.FC = () => {
               />
               <span>to</span>
               <DateInput
-                type='date'
+                type="date"
                 value={dateRange.endDate}
-                onChange={e =>
-                  setDateRange(prev => ({ ...prev, endDate: e.target.value }))
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
                 }
               />
               <FilterButton onClick={fetchSalesData}>Apply Filter</FilterButton>
@@ -550,14 +555,14 @@ const AdminAnalytics: React.FC = () => {
           </>
         )}
 
-        {activeTab === 'products' && (
+        {activeTab === "products" && (
           <>
             <DateFilterContainer>
               <DateInput
-                type='date'
+                type="date"
                 value={dateRange.startDate}
-                onChange={e =>
-                  setDateRange(prev => ({
+                onChange={(e) =>
+                  setDateRange((prev) => ({
                     ...prev,
                     startDate: e.target.value,
                   }))
@@ -565,10 +570,10 @@ const AdminAnalytics: React.FC = () => {
               />
               <span>to</span>
               <DateInput
-                type='date'
+                type="date"
                 value={dateRange.endDate}
-                onChange={e =>
-                  setDateRange(prev => ({ ...prev, endDate: e.target.value }))
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
                 }
               />
               <FilterButton onClick={fetchProductData}>
@@ -592,7 +597,7 @@ const AdminAnalytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {productData.map(product => (
+                    {productData.map((product) => (
                       <Tr key={product.id}>
                         <Td>{product.name}</Td>
                         <Td>{formatCurrency(product.price)}</Td>
@@ -609,14 +614,14 @@ const AdminAnalytics: React.FC = () => {
           </>
         )}
 
-        {activeTab === 'customers' && (
+        {activeTab === "customers" && (
           <>
             <DateFilterContainer>
               <DateInput
-                type='date'
+                type="date"
                 value={dateRange.startDate}
-                onChange={e =>
-                  setDateRange(prev => ({
+                onChange={(e) =>
+                  setDateRange((prev) => ({
                     ...prev,
                     startDate: e.target.value,
                   }))
@@ -624,10 +629,10 @@ const AdminAnalytics: React.FC = () => {
               />
               <span>to</span>
               <DateInput
-                type='date'
+                type="date"
                 value={dateRange.endDate}
-                onChange={e =>
-                  setDateRange(prev => ({ ...prev, endDate: e.target.value }))
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
                 }
               />
               <FilterButton onClick={fetchCustomerData}>
@@ -652,7 +657,7 @@ const AdminAnalytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {customerData.map(customer => (
+                    {customerData.map((customer) => (
                       <Tr key={customer.id}>
                         <Td>{customer.name}</Td>
                         <Td>{customer.email}</Td>
@@ -663,7 +668,7 @@ const AdminAnalytics: React.FC = () => {
                         <Td>
                           {customer.last_order_date
                             ? formatDate(customer.last_order_date)
-                            : 'N/A'}
+                            : "N/A"}
                         </Td>
                       </Tr>
                     ))}

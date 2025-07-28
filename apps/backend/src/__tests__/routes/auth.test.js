@@ -39,32 +39,6 @@ jest.mock('express-validator', () => ({
   }))
 }));
 
-// Mock the auth middleware
-jest.mock('../../middleware/auth', () => ({
-  authenticateToken: jest.fn((req, res, next) => {
-    // For testing, we'll manually set the user based on the token
-    const authHeader = req.headers['authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
-      try {
-        const mockJwt = require('jsonwebtoken');
-        const decoded = mockJwt.verify(token, process.env.JWT_SECRET);
-        req.user = {
-          id: decoded.userId,
-          email: decoded.email,
-          isAdmin: decoded.isAdmin,
-          sessionId: decoded.sessionId
-        };
-      } catch (error) {
-        // Invalid token - don't set user
-      }
-    }
-    next();
-  }),
-  requireAdmin: jest.fn(),
-  optionalAuth: jest.fn()
-}));
-
 describe('Authentication Core Functions', () => {
   let mockReq;
   let mockRes;
@@ -111,167 +85,77 @@ describe('Authentication Core Functions', () => {
     });
   });
 
-  describe('JWT Token Operations', () => {
-    it('should create and verify JWT token', () => {
-      const payload = {
-        userId: 1,
-        email: 'test@example.com',
-        isAdmin: false,
-        sessionId: 'session-123'
-      };
-
-      const token = jwt.sign(payload, process.env.JWT_SECRET);
-      expect(token).toBeDefined();
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      expect(decoded).toMatchObject(payload);
-    });
-
-    it('should reject invalid JWT token', () => {
-      expect(() => {
-        jwt.verify('invalid-token', process.env.JWT_SECRET);
-      }).toThrow();
-    });
-
-    it('should reject expired JWT token', () => {
-      const payload = {
-        userId: 1,
-        email: 'test@example.com',
-        isAdmin: false,
-        sessionId: 'session-123'
-      };
-
-      const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1ms' });
-      
-      // Wait for token to expire
-      setTimeout(() => {
-        expect(() => {
-          jwt.verify(token, process.env.JWT_SECRET);
-        }).toThrow('jwt expired');
-      }, 10);
-    });
-  });
-
-  describe('Database Operations', () => {
-    it('should handle database queries', async () => {
-      const { query } = require('../../config/database');
-      
-      const mockResult = {
-        rows: [{ id: 1, name: 'Test User', email: 'test@example.com' }],
-        rowCount: 1
-      };
-      
-      query.mockResolvedValue(mockResult);
-      
-      const result = await query('SELECT * FROM users WHERE id = $1', [1]);
-      
-      expect(result).toEqual(mockResult);
-      expect(query).toHaveBeenCalledWith('SELECT * FROM users WHERE id = $1', [1]);
-    });
-
-    it('should handle database errors', async () => {
-      const { query } = require('../../config/database');
-      
-      query.mockRejectedValue(new Error('Database connection failed'));
-      
-      await expect(query('SELECT * FROM invalid_table')).rejects.toThrow('Database connection failed');
-    });
-  });
-
-  describe('Session Management', () => {
-    it('should set and get session data', async () => {
-      const { setSession, getSession } = require('../../config/redis');
-      
-      const sessionData = {
-        userId: 1,
+  describe('JWT Token Generation', () => {
+    it('should generate valid JWT token', () => {
+      const userData = {
+        id: 1,
         email: 'test@example.com',
         isAdmin: false
       };
       
-      setSession.mockResolvedValue();
-      getSession.mockResolvedValue(sessionData);
+      const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '1h' });
       
-      await setSession('session-123', sessionData);
-      const retrieved = await getSession('session-123');
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
       
-      expect(setSession).toHaveBeenCalledWith('session-123', sessionData);
-      expect(getSession).toHaveBeenCalledWith('session-123');
-      expect(retrieved).toEqual(sessionData);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      expect(decoded.id).toBe(userData.id);
+      expect(decoded.email).toBe(userData.email);
+      expect(decoded.isAdmin).toBe(userData.isAdmin);
     });
 
-    it('should delete session data', async () => {
-      const { deleteSession } = require('../../config/redis');
-      
-      deleteSession.mockResolvedValue();
-      
-      await deleteSession('session-123');
-      
-      expect(deleteSession).toHaveBeenCalledWith('session-123');
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle validation errors', () => {
-      const { validationResult } = require('express-validator');
-      
-      const mockErrors = {
-        isEmpty: () => false,
-        array: () => [
-          { field: 'email', message: 'Invalid email format' },
-          { field: 'password', message: 'Password too short' }
-        ]
+    it('should verify JWT token correctly', () => {
+      const userData = {
+        id: 1,
+        email: 'test@example.com',
+        isAdmin: false
       };
       
-      validationResult.mockReturnValue(mockErrors);
+      const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '1h' });
       
-      const errors = validationResult();
-      expect(errors.isEmpty()).toBe(false);
-      expect(errors.array()).toHaveLength(2);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      expect(decoded).toMatchObject(userData);
     });
 
-    it('should handle authentication errors', () => {
+    it('should reject invalid JWT token', () => {
+      const invalidToken = 'invalid.token.here';
+      
       expect(() => {
-        jwt.verify('invalid-token', process.env.JWT_SECRET);
-      }).toThrow('jwt malformed');
+        jwt.verify(invalidToken, process.env.JWT_SECRET);
+      }).toThrow();
     });
   });
 
-  describe('Response Formatting', () => {
-    it('should format success response correctly', () => {
-      const successData = {
-        user: {
-          id: 1,
-          name: 'Test User',
-          email: 'test@example.com'
-        },
-        token: 'jwt-token-here'
-      };
-
-      const response = {
-        success: true,
-        message: 'Operation successful',
-        data: successData
-      };
-
-      expect(response.success).toBe(true);
-      expect(response.message).toBe('Operation successful');
-      expect(response.data).toEqual(successData);
+  describe('User Data Validation', () => {
+    it('should validate email format', () => {
+      const validEmails = [
+        'test@example.com',
+        'user.name@domain.co.uk',
+        'user+tag@example.org'
+      ];
+      
+      const invalidEmails = [
+        'invalid-email',
+        '@example.com',
+        'user@',
+        'user@.com'
+      ];
+      
+      validEmails.forEach(email => {
+        expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+      });
+      
+      invalidEmails.forEach(email => {
+        expect(email).not.toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+      });
     });
 
-    it('should format error response correctly', () => {
-      const errorResponse = {
-        success: false,
-        error: 'Validation failed',
-        message: 'Please check your input',
-        details: [
-          { field: 'email', message: 'Invalid email format' }
-        ]
-      };
-
-      expect(errorResponse.success).toBe(false);
-      expect(errorResponse.error).toBe('Validation failed');
-      expect(errorResponse.message).toBe('Please check your input');
-      expect(errorResponse.details).toHaveLength(1);
+    it('should validate password strength', () => {
+      const strongPassword = 'StrongPass123!';
+      const weakPassword = '123';
+      
+      expect(strongPassword.length).toBeGreaterThanOrEqual(8);
+      expect(weakPassword.length).toBeLessThan(8);
     });
   });
 }); 

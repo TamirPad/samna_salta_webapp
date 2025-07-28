@@ -1,7 +1,7 @@
-import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { useAppSelector } from '../../hooks/redux';
-import { selectLanguage } from '../../features/language/languageSlice';
+import styled from "styled-components";
+import { Link } from "react-router-dom";
+import { useAppSelector } from "../../hooks/redux";
+import { selectLanguage } from "../../features/language/languageSlice";
 
 const FooterContainer = styled.footer`
   background: linear-gradient(135deg, #2f2f2f 0%, #4a4a4a 100%);
@@ -128,34 +128,34 @@ const Footer: React.FC = () => {
 
   const translations = {
     he: {
-      about: 'אודות',
+      about: "אודות",
       aboutText:
-        'סמנה סלטה - המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים.',
-      quickLinks: 'קישורים מהירים',
-      contact: 'צור קשר',
-      address: 'רחוב הראשי 123, תל אביב',
-      phone: '+972-3-123-4567',
-      email: 'info@sammasalta.co.il',
-      hours: 'א-ה: 7:00-22:00, ו: 7:00-15:00',
-      followUs: 'עקבו אחרינו',
-      allRightsReserved: 'כל הזכויות שמורות',
-      privacyPolicy: 'מדיניות פרטיות',
-      termsOfService: 'תנאי שימוש',
+        "סמנה סלטה - המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים.",
+      quickLinks: "קישורים מהירים",
+      contact: "צור קשר",
+      address: "רחוב הראשי 123, תל אביב",
+      phone: "+972-3-123-4567",
+      email: "info@sammasalta.co.il",
+      hours: "א-ה: 7:00-22:00, ו: 7:00-15:00",
+      followUs: "עקבו אחרינו",
+      allRightsReserved: "כל הזכויות שמורות",
+      privacyPolicy: "מדיניות פרטיות",
+      termsOfService: "תנאי שימוש",
     },
     en: {
-      about: 'About',
+      about: "About",
       aboutText:
-        'Samna Salta - The best bakery in town with a wide variety of fresh breads and pastries.',
-      quickLinks: 'Quick Links',
-      contact: 'Contact',
-      address: '123 Main Street, Tel Aviv',
-      phone: '+972-3-123-4567',
-      email: 'info@sammasalta.co.il',
-      hours: 'Sun-Thu: 7:00-22:00, Fri: 7:00-15:00',
-      followUs: 'Follow Us',
-      allRightsReserved: 'All rights reserved',
-      privacyPolicy: 'Privacy Policy',
-      termsOfService: 'Terms of Service',
+        "Samna Salta - The best bakery in town with a wide variety of fresh breads and pastries.",
+      quickLinks: "Quick Links",
+      contact: "Contact",
+      address: "123 Main Street, Tel Aviv",
+      phone: "+972-3-123-4567",
+      email: "info@sammasalta.co.il",
+      hours: "Sun-Thu: 7:00-22:00, Fri: 7:00-15:00",
+      followUs: "Follow Us",
+      allRightsReserved: "All rights reserved",
+      privacyPolicy: "Privacy Policy",
+      termsOfService: "Terms of Service",
     },
   };
 
@@ -166,38 +166,38 @@ const Footer: React.FC = () => {
       <FooterContent>
         <FooterGrid>
           <FooterSection>
-            <h3>🍞 {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}</h3>
+            <h3>🍞 {language === "he" ? "סמנה סלטה" : "Samna Salta"}</h3>
             <p>{t.aboutText}</p>
             <SocialLinks>
               <a
-                href='https://facebook.com/samnasalta'
-                target='_blank'
-                rel='noopener noreferrer'
-                aria-label='Facebook'
+                href="https://facebook.com/samnasalta"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
               >
                 📘
               </a>
               <a
-                href='https://instagram.com/samnasalta'
-                target='_blank'
-                rel='noopener noreferrer'
-                aria-label='Instagram'
+                href="https://instagram.com/samnasalta"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
               >
                 📷
               </a>
               <a
-                href='https://twitter.com/samnasalta'
-                target='_blank'
-                rel='noopener noreferrer'
-                aria-label='Twitter'
+                href="https://twitter.com/samnasalta"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Twitter"
               >
                 🐦
               </a>
               <a
-                href='https://wa.me/97231234567'
-                target='_blank'
-                rel='noopener noreferrer'
-                aria-label='WhatsApp'
+                href="https://wa.me/97231234567"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
               >
                 📱
               </a>
@@ -207,20 +207,20 @@ const Footer: React.FC = () => {
           <FooterSection>
             <h3>{t.quickLinks}</h3>
             <FooterLinks>
-              <Link to='/'>{language === 'he' ? 'בית' : 'Home'}</Link>
-              <Link to='/menu'>{language === 'he' ? 'תפריט' : 'Menu'}</Link>
-              <Link to='/cart'>{language === 'he' ? 'עגלה' : 'Cart'}</Link>
-              <Link to='/order/123'>
-                {language === 'he' ? 'מעקב הזמנה' : 'Track Order'}
+              <Link to="/">{language === "he" ? "בית" : "Home"}</Link>
+              <Link to="/menu">{language === "he" ? "תפריט" : "Menu"}</Link>
+              <Link to="/cart">{language === "he" ? "עגלה" : "Cart"}</Link>
+              <Link to="/order/123">
+                {language === "he" ? "מעקב הזמנה" : "Track Order"}
               </Link>
-              <Link to='/dashboard'>
-                {language === 'he' ? 'ניהול' : 'Manage'}
+              <Link to="/dashboard">
+                {language === "he" ? "ניהול" : "Manage"}
               </Link>
-              <Link to='/orders'>
-                {language === 'he' ? 'הזמנות' : 'Orders'}
+              <Link to="/orders">
+                {language === "he" ? "הזמנות" : "Orders"}
               </Link>
-              <Link to='/analytics'>
-                {language === 'he' ? 'ניתוח' : 'Analytics'}
+              <Link to="/analytics">
+                {language === "he" ? "ניתוח" : "Analytics"}
               </Link>
             </FooterLinks>
           </FooterSection>
@@ -228,20 +228,20 @@ const Footer: React.FC = () => {
           <FooterSection>
             <h3>{t.contact}</h3>
             <ContactInfo>
-              <div className='contact-item'>
-                <span className='icon'>📍</span>
+              <div className="contact-item">
+                <span className="icon">📍</span>
                 <span>{t.address}</span>
               </div>
-              <div className='contact-item'>
-                <span className='icon'>📞</span>
+              <div className="contact-item">
+                <span className="icon">📞</span>
                 <span>{t.phone}</span>
               </div>
-              <div className='contact-item'>
-                <span className='icon'>✉️</span>
+              <div className="contact-item">
+                <span className="icon">✉️</span>
                 <span>{t.email}</span>
               </div>
-              <div className='contact-item'>
-                <span className='icon'>🕒</span>
+              <div className="contact-item">
+                <span className="icon">🕒</span>
                 <span>{t.hours}</span>
               </div>
             </ContactInfo>
@@ -250,12 +250,12 @@ const Footer: React.FC = () => {
 
         <FooterBottom>
           <p>
-            © {currentYear} {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}.{' '}
+            © {currentYear} {language === "he" ? "סמנה סלטה" : "Samna Salta"}.{" "}
             {t.allRightsReserved}
           </p>
           <p>
-            <Link to='/privacy'>{t.privacyPolicy}</Link> |{' '}
-            <Link to='/terms'>{t.termsOfService}</Link>
+            <Link to="/privacy">{t.privacyPolicy}</Link> |{" "}
+            <Link to="/terms">{t.termsOfService}</Link>
           </p>
         </FooterBottom>
       </FooterContent>

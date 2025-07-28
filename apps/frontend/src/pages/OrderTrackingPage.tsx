@@ -4,9 +4,9 @@ import React, {
   useState,
   useEffect,
   useMemo,
-} from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+} from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import styled from "styled-components";
 import {
   CheckCircle,
   Truck,
@@ -18,11 +18,11 @@ import {
   Package,
   User,
   CreditCard,
-} from 'lucide-react';
-import { useAppSelector } from '../hooks/redux';
-import { selectLanguage } from '../features/language/languageSlice';
-// import { apiService } from '../utils/api'; // TODO: Uncomment when backend API is ready
-import LoadingSpinner from '../components/LoadingSpinner';
+} from "lucide-react";
+import { useAppSelector } from "../hooks/redux";
+import { selectLanguage } from "../features/language/languageSlice";
+// import { apiService } from '../utils/api'; // Uncomment when backend API is ready
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const TrackingContainer = styled.div`
   min-height: 100vh;
@@ -162,13 +162,13 @@ const ProgressStep = styled.div<{
   }
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 20px;
     top: 40px;
     width: 2px;
     height: calc(100% + 1rem);
-    background: ${props => (props.completed ? '#28a745' : '#e0e0e0')};
+    background: ${(props) => (props.completed ? "#28a745" : "#e0e0e0")};
     z-index: 1;
   }
 
@@ -181,10 +181,10 @@ const StepIcon = styled.div<{ completed: boolean; current: boolean }>`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: ${props => {
-    if (props.completed) return '#28a745';
-    if (props.current) return '#8B4513';
-    return '#e0e0e0';
+  background: ${(props) => {
+    if (props.completed) return "#28a745";
+    if (props.current) return "#8B4513";
+    return "#e0e0e0";
   }};
   color: white;
   display: flex;
@@ -201,10 +201,10 @@ const StepContent = styled.div`
 const StepTitle = styled.h3<{ completed: boolean; current: boolean }>`
   font-size: 1.1rem;
   font-weight: 600;
-  color: ${props => {
-    if (props.completed) return '#28a745';
-    if (props.current) return '#8B4513';
-    return '#666';
+  color: ${(props) => {
+    if (props.completed) return "#28a745";
+    if (props.current) return "#8B4513";
+    return "#666";
   }};
   margin: 0 0 0.25rem 0;
 `;
@@ -213,20 +213,20 @@ const StepDescription = styled.p<{
   completed: boolean;
   current: boolean;
 }>`
-  color: ${props => {
-    if (props.completed) return '#28a745';
-    if (props.current) return '#8B4513';
-    return '#999';
+  color: ${(props) => {
+    if (props.completed) return "#28a745";
+    if (props.current) return "#8B4513";
+    return "#999";
   }};
   margin: 0;
   font-size: 0.9rem;
 `;
 
 const StepTime = styled.div<{ completed: boolean; current: boolean }>`
-  color: ${props => {
-    if (props.completed) return '#28a745';
-    if (props.current) return '#8B4513';
-    return '#999';
+  color: ${(props) => {
+    if (props.completed) return "#28a745";
+    if (props.current) return "#8B4513";
+    return "#999";
   }};
   font-size: 0.8rem;
   margin-top: 0.25rem;
@@ -321,10 +321,10 @@ const ItemImage = styled.div<{ imageUrl?: string }>`
   width: 40px;
   height: 40px;
   border-radius: 6px;
-  background: ${props =>
+  background: ${(props) =>
     props.imageUrl
       ? `url(${props.imageUrl}) center/cover`
-      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
+      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
   flex-shrink: 0;
 `;
 
@@ -409,179 +409,179 @@ const OrderTrackingPage: React.FC = () => {
   const translations = useMemo(
     () => ({
       he: {
-        orderTracking: 'מעקב הזמנה',
-        orderNumber: 'מספר הזמנה',
-        backToHome: 'חזור לדף הבית',
-        refresh: 'רענן',
-        orderProgress: 'התקדמות ההזמנה',
-        orderDetails: 'פרטי ההזמנה',
-        orderPlaced: 'ההזמנה הושלמה',
-        orderPlacedDesc: 'ההזמנה שלך התקבלה בהצלחה',
-        orderConfirmed: 'ההזמנה אושרה',
-        orderConfirmedDesc: 'המסעדה אישרה את ההזמנה שלך',
-        orderPreparing: 'ההזמנה מוכנה',
-        orderPreparingDesc: 'המטבח מכין את ההזמנה שלך',
-        orderReady: 'ההזמנה מוכנה',
-        orderReadyDesc: 'ההזמנה שלך מוכנה לאיסוף/משלוח',
-        orderDelivering: 'בדרך אליך',
-        orderDeliveringDesc: 'השליח בדרך עם ההזמנה שלך',
-        orderDelivered: 'ההזמנה נמסרה',
-        orderDeliveredDesc: 'ההזמנה נמסרה בהצלחה',
-        orderCancelled: 'ההזמנה בוטלה',
-        orderCancelledDesc: 'ההזמנה בוטלה',
-        customerInfo: 'פרטי לקוח',
-        deliveryInfo: 'פרטי משלוח',
-        paymentInfo: 'פרטי תשלום',
-        orderItems: 'פריטי ההזמנה',
-        subtotal: 'סכום ביניים',
-        deliveryFee: 'דמי משלוח',
+        orderTracking: "מעקב הזמנה",
+        orderNumber: "מספר הזמנה",
+        backToHome: "חזור לדף הבית",
+        refresh: "רענן",
+        orderProgress: "התקדמות ההזמנה",
+        orderDetails: "פרטי ההזמנה",
+        orderPlaced: "ההזמנה הושלמה",
+        orderPlacedDesc: "ההזמנה שלך התקבלה בהצלחה",
+        orderConfirmed: "ההזמנה אושרה",
+        orderConfirmedDesc: "המסעדה אישרה את ההזמנה שלך",
+        orderPreparing: "ההזמנה מוכנה",
+        orderPreparingDesc: "המטבח מכין את ההזמנה שלך",
+        orderReady: "ההזמנה מוכנה",
+        orderReadyDesc: "ההזמנה שלך מוכנה לאיסוף/משלוח",
+        orderDelivering: "בדרך אליך",
+        orderDeliveringDesc: "השליח בדרך עם ההזמנה שלך",
+        orderDelivered: "ההזמנה נמסרה",
+        orderDeliveredDesc: "ההזמנה נמסרה בהצלחה",
+        orderCancelled: "ההזמנה בוטלה",
+        orderCancelledDesc: "ההזמנה בוטלה",
+        customerInfo: "פרטי לקוח",
+        deliveryInfo: "פרטי משלוח",
+        paymentInfo: "פרטי תשלום",
+        orderItems: "פריטי ההזמנה",
+        subtotal: "סכום ביניים",
+        deliveryFee: "דמי משלוח",
         total: 'סה"כ',
-        name: 'שם',
-        phone: 'טלפון',
-        email: 'אימייל',
-        address: 'כתובת',
-        method: 'שיטה',
-        status: 'סטטוס',
-        date: 'תאריך',
-        pickup: 'איסוף',
-        delivery: 'משלוח',
-        cash: 'מזומן',
-        card: 'כרטיס אשראי',
-        online: 'תשלום מקוון',
-        contactRestaurant: 'צור קשר עם המסעדה',
-        restaurantPhone: 'טלפון המסעדה',
-        restaurantEmail: 'אימייל המסעדה',
-        orderNotFound: 'ההזמנה לא נמצאה',
-        orderNotFoundDesc: 'לא ניתן למצוא את ההזמנה המבוקשת',
-        tryAgain: 'נסה שוב',
+        name: "שם",
+        phone: "טלפון",
+        email: "אימייל",
+        address: "כתובת",
+        method: "שיטה",
+        status: "סטטוס",
+        date: "תאריך",
+        pickup: "איסוף",
+        delivery: "משלוח",
+        cash: "מזומן",
+        card: "כרטיס אשראי",
+        online: "תשלום מקוון",
+        contactRestaurant: "צור קשר עם המסעדה",
+        restaurantPhone: "טלפון המסעדה",
+        restaurantEmail: "אימייל המסעדה",
+        orderNotFound: "ההזמנה לא נמצאה",
+        orderNotFoundDesc: "לא ניתן למצוא את ההזמנה המבוקשת",
+        tryAgain: "נסה שוב",
       },
       en: {
-        orderTracking: 'Order Tracking',
-        orderNumber: 'Order Number',
-        backToHome: 'Back to Home',
-        refresh: 'Refresh',
-        orderProgress: 'Order Progress',
-        orderDetails: 'Order Details',
-        orderPlaced: 'Order Placed',
-        orderPlacedDesc: 'Your order has been successfully placed',
-        orderConfirmed: 'Order Confirmed',
-        orderConfirmedDesc: 'The restaurant has confirmed your order',
-        orderPreparing: 'Order Preparing',
-        orderPreparingDesc: 'The kitchen is preparing your order',
-        orderReady: 'Order Ready',
-        orderReadyDesc: 'Your order is ready for pickup/delivery',
-        orderDelivering: 'On the Way',
+        orderTracking: "Order Tracking",
+        orderNumber: "Order Number",
+        backToHome: "Back to Home",
+        refresh: "Refresh",
+        orderProgress: "Order Progress",
+        orderDetails: "Order Details",
+        orderPlaced: "Order Placed",
+        orderPlacedDesc: "Your order has been successfully placed",
+        orderConfirmed: "Order Confirmed",
+        orderConfirmedDesc: "The restaurant has confirmed your order",
+        orderPreparing: "Order Preparing",
+        orderPreparingDesc: "The kitchen is preparing your order",
+        orderReady: "Order Ready",
+        orderReadyDesc: "Your order is ready for pickup/delivery",
+        orderDelivering: "On the Way",
         orderDeliveringDesc:
-          'The delivery person is on the way with your order',
-        orderDelivered: 'Order Delivered',
-        orderDeliveredDesc: 'Your order has been delivered successfully',
-        orderCancelled: 'Order Cancelled',
-        orderCancelledDesc: 'Your order has been cancelled',
-        customerInfo: 'Customer Information',
-        deliveryInfo: 'Delivery Information',
-        paymentInfo: 'Payment Information',
-        orderItems: 'Order Items',
-        subtotal: 'Subtotal',
-        deliveryFee: 'Delivery Fee',
-        total: 'Total',
-        name: 'Name',
-        phone: 'Phone',
-        email: 'Email',
-        address: 'Address',
-        method: 'Method',
-        status: 'Status',
-        date: 'Date',
-        pickup: 'Pickup',
-        delivery: 'Delivery',
-        cash: 'Cash',
-        card: 'Credit Card',
-        online: 'Online Payment',
-        contactRestaurant: 'Contact Restaurant',
-        restaurantPhone: 'Restaurant Phone',
-        restaurantEmail: 'Restaurant Email',
-        orderNotFound: 'Order Not Found',
-        orderNotFoundDesc: 'The requested order could not be found',
-        tryAgain: 'Try Again',
+          "The delivery person is on the way with your order",
+        orderDelivered: "Order Delivered",
+        orderDeliveredDesc: "Your order has been delivered successfully",
+        orderCancelled: "Order Cancelled",
+        orderCancelledDesc: "Your order has been cancelled",
+        customerInfo: "Customer Information",
+        deliveryInfo: "Delivery Information",
+        paymentInfo: "Payment Information",
+        orderItems: "Order Items",
+        subtotal: "Subtotal",
+        deliveryFee: "Delivery Fee",
+        total: "Total",
+        name: "Name",
+        phone: "Phone",
+        email: "Email",
+        address: "Address",
+        method: "Method",
+        status: "Status",
+        date: "Date",
+        pickup: "Pickup",
+        delivery: "Delivery",
+        cash: "Cash",
+        card: "Credit Card",
+        online: "Online Payment",
+        contactRestaurant: "Contact Restaurant",
+        restaurantPhone: "Restaurant Phone",
+        restaurantEmail: "Restaurant Email",
+        orderNotFound: "Order Not Found",
+        orderNotFoundDesc: "The requested order could not be found",
+        tryAgain: "Try Again",
       },
     }),
-    []
+    [],
   );
 
   const t = useMemo(
     () => translations[language as keyof typeof translations],
-    [translations, language]
+    [translations, language],
   );
 
   // Mock order data for development
   const mockOrder = useMemo(
     () => ({
       id: orderId,
-      order_number: `#${orderId?.padStart(6, '0')}`,
-      status: 'preparing',
-      customer_name: 'ישראל ישראלי',
-      customer_phone: '+972-50-123-4567',
-      customer_email: 'israel@example.com',
-      delivery_method: 'delivery',
-      delivery_address: 'רחוב הרצל 123, תל אביב',
-      payment_method: 'cash',
+      order_number: `#${orderId?.padStart(6, "0")}`,
+      status: "preparing",
+      customer_name: "ישראל ישראלי",
+      customer_phone: "+972-50-123-4567",
+      customer_email: "israel@example.com",
+      delivery_method: "delivery",
+      delivery_address: "רחוב הרצל 123, תל אביב",
+      payment_method: "cash",
       subtotal: 85,
       delivery_charge: 15,
       total: 100,
-      created_at: '2024-01-15T10:30:00Z',
-      estimated_delivery_time: '2024-01-15T11:30:00Z',
+      created_at: "2024-01-15T10:30:00Z",
+      estimated_delivery_time: "2024-01-15T11:30:00Z",
       order_items: [
         {
           id: 1,
-          product_name: 'Kubaneh',
+          product_name: "Kubaneh",
           quantity: 2,
           unit_price: 25,
           total_price: 50,
-          image: '/images/kubaneh.jpg',
+          image: "/images/kubaneh.jpg",
         },
         {
           id: 2,
-          product_name: 'Samneh',
+          product_name: "Samneh",
           quantity: 1,
           unit_price: 15,
           total_price: 15,
-          image: '/images/samneh.jpg',
+          image: "/images/samneh.jpg",
         },
         {
           id: 3,
-          product_name: 'Red Bisbas',
+          product_name: "Red Bisbas",
           quantity: 1,
           unit_price: 12,
           total_price: 12,
-          image: '/images/red-bisbas.jpg',
+          image: "/images/red-bisbas.jpg",
         },
         {
           id: 4,
-          product_name: 'Hilbeh',
+          product_name: "Hilbeh",
           quantity: 1,
           unit_price: 10,
           total_price: 10,
-          image: '/images/hilbeh.jpg',
+          image: "/images/hilbeh.jpg",
         },
       ],
       status_updates: [
         {
-          status: 'placed',
-          timestamp: '2024-01-15T10:30:00Z',
-          description: 'Order placed successfully',
+          status: "placed",
+          timestamp: "2024-01-15T10:30:00Z",
+          description: "Order placed successfully",
         },
         {
-          status: 'confirmed',
-          timestamp: '2024-01-15T10:32:00Z',
-          description: 'Order confirmed by restaurant',
+          status: "confirmed",
+          timestamp: "2024-01-15T10:32:00Z",
+          description: "Order confirmed by restaurant",
         },
         {
-          status: 'preparing',
-          timestamp: '2024-01-15T10:35:00Z',
-          description: 'Kitchen started preparing',
+          status: "preparing",
+          timestamp: "2024-01-15T10:35:00Z",
+          description: "Kitchen started preparing",
         },
       ],
     }),
-    [orderId]
+    [orderId],
   );
 
   const fetchOrder = async () => {
@@ -600,7 +600,7 @@ const OrderTrackingPage: React.FC = () => {
       }, 1000);
     } catch (error) {
       // console.error('Error fetching order:', error);
-      setError('Failed to fetch order details');
+      setError("Failed to fetch order details");
       setLoading(false);
     }
   };
@@ -620,37 +620,37 @@ const OrderTrackingPage: React.FC = () => {
   const getStatusSteps = () => {
     const steps = [
       {
-        key: 'placed',
+        key: "placed",
         title: t.orderPlaced,
         description: t.orderPlacedDesc,
         icon: <Package size={20} />,
       },
       {
-        key: 'confirmed',
+        key: "confirmed",
         title: t.orderConfirmed,
         description: t.orderConfirmedDesc,
         icon: <CheckCircle size={20} />,
       },
       {
-        key: 'preparing',
+        key: "preparing",
         title: t.orderPreparing,
         description: t.orderPreparingDesc,
-        icon: <span style={{ fontSize: '20px' }}>⏱️</span>,
+        icon: <span style={{ fontSize: "20px" }}>⏱️</span>,
       },
       {
-        key: 'ready',
+        key: "ready",
         title: t.orderReady,
         description: t.orderReadyDesc,
         icon: <CheckCircle size={20} />,
       },
       {
-        key: 'delivering',
+        key: "delivering",
         title: t.orderDelivering,
         description: t.orderDeliveringDesc,
         icon: <Truck size={20} />,
       },
       {
-        key: 'delivered',
+        key: "delivered",
         title: t.orderDelivered,
         description: t.orderDeliveredDesc,
         icon: <CheckCircle size={20} />,
@@ -658,16 +658,16 @@ const OrderTrackingPage: React.FC = () => {
     ];
 
     const statusOrder = [
-      'placed',
-      'confirmed',
-      'preparing',
-      'ready',
-      'delivering',
-      'delivered',
+      "placed",
+      "confirmed",
+      "preparing",
+      "ready",
+      "delivering",
+      "delivered",
     ];
-    const currentIndex = statusOrder.indexOf(order?.status || 'placed');
+    const currentIndex = statusOrder.indexOf(order?.status || "placed");
 
-    return steps.map(step => {
+    return steps.map((step) => {
       const stepIndex = statusOrder.indexOf(step.key);
       const completed = stepIndex < currentIndex;
       const current = stepIndex === currentIndex;
@@ -677,7 +677,7 @@ const OrderTrackingPage: React.FC = () => {
         completed,
         current,
         timestamp: order?.status_updates?.find(
-          (update: any) => update.status === step.key
+          (update: any) => update.status === step.key,
         )?.timestamp,
       };
     });
@@ -685,24 +685,24 @@ const OrderTrackingPage: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString(
-      language === 'he' ? 'he-IL' : 'en-US',
+      language === "he" ? "he-IL" : "en-US",
       {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      },
     );
   };
 
   const getPaymentMethodText = (method: string) => {
     switch (method) {
-      case 'cash':
+      case "cash":
         return t.cash;
-      case 'card':
+      case "card":
         return t.card;
-      case 'online':
+      case "online":
         return t.online;
       default:
         return method;
@@ -711,9 +711,9 @@ const OrderTrackingPage: React.FC = () => {
 
   const getDeliveryMethodText = (method: string) => {
     switch (method) {
-      case 'pickup':
+      case "pickup":
         return t.pickup;
-      case 'delivery':
+      case "delivery":
         return t.delivery;
       default:
         return method;
@@ -734,13 +734,13 @@ const OrderTrackingPage: React.FC = () => {
             <button
               onClick={handleRefresh}
               style={{
-                marginTop: '1rem',
-                padding: '0.5rem 1rem',
-                background: '#8B4513',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
+                marginTop: "1rem",
+                padding: "0.5rem 1rem",
+                background: "#8B4513",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
               }}
             >
               {t.tryAgain}
@@ -755,30 +755,30 @@ const OrderTrackingPage: React.FC = () => {
     <TrackingContainer>
       <TrackingContent>
         <TrackingHeader>
-          <BackButton onClick={() => navigate('/')}>
+          <BackButton onClick={() => navigate("/")}>
             <ArrowLeft size={16} />
             {t.backToHome}
           </BackButton>
           <OrderNumber>{order.order_number}</OrderNumber>
           <OrderStatus>
-            {getStatusSteps().find(step => step.current)?.title ||
+            {getStatusSteps().find((step) => step.current)?.title ||
               t.orderPlaced}
           </OrderStatus>
           <RefreshButton onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw size={16} className={refreshing ? 'spinning' : ''} />
-            {refreshing ? 'Refreshing...' : t.refresh}
+            <RefreshCw size={16} className={refreshing ? "spinning" : ""} />
+            {refreshing ? "Refreshing..." : t.refresh}
           </RefreshButton>
         </TrackingHeader>
 
         <TrackingLayout>
           <ProgressSection>
             <ProgressTitle>
-              <span style={{ fontSize: '20px' }}>⏱️</span>
+              <span style={{ fontSize: "20px" }}>⏱️</span>
               {t.orderProgress}
             </ProgressTitle>
 
             <ProgressSteps>
-              {getStatusSteps().map(step => (
+              {getStatusSteps().map((step) => (
                 <ProgressStep
                   key={step.key}
                   completed={step.completed}
@@ -849,7 +849,7 @@ const OrderTrackingPage: React.FC = () => {
                   {getDeliveryMethodText(order.delivery_method)}
                 </DetailValue>
               </DetailRow>
-              {order.delivery_method === 'delivery' && (
+              {order.delivery_method === "delivery" && (
                 <DetailRow>
                   <DetailLabel>{t.address}</DetailLabel>
                   <DetailValue>{order.delivery_address}</DetailValue>
@@ -900,7 +900,7 @@ const OrderTrackingPage: React.FC = () => {
                 <DetailValue>₪{order.subtotal}</DetailValue>
               </SummaryRow>
 
-              {order.delivery_method === 'delivery' && (
+              {order.delivery_method === "delivery" && (
                 <SummaryRow>
                   <DetailLabel>{t.deliveryFee}</DetailLabel>
                   <DetailValue>₪{order.delivery_charge}</DetailValue>

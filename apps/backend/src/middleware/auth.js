@@ -9,8 +9,8 @@ const authenticateToken = async (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({ 
-        error: 'Access token required',
-        message: 'Please provide a valid authentication token' 
+        success: false,
+        error: 'Access token required'
       });
     }
 
@@ -21,14 +21,14 @@ const authenticateToken = async (req, res, next) => {
     const session = await getSession(decoded.sessionId);
     if (!session) {
       return res.status(401).json({ 
-        error: 'Invalid session',
-        message: 'Session expired or invalid' 
+        success: false,
+        error: 'Invalid session'
       });
     }
 
     // Add user info to request
     req.user = {
-      id: decoded.userId,
+      id: decoded.userId || decoded.id,
       email: decoded.email,
       isAdmin: decoded.isAdmin,
       sessionId: decoded.sessionId
@@ -80,7 +80,7 @@ const optionalAuth = async (req, res, next) => {
       
       if (session) {
         req.user = {
-          id: decoded.userId,
+          id: decoded.userId || decoded.id,
           email: decoded.email,
           isAdmin: decoded.isAdmin,
           sessionId: decoded.sessionId
@@ -91,7 +91,6 @@ const optionalAuth = async (req, res, next) => {
     next();
   } catch (error) {
     // Continue without authentication for optional routes
-    // Don't set req.user to null, just leave it undefined
     next();
   }
 };

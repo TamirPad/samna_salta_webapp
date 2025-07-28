@@ -5,9 +5,9 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
-} from 'react';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+} from "react";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Search,
@@ -17,10 +17,10 @@ import {
   Eye,
   Package,
   AlertCircle,
-} from 'lucide-react';
-import { useAppSelector } from '../../hooks/redux';
-import { selectLanguage } from '../../features/language/languageSlice';
-import { debounce } from '../../utils/performance';
+} from "lucide-react";
+import { useAppSelector } from "../../hooks/redux";
+import { selectLanguage } from "../../features/language/languageSlice";
+import { debounce } from "../../utils/performance";
 
 // Types
 interface Product {
@@ -233,10 +233,10 @@ const ProductCard = styled(motion.div)`
 const ProductImage = styled.div<{ emoji?: string }>`
   width: 100%;
   height: 200px;
-  background: ${props =>
+  background: ${(props) =>
     props.emoji
-      ? 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'
-      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
+      ? "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"
+      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -249,7 +249,7 @@ const ProductStatus = styled.span<{ active: boolean }>`
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: ${props => (props.active ? '#28a745' : '#dc3545')};
+  background: ${(props) => (props.active ? "#28a745" : "#dc3545")};
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -305,7 +305,7 @@ const ProductActions = styled.div`
 `;
 
 const ActionButton = styled.button<{
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: "primary" | "secondary" | "danger";
 }>`
   display: flex;
   align-items: center;
@@ -320,9 +320,9 @@ const ActionButton = styled.button<{
   flex: 1;
   min-height: 44px;
 
-  ${props => {
+  ${(props) => {
     switch (props.variant) {
-      case 'primary':
+      case "primary":
         return `
           background: #8B4513;
           color: white;
@@ -335,7 +335,7 @@ const ActionButton = styled.button<{
             outline-offset: 2px;
           }
         `;
-      case 'secondary':
+      case "secondary":
         return `
           background: #6c757d;
           color: white;
@@ -348,7 +348,7 @@ const ActionButton = styled.button<{
             outline-offset: 2px;
           }
         `;
-      case 'danger':
+      case "danger":
         return `
           background: #dc3545;
           color: white;
@@ -410,166 +410,166 @@ const ErrorMessage = styled.div`
 
 const AdminProducts: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory] = useState('all');
-  const [error, setError] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory] = useState("all");
+  const [error, setError] = useState<string>("");
 
   // Memoized translations
   const translations = useMemo(
     () => ({
       he: {
-        title: 'ניהול מוצרים',
-        subtitle: 'נהל את המוצרים שלך, הוסף חדשים ועדכן קיימים',
-        searchPlaceholder: 'חפש מוצרים...',
-        filter: 'פילטר',
-        addProduct: 'הוסף מוצר',
-        active: 'פעיל',
-        inactive: 'לא פעיל',
-        view: 'צפה',
-        edit: 'ערוך',
-        delete: 'מחק',
-        noProducts: 'לא נמצאו מוצרים',
-        noProductsDesc: 'הוסף מוצרים חדשים כדי להתחיל',
-        category: 'קטגוריה',
-        price: 'מחיר',
-        prepTime: 'זמן הכנה',
-        minutes: 'דקות',
-        resultsCount: 'נמצאו {count} מוצרים',
-        errorOccurred: 'אירעה שגיאה',
-        confirmDelete: 'האם אתה בטוח שברצונך למחוק מוצר זה?',
+        title: "ניהול מוצרים",
+        subtitle: "נהל את המוצרים שלך, הוסף חדשים ועדכן קיימים",
+        searchPlaceholder: "חפש מוצרים...",
+        filter: "פילטר",
+        addProduct: "הוסף מוצר",
+        active: "פעיל",
+        inactive: "לא פעיל",
+        view: "צפה",
+        edit: "ערוך",
+        delete: "מחק",
+        noProducts: "לא נמצאו מוצרים",
+        noProductsDesc: "הוסף מוצרים חדשים כדי להתחיל",
+        category: "קטגוריה",
+        price: "מחיר",
+        prepTime: "זמן הכנה",
+        minutes: "דקות",
+        resultsCount: "נמצאו {count} מוצרים",
+        errorOccurred: "אירעה שגיאה",
+        confirmDelete: "האם אתה בטוח שברצונך למחוק מוצר זה?",
       },
       en: {
-        title: 'Product Management',
-        subtitle: 'Manage your products, add new ones and update existing ones',
-        searchPlaceholder: 'Search products...',
-        filter: 'Filter',
-        addProduct: 'Add Product',
-        active: 'Active',
-        inactive: 'Inactive',
-        view: 'View',
-        edit: 'Edit',
-        delete: 'Delete',
-        noProducts: 'No products found',
-        noProductsDesc: 'Add new products to get started',
-        category: 'Category',
-        price: 'Price',
-        prepTime: 'Prep Time',
-        minutes: 'min',
-        resultsCount: 'Found {count} products',
-        errorOccurred: 'An error occurred',
-        confirmDelete: 'Are you sure you want to delete this product?',
+        title: "Product Management",
+        subtitle: "Manage your products, add new ones and update existing ones",
+        searchPlaceholder: "Search products...",
+        filter: "Filter",
+        addProduct: "Add Product",
+        active: "Active",
+        inactive: "Inactive",
+        view: "View",
+        edit: "Edit",
+        delete: "Delete",
+        noProducts: "No products found",
+        noProductsDesc: "Add new products to get started",
+        category: "Category",
+        price: "Price",
+        prepTime: "Prep Time",
+        minutes: "min",
+        resultsCount: "Found {count} products",
+        errorOccurred: "An error occurred",
+        confirmDelete: "Are you sure you want to delete this product?",
       },
     }),
-    []
+    [],
   );
 
   const t = useMemo(
     () => translations[language as keyof typeof translations],
-    [translations, language]
+    [translations, language],
   );
 
   // Memoized mock products data
   const mockProducts = useMemo(
     (): Product[] => [
       {
-        id: '1',
-        name: 'Kubaneh',
-        name_en: 'Kubaneh',
-        name_he: 'כובאנה',
+        id: "1",
+        name: "Kubaneh",
+        name_en: "Kubaneh",
+        name_he: "כובאנה",
         price: 25,
-        category: 'breads',
-        category_en: 'Breads',
-        category_he: 'לחמים',
-        emoji: '🍞',
+        category: "breads",
+        category_en: "Breads",
+        category_he: "לחמים",
+        emoji: "🍞",
         preparation_time: 30,
         is_active: true,
       },
       {
-        id: '2',
-        name: 'Samneh',
-        name_en: 'Samneh',
-        name_he: 'סמנה',
+        id: "2",
+        name: "Samneh",
+        name_en: "Samneh",
+        name_he: "סמנה",
         price: 15,
-        category: 'dairy',
-        category_en: 'Dairy',
-        category_he: 'מוצרי חלב',
-        emoji: '🧈',
+        category: "dairy",
+        category_en: "Dairy",
+        category_he: "מוצרי חלב",
+        emoji: "🧈",
         preparation_time: 15,
         is_active: true,
       },
       {
-        id: '3',
-        name: 'Red Bisbas',
-        name_en: 'Red Bisbas',
-        name_he: 'ביסבוס אדום',
+        id: "3",
+        name: "Red Bisbas",
+        name_en: "Red Bisbas",
+        name_he: "ביסבוס אדום",
         price: 12,
-        category: 'spices',
-        category_en: 'Spices',
-        category_he: 'תבלינים',
-        emoji: '🌶️',
+        category: "spices",
+        category_en: "Spices",
+        category_he: "תבלינים",
+        emoji: "🌶️",
         preparation_time: 5,
         is_active: false,
       },
       {
-        id: '4',
-        name: 'Hilbeh',
-        name_en: 'Hilbeh',
-        name_he: 'חילבה',
+        id: "4",
+        name: "Hilbeh",
+        name_en: "Hilbeh",
+        name_he: "חילבה",
         price: 10,
-        category: 'spices',
-        category_en: 'Spices',
-        category_he: 'תבלינים',
-        emoji: '🌿',
+        category: "spices",
+        category_en: "Spices",
+        category_he: "תבלינים",
+        emoji: "🌿",
         preparation_time: 5,
         is_active: true,
       },
       {
-        id: '5',
-        name: 'Jachnun',
-        name_en: 'Jachnun',
+        id: "5",
+        name: "Jachnun",
+        name_en: "Jachnun",
         name_he: "ג'חנון",
         price: 20,
-        category: 'pastries',
-        category_en: 'Pastries',
-        category_he: 'מאפים',
-        emoji: '🥐',
+        category: "pastries",
+        category_en: "Pastries",
+        category_he: "מאפים",
+        emoji: "🥐",
         preparation_time: 45,
         is_active: true,
       },
       {
-        id: '6',
-        name: 'Malawach',
-        name_en: 'Malawach',
-        name_he: 'מלאווח',
+        id: "6",
+        name: "Malawach",
+        name_en: "Malawach",
+        name_he: "מלאווח",
         price: 18,
-        category: 'breads',
-        category_en: 'Breads',
-        category_he: 'לחמים',
-        emoji: '🥖',
+        category: "breads",
+        category_en: "Breads",
+        category_he: "לחמים",
+        emoji: "🥖",
         preparation_time: 25,
         is_active: true,
       },
     ],
-    []
+    [],
   );
 
   // Memoized filtered products
   const filteredProducts = useMemo((): Product[] => {
     let filtered = mockProducts;
 
-    if (selectedCategory !== 'all') {
+    if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        product => product.category === selectedCategory
+        (product) => product.category === selectedCategory,
       );
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        product =>
+        (product) =>
           product.name.toLowerCase().includes(query) ||
           (product.name_en && product.name_en.toLowerCase().includes(query)) ||
-          (product.name_he && product.name_he.toLowerCase().includes(query))
+          (product.name_he && product.name_he.toLowerCase().includes(query)),
       );
     }
 
@@ -579,11 +579,11 @@ const AdminProducts: React.FC = () => {
   // Debounced search handler
   const debouncedSearch = useCallback(
     debounce((query: unknown) => {
-      if (typeof query === 'string') {
+      if (typeof query === "string") {
         setSearchQuery(query);
       }
     }, 300),
-    []
+    [],
   );
 
   // Memoized handlers
@@ -591,12 +591,12 @@ const AdminProducts: React.FC = () => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       debouncedSearch(e.target.value);
     },
-    [debouncedSearch]
+    [debouncedSearch],
   );
 
   const handleAddProduct = useCallback(() => {
     try {
-      // TODO: Implement add product functionality
+      // Add product functionality can be implemented here
     } catch (err) {
       setError(t.errorOccurred);
     }
@@ -605,55 +605,55 @@ const AdminProducts: React.FC = () => {
   const handleViewProduct = useCallback(
     (_productId: string) => {
       try {
-        // TODO: Implement view product functionality
+        // View product functionality can be implemented here
       } catch (err) {
         setError(t.errorOccurred);
       }
     },
-    [t.errorOccurred]
+    [t.errorOccurred],
   );
 
   const handleEditProduct = useCallback(
     (_productId: string) => {
       try {
-        // TODO: Implement edit product functionality
+        // Edit product functionality can be implemented here
       } catch (err) {
         setError(t.errorOccurred);
       }
     },
-    [t.errorOccurred]
+    [t.errorOccurred],
   );
 
   const handleDeleteProduct = useCallback(
     (_productId: string) => {
       try {
         if (window.confirm(t.confirmDelete)) {
-          // TODO: Implement delete product functionality
+          // Delete product functionality can be implemented here
         }
       } catch (err) {
         setError(t.errorOccurred);
       }
     },
-    [t.confirmDelete, t.errorOccurred]
+    [t.confirmDelete, t.errorOccurred],
   );
 
   // Utility functions
   const getProductName = useCallback(
     (product: Product): string => {
-      return language === 'he'
+      return language === "he"
         ? product.name_he || product.name
         : product.name_en || product.name;
     },
-    [language]
+    [language],
   );
 
   const getCategoryName = useCallback(
     (category: Category): string => {
-      return language === 'he'
+      return language === "he"
         ? category.name_he || category.name
         : category.name_en || category.name;
     },
-    [language]
+    [language],
   );
 
   return (
@@ -674,7 +674,7 @@ const AdminProducts: React.FC = () => {
             <SearchInput>
               <SearchIcon />
               <SearchField
-                type='text'
+                type="text"
                 placeholder={t.searchPlaceholder}
                 onChange={handleSearchChange}
                 aria-label={t.searchPlaceholder}
@@ -695,12 +695,12 @@ const AdminProducts: React.FC = () => {
 
         <ResultsCount>
           {t.resultsCount.replace(
-            '{count}',
-            (filteredProducts?.length || 0).toString()
+            "{count}",
+            (filteredProducts?.length || 0).toString(),
           )}
         </ResultsCount>
 
-        <AnimatePresence mode='wait'>
+        <AnimatePresence mode="wait">
           {filteredProducts && filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map((product, index) => (
@@ -711,17 +711,17 @@ const AdminProducts: React.FC = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                   tabIndex={0}
-                  role='button'
+                  role="button"
                   aria-label={`View ${getProductName(product)} - ₪${product.price}`}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       handleViewProduct(product.id);
                     }
                   }}
                 >
-                  <ProductImage emoji={product.emoji || ''}>
-                    <span role='img' aria-label={getProductName(product)}>
+                  <ProductImage emoji={product.emoji || ""}>
+                    <span role="img" aria-label={getProductName(product)}>
                       {product.emoji}
                     </span>
                     <ProductStatus active={product.is_active}>
@@ -741,13 +741,13 @@ const AdminProducts: React.FC = () => {
                         {getCategoryName({
                           id: product.category,
                           name:
-                            product.category_en || product.category_he || '',
-                          name_en: product.category_en || '',
-                          name_he: product.category_he || '',
+                            product.category_en || product.category_he || "",
+                          name_en: product.category_en || "",
+                          name_he: product.category_he || "",
                         })}
                       </MetaItem>
                       <MetaItem>
-                        <span style={{ fontSize: '14px' }}>⏱️</span>
+                        <span style={{ fontSize: "14px" }}>⏱️</span>
                         {product.preparation_time} {t.minutes}
                       </MetaItem>
                     </ProductMeta>
@@ -761,7 +761,7 @@ const AdminProducts: React.FC = () => {
                         {t.view}
                       </ActionButton>
                       <ActionButton
-                        variant='secondary'
+                        variant="secondary"
                         onClick={() => handleEditProduct(product.id)}
                         aria-label={`Edit ${getProductName(product)}`}
                       >
@@ -769,7 +769,7 @@ const AdminProducts: React.FC = () => {
                         {t.edit}
                       </ActionButton>
                       <ActionButton
-                        variant='danger'
+                        variant="danger"
                         onClick={() => handleDeleteProduct(product.id)}
                         aria-label={`Delete ${getProductName(product)}`}
                       >

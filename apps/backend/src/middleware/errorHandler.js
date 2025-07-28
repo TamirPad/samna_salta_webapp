@@ -1,103 +1,63 @@
 const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
+  // Handle null/undefined errors
+  if (!err) {
+    err = new Error('Unknown error');
+  }
+
   let error = { ...err };
-  error.message = err.message;
+  error.message = err.message || 'Server Error';
 
-  // Log error
-  logger.error('Error occurred:', {
-    error: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  });
+  // Log error safely
+  try {
+    logger.error('Error occurred:', {
+      error: err.message,
+      stack: err.stack,
+      url: req.url,
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get ? req.get('User-Agent') : 'Unknown'
+    });
+  } catch (logError) {
+    console.error('Failed to log error:', logError);
+  }
 
-  // Mongoose bad ObjectId
+  // Handle different error types
   if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 };
-  }
-
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
-    error = { message, statusCode: 400 };
-  }
-
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
+    error = { message: 'Resource not found', statusCode: 404 };
+  } else if (err.code === 11000) {
+    error = { message: 'Duplicate field value entered', statusCode: 400 };
+  } else if (err.name === 'ValidationError') {
     const message = Object.values(err.errors).map(val => val.message).join(', ');
     error = { message, statusCode: 400 };
+  } else if (err.name === 'JsonWebTokenError') {
+    error = { message: 'Invalid token', statusCode: 401 };
+  } else if (err.name === 'TokenExpiredError') {
+    error = { message: 'Token expired', statusCode: 401 };
+  } else if (err.code === '23505') {
+    error = { message: 'Duplicate entry', statusCode: 400 };
+  } else if (err.code === '23503') {
+    error = { message: 'Referenced record does not exist', statusCode: 400 };
+  } else if (err.code === '23502') {
+    error = { message: 'Required field missing', statusCode: 400 };
+  } else if (err.code === 'LIMIT_FILE_SIZE') {
+    error = { message: 'File too large', statusCode: 400 };
+  } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    error = { message: 'Unexpected file field', statusCode: 400 };
+  } else if (err.status === 429) {
+    error = { message: 'Too many requests', statusCode: 429 };
   }
 
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = { message, statusCode: 401 };
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = { message, statusCode: 401 };
-  }
-
-  // PostgreSQL errors
-  if (err.code === '23505') { // unique_violation
-    const message = 'Duplicate entry';
-    error = { message, statusCode: 400 };
-  }
-
-  if (err.code === '23503') { // foreign_key_violation
-    const message = 'Referenced record does not exist';
-    error = { message, statusCode: 400 };
-  }
-
-  if (err.code === '23502') { // not_null_violation
-    const message = 'Required field missing';
-    error = { message, statusCode: 400 };
-  }
-
-  // File upload errors
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    const message = 'File too large';
-    error = { message, statusCode: 400 };
-  }
-
-  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-    const message = 'Unexpected file field';
-    error = { message, statusCode: 400 };
-  }
-
-  // Rate limiting errors
-  if (err.status === 429) {
-    const message = 'Too many requests';
-    error = { message, statusCode: 429 };
-  }
-
-  // Default error
+  // Set default values
   const statusCode = error.statusCode || err.statusCode || err.status || 500;
   const message = error.message || 'Server Error';
 
-  // Log error with additional context
-  logger.error('Error response sent:', {
-    statusCode,
-    message,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    userId: req.user?.id,
-    requestId: req.id
-  });
-
+  // Send error response
   res.status(statusCode).json({
     success: false,
     error: message,
-    requestId: req.id,
-    timestamp: new Date().toISOString(),
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    timestamp: new Date().toISOString()
   });
 };
 

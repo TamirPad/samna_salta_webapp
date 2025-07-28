@@ -4,9 +4,9 @@ import React, {
   useState,
   useEffect,
   useMemo,
-} from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
+} from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
 import {
   Search,
   Filter,
@@ -20,18 +20,18 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { selectLanguage } from '../../features/language/languageSlice';
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
+import { selectLanguage } from "../../features/language/languageSlice";
 import {
   fetchCustomers,
   fetchCustomerDetails,
   setSelectedCustomer,
   clearCustomersError,
   setCustomersPagination,
-} from '../../features/customers/customersSlice';
-import LoadingSpinner from '../../components/LoadingSpinner';
+} from "../../features/customers/customersSlice";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const CustomersContainer = styled.div`
   min-height: 100vh;
@@ -214,7 +214,7 @@ const CustomerActions = styled.div`
 `;
 
 const ActionButton = styled.button<{
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
 }>`
   display: flex;
   align-items: center;
@@ -228,15 +228,15 @@ const ActionButton = styled.button<{
   transition: all 0.3s ease;
   flex: 1;
 
-  ${props => {
+  ${(props) => {
     switch (props.variant) {
-      case 'primary':
+      case "primary":
         return `
           background: #8B4513;
           color: white;
           &:hover { background: #D2691E; }
         `;
-      case 'secondary':
+      case "secondary":
         return `
           background: #6c757d;
           color: white;
@@ -271,17 +271,17 @@ const PaginationButton = styled.button<{
   disabled?: boolean;
 }>`
   padding: 0.5rem 1rem;
-  border: 2px solid ${props => (props.active ? '#8B4513' : '#e0e0e0')};
-  background: ${props => (props.active ? '#8B4513' : 'white')};
-  color: ${props =>
-    props.active ? 'white' : props.disabled ? '#ccc' : '#333'};
+  border: 2px solid ${(props) => (props.active ? "#8B4513" : "#e0e0e0")};
+  background: ${(props) => (props.active ? "#8B4513" : "white")};
+  color: ${(props) =>
+    props.active ? "white" : props.disabled ? "#ccc" : "#333"};
   border-radius: 8px;
-  cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
     border-color: #8b4513;
-    background: ${props => (props.active ? '#8B4513' : '#f8f9fa')};
+    background: ${(props) => (props.active ? "#8B4513" : "#f8f9fa")};
   }
 `;
 
@@ -346,10 +346,10 @@ const AdminCustomers: React.FC = () => {
   const error = useAppSelector((state: any) => state.customers.error);
   const pagination = useAppSelector((state: any) => state.customers.pagination);
   const selectedCustomer = useAppSelector(
-    (state: any) => state.customers.selectedCustomer
+    (state: any) => state.customers.selectedCustomer,
   );
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -357,83 +357,83 @@ const AdminCustomers: React.FC = () => {
   const translations = useMemo(
     () => ({
       he: {
-        title: 'ניהול לקוחות',
-        subtitle: 'נהל את הלקוחות שלך ועקוב אחר הפעילות שלהם',
-        searchPlaceholder: 'חפש לקוחות...',
-        filterAll: 'כל הלקוחות',
-        filterActive: 'לקוחות פעילים',
-        filterInactive: 'לקוחות לא פעילים',
-        noCustomers: 'לא נמצאו לקוחות',
-        noCustomersDesc: 'אין לקוחות שתואמים לחיפוש שלך',
-        customerDetails: 'פרטי לקוח',
-        editCustomer: 'ערוך לקוח',
-        name: 'שם',
-        email: 'אימייל',
-        phone: 'טלפון',
-        address: 'כתובת',
+        title: "ניהול לקוחות",
+        subtitle: "נהל את הלקוחות שלך ועקוב אחר הפעילות שלהם",
+        searchPlaceholder: "חפש לקוחות...",
+        filterAll: "כל הלקוחות",
+        filterActive: "לקוחות פעילים",
+        filterInactive: "לקוחות לא פעילים",
+        noCustomers: "לא נמצאו לקוחות",
+        noCustomersDesc: "אין לקוחות שתואמים לחיפוש שלך",
+        customerDetails: "פרטי לקוח",
+        editCustomer: "ערוך לקוח",
+        name: "שם",
+        email: "אימייל",
+        phone: "טלפון",
+        address: "כתובת",
         totalOrders: 'סה"כ הזמנות',
         totalSpent: 'סה"כ הוצאות',
-        memberSince: 'חבר מאז',
-        orders: 'הזמנות',
-        previous: 'הקודם',
-        next: 'הבא',
-        page: 'עמוד',
-        of: 'מתוך',
-        view: 'צפה',
-        edit: 'ערוך',
-        filter: 'פילטר',
-        lastOrder: 'הזמנה אחרונה',
-        close: 'סגור',
-        notes: 'הערות',
-        save: 'שמור',
-        cancel: 'ביטול',
+        memberSince: "חבר מאז",
+        orders: "הזמנות",
+        previous: "הקודם",
+        next: "הבא",
+        page: "עמוד",
+        of: "מתוך",
+        view: "צפה",
+        edit: "ערוך",
+        filter: "פילטר",
+        lastOrder: "הזמנה אחרונה",
+        close: "סגור",
+        notes: "הערות",
+        save: "שמור",
+        cancel: "ביטול",
       },
       en: {
-        title: 'Customer Management',
-        subtitle: 'Manage your customers and track their activity',
-        searchPlaceholder: 'Search customers...',
-        filterAll: 'All Customers',
-        filterActive: 'Active Customers',
-        filterInactive: 'Inactive Customers',
-        noCustomers: 'No customers found',
-        noCustomersDesc: 'No customers match your search',
-        customerDetails: 'Customer Details',
-        editCustomer: 'Edit Customer',
-        name: 'Name',
-        email: 'Email',
-        phone: 'Phone',
-        address: 'Address',
-        totalOrders: 'Total Orders',
-        totalSpent: 'Total Spent',
-        memberSince: 'Member Since',
-        orders: 'Orders',
-        previous: 'Previous',
-        next: 'Next',
-        page: 'Page',
-        of: 'of',
-        view: 'View',
-        edit: 'Edit',
-        filter: 'Filter',
-        lastOrder: 'Last Order',
-        close: 'Close',
-        notes: 'Notes',
-        save: 'Save',
-        cancel: 'Cancel',
+        title: "Customer Management",
+        subtitle: "Manage your customers and track their activity",
+        searchPlaceholder: "Search customers...",
+        filterAll: "All Customers",
+        filterActive: "Active Customers",
+        filterInactive: "Inactive Customers",
+        noCustomers: "No customers found",
+        noCustomersDesc: "No customers match your search",
+        customerDetails: "Customer Details",
+        editCustomer: "Edit Customer",
+        name: "Name",
+        email: "Email",
+        phone: "Phone",
+        address: "Address",
+        totalOrders: "Total Orders",
+        totalSpent: "Total Spent",
+        memberSince: "Member Since",
+        orders: "Orders",
+        previous: "Previous",
+        next: "Next",
+        page: "Page",
+        of: "of",
+        view: "View",
+        edit: "Edit",
+        filter: "Filter",
+        lastOrder: "Last Order",
+        close: "Close",
+        notes: "Notes",
+        save: "Save",
+        cancel: "Cancel",
       },
     }),
-    []
+    [],
   );
 
   const t = useMemo(
     () => translations[language as keyof typeof translations],
-    [translations, language]
+    [translations, language],
   );
 
   // Check authentication and load customers
   useEffect(() => {
     const checkAuthAndLoadCustomers = async () => {
       // Check if user is authenticated
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
         setIsAuthenticated(false);
         return;
@@ -446,7 +446,7 @@ const AdminCustomers: React.FC = () => {
       } catch (err: unknown) {
         if ((err as any).response?.status === 401) {
           // Token expired or invalid
-          localStorage.removeItem('token');
+          localStorage.removeItem("token");
           setIsAuthenticated(false);
         }
         // Error will be handled by the Redux slice
@@ -464,7 +464,7 @@ const AdminCustomers: React.FC = () => {
           search: searchQuery,
           page: pagination.page,
           limit: pagination.limit,
-        })
+        }),
       );
     }
   }, [
@@ -511,49 +511,49 @@ const AdminCustomers: React.FC = () => {
   const handleEditCustomer = async (_customerId: string) => {
     if (!isAuthenticated) return;
 
-    // TODO: Navigate to edit page or open edit modal
+    // Navigate to edit page or open edit modal
   };
 
   const handlePageChange = (newPage: number) => {
     if (!isAuthenticated) return;
 
     dispatch(
-      setCustomersPagination({ page: newPage, limit: pagination.limit })
+      setCustomersPagination({ page: newPage, limit: pagination.limit }),
     );
     dispatch(
       fetchCustomers({
         search: searchQuery,
         page: newPage,
         limit: pagination.limit,
-      })
+      }),
     );
   };
 
   const handleLogin = () => {
-    navigate('/login', { state: { from: { pathname: '/customers' } } });
+    navigate("/login", { state: { from: { pathname: "/customers" } } });
   };
 
   const getCustomerName = (customer: unknown) => {
-    return language === 'he' && (customer as any).name_he
+    return language === "he" && (customer as any).name_he
       ? (customer as any).name_he
       : (customer as any).name;
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(
-      language === 'he' ? 'he-IL' : 'en-US',
+      language === "he" ? "he-IL" : "en-US",
       {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      }
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      },
     );
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(language === 'he' ? 'he-IL' : 'en-US', {
-      style: 'currency',
-      currency: 'ILS',
+    return new Intl.NumberFormat(language === "he" ? "he-IL" : "en-US", {
+      style: "currency",
+      currency: "ILS",
     }).format(amount);
   };
 
@@ -562,68 +562,68 @@ const AdminCustomers: React.FC = () => {
     return (
       <div
         style={{
-          padding: '2rem',
-          background: '#f8f9fa',
-          minHeight: '100vh',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
+          padding: "2rem",
+          background: "#f8f9fa",
+          minHeight: "100vh",
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <h1 style={{ color: '#8B4513', marginBottom: '1rem' }}>
+        <h1 style={{ color: "#8B4513", marginBottom: "1rem" }}>
           Customers Management
         </h1>
         <div
           style={{
-            background: '#fee',
-            color: '#c33',
-            padding: '1.5rem',
-            borderRadius: '8px',
-            marginBottom: '2rem',
-            maxWidth: '500px',
+            background: "#fee",
+            color: "#c33",
+            padding: "1.5rem",
+            borderRadius: "8px",
+            marginBottom: "2rem",
+            maxWidth: "500px",
           }}
         >
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>
+          <p style={{ margin: "1rem 0" }}>
             Please login to access customer management.
           </p>
           <div
             style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
+              display: "flex",
+              gap: "1rem",
+              justifyContent: "center",
+              flexWrap: "wrap",
             }}
           >
             <button
               onClick={handleLogin}
               style={{
-                background: '#8B4513',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
+                background: "#8B4513",
+                color: "white",
+                border: "none",
+                padding: "0.75rem 1.5rem",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "1rem",
               }}
             >
               Login to Access Customers
             </button>
-            {process.env['NODE_ENV'] === 'development' && (
+            {process.env["NODE_ENV"] === "development" && (
               <button
                 onClick={() => {
                   setIsAuthenticated(true);
                 }}
                 style={{
-                  background: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
+                  background: "#28a745",
+                  color: "white",
+                  border: "none",
+                  padding: "0.75rem 1.5rem",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "1rem",
                 }}
               >
                 Skip Login (Dev Mode)
@@ -650,10 +650,10 @@ const AdminCustomers: React.FC = () => {
             <SearchInput>
               <SearchIcon size={20} />
               <SearchField
-                type='text'
+                type="text"
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </SearchInput>
 
@@ -667,11 +667,11 @@ const AdminCustomers: React.FC = () => {
         {error && (
           <div
             style={{
-              background: '#fee',
-              color: '#c33',
-              padding: '1rem',
-              borderRadius: '8px',
-              marginBottom: '1rem',
+              background: "#fee",
+              color: "#c33",
+              padding: "1rem",
+              borderRadius: "8px",
+              marginBottom: "1rem",
             }}
           >
             {error}
@@ -728,7 +728,7 @@ const AdminCustomers: React.FC = () => {
                     <DetailItem>
                       <DollarSign size={16} />
                       <span>
-                        {t.totalSpent}:{' '}
+                        {t.totalSpent}:{" "}
                         {formatCurrency((customer as any).total_spent)}
                       </span>
                     </DetailItem>
@@ -736,7 +736,7 @@ const AdminCustomers: React.FC = () => {
                       <DetailItem>
                         <Calendar size={16} />
                         <span>
-                          {t.lastOrder}:{' '}
+                          {t.lastOrder}:{" "}
                           {formatDate((customer as any).last_order_date)}
                         </span>
                       </DetailItem>
@@ -744,7 +744,7 @@ const AdminCustomers: React.FC = () => {
                     <DetailItem>
                       <User size={16} />
                       <span>
-                        {t.memberSince}:{' '}
+                        {t.memberSince}:{" "}
                         {formatDate((customer as any).member_since)}
                       </span>
                     </DetailItem>
@@ -788,7 +788,7 @@ const AdminCustomers: React.FC = () => {
       {/* Customer Modal */}
       {selectedCustomer && (
         <CustomerModal onClick={() => dispatch(setSelectedCustomer(null))}>
-          <ModalContent onClick={e => e.stopPropagation()}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>{t.customerDetails}</ModalTitle>
               <CloseButton onClick={() => dispatch(setSelectedCustomer(null))}>
@@ -843,8 +843,8 @@ const AdminCustomers: React.FC = () => {
                 <DetailValue>
                   {selectedCustomer.orders.map((order: unknown) => (
                     <div key={(order as any).id}>
-                      Order #{(order as any).order_number} -{' '}
-                      {formatCurrency((order as any).total)} -{' '}
+                      Order #{(order as any).order_number} -{" "}
+                      {formatCurrency((order as any).total)} -{" "}
                       {(order as any).status}
                     </div>
                   ))}

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiService } from '../../utils/api';
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import { apiService } from "../../utils/api";
 
 // Define User type locally to avoid import issues
 interface User {
@@ -8,7 +8,7 @@ interface User {
   name: string;
   phone?: string;
   isAdmin: boolean;
-  language?: 'he' | 'en';
+  language?: "he" | "en";
   createdAt?: string;
   lastLogin?: string;
   updatedAt?: string;
@@ -32,40 +32,70 @@ const initialState: AuthState = {
 
 // Async thunk to initialize authentication
 export const initializeAuth = createAsyncThunk(
-  'auth/initialize',
+  "auth/initialize",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("user");
 
       if (!token || !userData) {
+        console.log(
+          "🔍 No token or user data found, returning unauthenticated",
+        );
         return { user: null, isAuthenticated: false };
       }
+
+      console.log("🔍 Attempting to validate token with backend...");
 
       // Validate token with backend
       const response = await apiService.getCurrentUser();
-      const user = response.data.data;
 
+      console.log("🔍 Backend response:", response);
+
+      // Handle different response structures
+      let user;
+      if (response.data && response.data.data) {
+        // Backend returns { data: { data: user } }
+        user = response.data.data;
+        console.log("🔍 Using response.data.data structure");
+      } else if (response.data && response.data.user) {
+        // Backend returns { data: { user: user } }
+        user = response.data.user;
+        console.log("🔍 Using response.data.user structure");
+      } else if (response.data) {
+        // Backend returns { data: user }
+        user = response.data;
+        console.log("🔍 Using response.data structure");
+      } else {
+        // No data in response
+        console.error("❌ Invalid response structure:", response);
+        throw new Error("Invalid response structure");
+      }
+
+      console.log("✅ User authenticated successfully:", user);
       return { user, isAuthenticated: true };
     } catch (error: unknown) {
+      console.error("❌ Authentication initialization failed:", error);
+
       // Clear invalid tokens
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
       if ((error as any).response?.status === 401) {
+        console.log("🔍 401 Unauthorized, returning unauthenticated");
         return { user: null, isAuthenticated: false };
       }
 
-      return rejectWithValue('Failed to initialize authentication');
+      return rejectWithValue("Failed to initialize authentication");
     }
-  }
+  },
 );
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    loginStart: state => {
+    loginStart: (state) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -79,18 +109,18 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     },
-    logoutUser: state => {
+    logoutUser: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
     },
-    clearError: state => {
+    clearError: (state) => {
       state.error = null;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(initializeAuth.pending, state => {
+      .addCase(initializeAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -99,15 +129,13 @@ const authSlice = createSlice({
         state.isAuthenticated = action.payload.isAuthenticated;
         state.user = action.payload.user;
         state.isInitialized = true;
-        state.error = null;
       })
       .addCase(initializeAuth.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.error = (action.payload as string) || "Authentication failed";
         state.isInitialized = true;
-        state.error =
-          (action.payload as string) || 'Authentication initialization failed';
       });
   },
 });

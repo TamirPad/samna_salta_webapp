@@ -5,16 +5,16 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-} from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+} from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import {
   fetchDashboardAnalytics,
   clearAnalyticsError,
-} from '../../features/analytics/analyticsSlice';
-import { selectAuth } from '../../features/auth/authSlice';
+} from "../../features/analytics/analyticsSlice";
+import { selectAuth } from "../../features/auth/authSlice";
 
 // Types
 interface DashboardData {
@@ -124,7 +124,7 @@ const CardValue = styled.p<{ $color: string }>`
 `;
 
 const DataStatus = styled.small<{ $isLive: boolean }>`
-  color: ${(props): string => (props.$isLive ? '#28a745' : '#ffc107')};
+  color: ${(props): string => (props.$isLive ? "#28a745" : "#ffc107")};
 `;
 
 const AuthContainer = styled.div`
@@ -155,10 +155,10 @@ const ButtonGroup = styled.div`
 `;
 
 const AuthButton = styled.button<{
-  $variant?: 'primary' | 'secondary';
+  $variant?: "primary" | "secondary";
 }>`
   background: ${(props): string =>
-    props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
+    props.$variant === "secondary" ? "#28a745" : "#8B4513"};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -193,13 +193,13 @@ const StatCard: React.FC<DashboardCardProps> = React.memo(
       <CardTitle>{title}</CardTitle>
       <CardValue $color={color}>{value}</CardValue>
       <DataStatus $isLive={isLiveData}>
-        {isLiveData ? '✓ Live data' : '⚠️ Demo data'}
+        {isLiveData ? "✓ Live data" : "⚠️ Demo data"}
       </DataStatus>
     </DashboardCard>
-  )
+  ),
 );
 
-StatCard.displayName = 'StatCard';
+StatCard.displayName = "StatCard";
 
 // Utility function
 const formatCurrency = (amount: number): string => {
@@ -211,15 +211,20 @@ const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const { dashboard, isLoading, error } = useAppSelector(
-    state => state.analytics
+    (state) => state.analytics,
   );
 
   // Fetch dashboard data on component mount
   useEffect(() => {
     if (isAuthenticated && user?.isAdmin) {
-      dispatch(fetchDashboardAnalytics());
+      // Add a small delay to prevent rapid successive calls
+      const timer = setTimeout(() => {
+        dispatch(fetchDashboardAnalytics());
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, user?.isAdmin]);
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -229,7 +234,7 @@ const Dashboard: React.FC = () => {
   }, [dispatch]);
 
   const handleLogin = useCallback((): void => {
-    navigate('/login');
+    navigate("/login");
   }, [navigate]);
 
   // Memoized dashboard data
@@ -262,33 +267,33 @@ const Dashboard: React.FC = () => {
       {
         title: "Today's Orders",
         value: dashboardData.today.orders,
-        color: '#007bff',
+        color: "#007bff",
         isLiveData: !!dashboard && !error,
         hasError: !!error,
       },
       {
         title: "Today's Revenue",
         value: formatCurrency(dashboardData.today.revenue),
-        color: '#28a745',
+        color: "#28a745",
         isLiveData: !!dashboard && !error,
         hasError: !!error,
       },
       {
-        title: 'Total Customers',
+        title: "Total Customers",
         value: dashboardData.customers,
-        color: '#ffc107',
+        color: "#ffc107",
         isLiveData: !!dashboard && !error,
         hasError: !!error,
       },
       {
-        title: 'Pending Orders',
+        title: "Pending Orders",
         value: dashboardData.pendingOrders,
-        color: '#dc3545',
+        color: "#dc3545",
         isLiveData: !!dashboard && !error,
         hasError: !!error,
       },
     ],
-    [dashboardData, dashboard, error]
+    [dashboardData, dashboard, error],
   );
 
   if (!isAuthenticated) {
@@ -297,7 +302,7 @@ const Dashboard: React.FC = () => {
         <DashboardTitle>Samna Salta Dashboard</DashboardTitle>
         <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>
+          <p style={{ margin: "1rem 0" }}>
             Please login to access the admin dashboard.
           </p>
           <ButtonGroup>
@@ -314,11 +319,11 @@ const Dashboard: React.FC = () => {
         <DashboardTitle>Samna Salta Dashboard</DashboardTitle>
         <AuthCard>
           <strong>Access Denied</strong>
-          <p style={{ margin: '1rem 0' }}>
+          <p style={{ margin: "1rem 0" }}>
             Admin privileges required to access this dashboard.
           </p>
           <ButtonGroup>
-            <AuthButton onClick={() => navigate('/')}>Go to Home</AuthButton>
+            <AuthButton onClick={() => navigate("/")}>Go to Home</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -333,8 +338,8 @@ const Dashboard: React.FC = () => {
       {error && (
         <WarningBanner>
           <strong>⚠️ Warning:</strong> {error}
-          {error.includes('Network error') && (
-            <div style={{ marginTop: '0.5rem' }}>
+          {error.includes("Network error") && (
+            <div style={{ marginTop: "0.5rem" }}>
               <small>
                 Showing demo data. Please check your connection and refresh the
                 page.
@@ -351,14 +356,14 @@ const Dashboard: React.FC = () => {
       )}
 
       <DashboardGrid>
-        {statsCards.map(card => (
+        {statsCards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
       </DashboardGrid>
 
       {!dashboard && !error && (
         <DemoModeBanner>
-          <p style={{ color: '#1976d2', margin: 0 }}>
+          <p style={{ color: "#1976d2", margin: 0 }}>
             <strong>Demo Mode:</strong> Showing sample data. Connect to backend
             for live data.
           </p>

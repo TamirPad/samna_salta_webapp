@@ -1,4 +1,4 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import {
   persistStore,
   persistReducer,
@@ -10,18 +10,18 @@ import {
   REGISTER,
   PersistConfig,
   PersistedState,
-} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+} from "redux-persist";
+import storage from "redux-persist/lib/storage";
 
 // Import reducers
-import cartReducer from '../features/cart/cartSlice';
-import authReducer from '../features/auth/authSlice';
-import languageReducer from '../features/language/languageSlice';
-import uiReducer from '../features/ui/uiSlice';
-import ordersReducer from '../features/orders/ordersSlice';
-import productsReducer from '../features/products/productsSlice';
-import customersReducer from '../features/customers/customersSlice';
-import analyticsReducer from '../features/analytics/analyticsSlice';
+import cartReducer from "../features/cart/cartSlice";
+import authReducer from "../features/auth/authSlice";
+import languageReducer from "../features/language/languageSlice";
+import uiReducer from "../features/ui/uiSlice";
+import ordersReducer from "../features/orders/ordersSlice";
+import productsReducer from "../features/products/productsSlice";
+import customersReducer from "../features/customers/customersSlice";
+import analyticsReducer from "../features/analytics/analyticsSlice";
 
 // Types
 export interface RootState {
@@ -37,10 +37,10 @@ export interface RootState {
 
 // Persist configuration
 const persistConfig: PersistConfig<RootState> = {
-  key: 'root',
+  key: "root",
   storage,
-  whitelist: ['cart', 'auth', 'language', 'ui'],
-  blacklist: ['orders', 'products', 'customers', 'analytics'],
+  whitelist: ["cart", "auth", "language", "ui"],
+  blacklist: ["orders", "products", "customers", "analytics"],
   transforms: [],
   migrate: async (state: any): Promise<PersistedState> => {
     // Migration logic here
@@ -67,24 +67,24 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 // Configure store with enhanced settings
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         // Ignore specific action types that might contain non-serializable data
-        ignoredActionPaths: ['payload.timestamp', 'payload.file'],
-        ignoredPaths: ['products.items', 'orders.items'], // Ignore specific state paths
+        ignoredActionPaths: ["payload.timestamp", "payload.file"],
+        ignoredPaths: ["products.items", "orders.items"], // Ignore specific state paths
       },
       // Add custom middleware for performance monitoring
       immutableCheck: {
         // Disable in production for better performance
         ignoredPaths:
-          process.env['NODE_ENV'] === 'production'
-            ? ['products', 'orders']
+          process.env["NODE_ENV"] === "production"
+            ? ["products", "orders"]
             : [],
       },
     }),
-  devTools: process.env['NODE_ENV'] !== 'production',
+  devTools: process.env["NODE_ENV"] !== "production",
 });
 
 // Create persistor
@@ -99,17 +99,17 @@ export const resetStore = (): void => {
   // Clear persisted data
   persistor.purge();
   // Reset all reducers to initial state
-  store.dispatch({ type: 'RESET_STORE' });
+  store.dispatch({ type: "RESET_STORE" });
 };
 
 export const clearPersistedData = (): void => {
-  localStorage.removeItem('persist:root');
+  localStorage.removeItem("persist:root");
   sessionStorage.clear();
 };
 
 // Hot reload support for development
-if (process.env['NODE_ENV'] === 'development' && (module as any).hot) {
-  (module as any).hot.accept('../features/cart/cartSlice', () => {
+if (process.env["NODE_ENV"] === "development" && (module as any).hot) {
+  (module as any).hot.accept("../features/cart/cartSlice", () => {
     store.replaceReducer(persistedReducer);
   });
 }

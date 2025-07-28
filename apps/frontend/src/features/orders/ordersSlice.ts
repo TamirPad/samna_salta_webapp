@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { apiService } from '../../utils/api';
-import { RootState } from '../../store';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { apiService } from "../../utils/api";
+import { RootState } from "../../store";
 
 export interface OrderItem {
   id: string;
@@ -22,14 +22,14 @@ export interface Order {
   items: OrderItem[];
   total_amount: number;
   status:
-    | 'pending'
-    | 'confirmed'
-    | 'preparing'
-    | 'ready'
-    | 'delivering'
-    | 'delivered'
-    | 'cancelled';
-  payment_status: 'pending' | 'paid' | 'failed';
+    | "pending"
+    | "confirmed"
+    | "preparing"
+    | "ready"
+    | "delivering"
+    | "delivered"
+    | "cancelled";
+  payment_status: "pending" | "paid" | "failed";
   delivery_address?: string;
   delivery_notes?: string;
   created_at: string;
@@ -64,77 +64,77 @@ const initialState: OrdersState = {
 
 // Async thunks
 export const fetchOrders = createAsyncThunk(
-  'orders/fetchOrders',
+  "orders/fetchOrders",
   async (
     params: { status?: string; page?: number; limit?: number } = {},
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.getOrders(params);
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
-          ? (error as any).response?.data?.message || 'Failed to fetch orders'
-          : 'Failed to fetch orders';
+        error instanceof Error && "response" in error
+          ? (error as any).response?.data?.message || "Failed to fetch orders"
+          : "Failed to fetch orders";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const fetchOrderDetails = createAsyncThunk(
-  'orders/fetchOrderDetails',
+  "orders/fetchOrderDetails",
   async (orderId: string, { rejectWithValue }) => {
     try {
       const response = await apiService.getOrder(parseInt(orderId));
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
+        error instanceof Error && "response" in error
           ? (error as any).response?.data?.message ||
-            'Failed to fetch order details'
-          : 'Failed to fetch order details';
+            "Failed to fetch order details"
+          : "Failed to fetch order details";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const updateOrderStatus = createAsyncThunk(
-  'orders/updateOrderStatus',
+  "orders/updateOrderStatus",
   async (
     {
       orderId,
       status,
       description,
     }: { orderId: string; status: string; description?: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.updateOrderStatus(
         parseInt(orderId),
         status,
-        description
+        description,
       );
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
+        error instanceof Error && "response" in error
           ? (error as any).response?.data?.message ||
-            'Failed to update order status'
-          : 'Failed to update order status';
+            "Failed to update order status"
+          : "Failed to update order status";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 const ordersSlice = createSlice({
-  name: 'orders',
+  name: "orders",
   initialState,
   reducers: {
     setSelectedOrder: (state, action: PayloadAction<Order | null>) => {
       state.selectedOrder = action.payload;
     },
-    clearOrdersError: state => {
+    clearOrdersError: (state) => {
       state.error = null;
     },
     setOrdersPagination: (
@@ -144,15 +144,15 @@ const ordersSlice = createSlice({
         limit: number;
         total: number;
         totalPages: number;
-      }>
+      }>,
     ) => {
       state.pagination = action.payload;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
       // Fetch orders
-      .addCase(fetchOrders.pending, state => {
+      .addCase(fetchOrders.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -171,7 +171,7 @@ const ordersSlice = createSlice({
         state.error = action.payload as string;
       })
       // Fetch order details
-      .addCase(fetchOrderDetails.pending, state => {
+      .addCase(fetchOrderDetails.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -184,7 +184,7 @@ const ordersSlice = createSlice({
         state.error = action.payload as string;
       })
       // Update order status
-      .addCase(updateOrderStatus.pending, state => {
+      .addCase(updateOrderStatus.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -192,7 +192,7 @@ const ordersSlice = createSlice({
         state.isLoading = false;
         const updatedOrder = action.payload.data;
         const orderIndex = state.orders.findIndex(
-          o => o.id === updatedOrder.id
+          (o) => o.id === updatedOrder.id,
         );
         if (orderIndex !== -1) {
           state.orders[orderIndex] = updatedOrder;
@@ -220,7 +220,7 @@ export const selectOrdersLoading = (state: RootState): boolean =>
 export const selectOrdersError = (state: RootState): string | null =>
   state.orders.error;
 export const selectOrdersPagination = (
-  state: RootState
+  state: RootState,
 ): { page: number; limit: number; total: number; totalPages: number } =>
   state.orders.pagination;
 

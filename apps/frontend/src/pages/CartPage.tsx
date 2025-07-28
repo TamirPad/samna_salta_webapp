@@ -5,10 +5,10 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
-} from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+} from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Minus,
@@ -17,9 +17,9 @@ import {
   Truck,
   Store,
   AlertCircle,
-} from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { selectLanguage } from '../features/language/languageSlice';
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../hooks/redux";
+import { selectLanguage } from "../features/language/languageSlice";
 import {
   selectCartItems,
   selectCartTotal,
@@ -27,11 +27,11 @@ import {
   updateQuantity,
   removeFromCart,
   CartItem,
-} from '../features/cart/cartSlice';
+} from "../features/cart/cartSlice";
 
 // Types
 interface DeliveryMethod {
-  id: 'pickup' | 'delivery';
+  id: "pickup" | "delivery";
   title: string;
   description: string;
   icon: React.ReactNode;
@@ -159,7 +159,7 @@ const ItemImage = styled.div<{ imageUrl?: string }>`
   background: ${(props): string =>
     props.imageUrl
       ? `url(${props.imageUrl}) center/cover`
-      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
+      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
   flex-shrink: 0;
 
   @media (max-width: 768px) {
@@ -315,7 +315,7 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   gap: 0.75rem;
   padding: 1rem;
   border: 2px solid
-    ${(props): string => (props.selected ? '#8B4513' : '#e0e0e0')};
+    ${(props): string => (props.selected ? "#8B4513" : "#e0e0e0")};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -473,100 +473,100 @@ const CartPage: React.FC = () => {
   const cartItemsCount = useAppSelector(selectCartItemsCount);
   const cartTotal = useAppSelector(selectCartTotal);
 
-  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>(
-    'pickup'
+  const [deliveryMethod, setDeliveryMethod] = useState<"pickup" | "delivery">(
+    "pickup",
   );
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [error, setError] = useState<string>('');
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [error, setError] = useState<string>("");
 
   // Memoized translations
   const translations = useMemo(
     () => ({
       he: {
-        cartTitle: 'עגלת הקניות שלך',
-        cartSubtitle: 'בדוק את הפריטים שלך והמשך לתשלום',
-        cartItems: 'פריטי עגלה',
-        items: 'פריטים',
-        pickup: 'איסוף עצמי',
-        pickupDesc: 'איסוף מהמסעדה',
-        delivery: 'משלוח',
-        deliveryDesc: 'משלוח עד הבית',
-        deliveryAddress: 'כתובת משלוח',
-        deliveryAddressPlaceholder: 'הזן את כתובת המשלוח שלך',
-        subtotal: 'סכום ביניים',
-        deliveryFee: 'דמי משלוח',
+        cartTitle: "עגלת הקניות שלך",
+        cartSubtitle: "בדוק את הפריטים שלך והמשך לתשלום",
+        cartItems: "פריטי עגלה",
+        items: "פריטים",
+        pickup: "איסוף עצמי",
+        pickupDesc: "איסוף מהמסעדה",
+        delivery: "משלוח",
+        deliveryDesc: "משלוח עד הבית",
+        deliveryAddress: "כתובת משלוח",
+        deliveryAddressPlaceholder: "הזן את כתובת המשלוח שלך",
+        subtotal: "סכום ביניים",
+        deliveryFee: "דמי משלוח",
         total: 'סה"כ',
-        checkout: 'המשך לתשלום',
-        emptyCart: 'העגלה שלך ריקה',
-        emptyCartDesc: 'הוסף פריטים מהתפריט כדי להתחיל',
-        continueShopping: 'המשך בקניות',
-        remove: 'הסר',
-        quantity: 'כמות',
-        deliveryAddressRequired: 'כתובת משלוח נדרשת',
-        errorOccurred: 'אירעה שגיאה',
+        checkout: "המשך לתשלום",
+        emptyCart: "העגלה שלך ריקה",
+        emptyCartDesc: "הוסף פריטים מהתפריט כדי להתחיל",
+        continueShopping: "המשך בקניות",
+        remove: "הסר",
+        quantity: "כמות",
+        deliveryAddressRequired: "כתובת משלוח נדרשת",
+        errorOccurred: "אירעה שגיאה",
       },
       en: {
-        cartTitle: 'Your Shopping Cart',
-        cartSubtitle: 'Review your items and proceed to checkout',
-        cartItems: 'Cart Items',
-        items: 'items',
-        pickup: 'Pickup',
-        pickupDesc: 'Pick up from restaurant',
-        delivery: 'Delivery',
-        deliveryDesc: 'Home delivery',
-        deliveryAddress: 'Delivery Address',
-        deliveryAddressPlaceholder: 'Enter your delivery address',
-        subtotal: 'Subtotal',
-        deliveryFee: 'Delivery Fee',
-        total: 'Total',
-        checkout: 'Proceed to Checkout',
-        emptyCart: 'Your cart is empty',
-        emptyCartDesc: 'Add items from the menu to get started',
-        continueShopping: 'Continue Shopping',
-        remove: 'Remove',
-        quantity: 'Quantity',
-        deliveryAddressRequired: 'Delivery address is required',
-        errorOccurred: 'An error occurred',
+        cartTitle: "Your Shopping Cart",
+        cartSubtitle: "Review your items and proceed to checkout",
+        cartItems: "Cart Items",
+        items: "items",
+        pickup: "Pickup",
+        pickupDesc: "Pick up from restaurant",
+        delivery: "Delivery",
+        deliveryDesc: "Home delivery",
+        deliveryAddress: "Delivery Address",
+        deliveryAddressPlaceholder: "Enter your delivery address",
+        subtotal: "Subtotal",
+        deliveryFee: "Delivery Fee",
+        total: "Total",
+        checkout: "Proceed to Checkout",
+        emptyCart: "Your cart is empty",
+        emptyCartDesc: "Add items from the menu to get started",
+        continueShopping: "Continue Shopping",
+        remove: "Remove",
+        quantity: "Quantity",
+        deliveryAddressRequired: "Delivery address is required",
+        errorOccurred: "An error occurred",
       },
     }),
-    []
+    [],
   );
 
   const t = useMemo(
     () => translations[language as keyof typeof translations],
-    [translations, language]
+    [translations, language],
   );
 
   // Memoized delivery methods
   const deliveryMethods = useMemo(
     (): DeliveryMethod[] => [
       {
-        id: 'pickup',
+        id: "pickup",
         title: t.pickup,
         description: t.pickupDesc,
         icon: <Store size={20} />,
         fee: 0,
       },
       {
-        id: 'delivery',
+        id: "delivery",
         title: t.delivery,
         description: t.deliveryDesc,
         icon: <Truck size={20} />,
         fee: 15,
       },
     ],
-    [t]
+    [t],
   );
 
   const deliveryFee = useMemo(
     () =>
-      deliveryMethods.find(method => method.id === deliveryMethod)?.fee || 0,
-    [deliveryMethods, deliveryMethod]
+      deliveryMethods.find((method) => method.id === deliveryMethod)?.fee || 0,
+    [deliveryMethods, deliveryMethod],
   );
 
   const finalTotal = useMemo(
     () => cartTotal + deliveryFee,
-    [cartTotal, deliveryFee]
+    [cartTotal, deliveryFee],
   );
 
   // Memoized handlers
@@ -575,36 +575,36 @@ const CartPage: React.FC = () => {
       if (newQuantity < 1) return;
       dispatch(updateQuantity({ id: itemId, quantity: newQuantity }));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleRemoveItem = useCallback(
     (itemId: string): void => {
       dispatch(removeFromCart(itemId));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleDeliveryMethodChange = useCallback(
-    (method: 'pickup' | 'delivery'): void => {
+    (method: "pickup" | "delivery"): void => {
       setDeliveryMethod(method);
-      setError('');
-      if (method === 'pickup') {
-        setDeliveryAddress('');
+      setError("");
+      if (method === "pickup") {
+        setDeliveryAddress("");
       }
     },
-    []
+    [],
   );
 
   const handleDeliveryAddressChange = useCallback((address: string): void => {
     setDeliveryAddress(address);
-    setError('');
+    setError("");
   }, []);
 
   const handleCheckout = useCallback((): void => {
     if (cartItems.length === 0) return;
 
-    if (deliveryMethod === 'delivery' && !deliveryAddress.trim()) {
+    if (deliveryMethod === "delivery" && !deliveryAddress.trim()) {
       setError(t.deliveryAddressRequired);
       return;
     }
@@ -612,14 +612,14 @@ const CartPage: React.FC = () => {
     try {
       // Here you would typically save delivery method and address to cart state
       // For now, we'll just navigate to checkout
-      navigate('/checkout');
+      navigate("/checkout");
     } catch (err) {
       setError(t.errorOccurred);
     }
   }, [cartItems.length, deliveryMethod, deliveryAddress, navigate, t]);
 
   const handleContinueShopping = useCallback((): void => {
-    navigate('/menu');
+    navigate("/menu");
   }, [navigate]);
 
   if (cartItems.length === 0) {
@@ -728,14 +728,14 @@ const CartPage: React.FC = () => {
             )}
 
             <DeliveryOptions>
-              {deliveryMethods.map(method => (
+              {deliveryMethods.map((method) => (
                 <DeliveryOption
                   key={method.id}
                   selected={deliveryMethod === method.id}
                 >
                   <DeliveryOptionInput
-                    type='radio'
-                    name='deliveryMethod'
+                    type="radio"
+                    name="deliveryMethod"
                     value={method.id}
                     checked={deliveryMethod === method.id}
                     onChange={() => handleDeliveryMethodChange(method.id)}
@@ -751,19 +751,19 @@ const CartPage: React.FC = () => {
               ))}
             </DeliveryOptions>
 
-            {deliveryMethod === 'delivery' && (
-              <div style={{ marginBottom: '1.5rem' }}>
+            {deliveryMethod === "delivery" && (
+              <div style={{ marginBottom: "1.5rem" }}>
                 <label
                   style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
+                    display: "block",
+                    marginBottom: "0.5rem",
                     fontWeight: 600,
                   }}
                 >
                   {t.deliveryAddress}
                 </label>
                 <DeliveryAddressInput
-                  type='text'
+                  type="text"
                   placeholder={t.deliveryAddressPlaceholder}
                   value={deliveryAddress}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -779,7 +779,7 @@ const CartPage: React.FC = () => {
               <span>₪{cartTotal}</span>
             </SummaryRow>
 
-            {deliveryMethod === 'delivery' && (
+            {deliveryMethod === "delivery" && (
               <SummaryRow>
                 <span>{t.deliveryFee}</span>
                 <span>₪{deliveryFee}</span>

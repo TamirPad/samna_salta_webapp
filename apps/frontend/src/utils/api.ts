@@ -3,8 +3,8 @@ import axios, {
   InternalAxiosRequestConfig,
   AxiosResponse,
   AxiosError,
-} from 'axios';
-import { toast } from 'react-toastify';
+} from "axios";
+import { toast } from "react-toastify";
 
 // Types
 interface ApiError {
@@ -26,7 +26,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
 // Error tracking for throttling
-let lastErrorMessage = '';
+let lastErrorMessage = "";
 let errorMessageCount = 0;
 
 // Cache for API responses with size limit
@@ -54,7 +54,7 @@ const shouldRetry = (error: AxiosError, retryCount: number): boolean => {
 };
 
 const delay = (ms: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, ms));
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 const getCacheKey = (config: InternalAxiosRequestConfig): string => {
   return `${config.method?.toUpperCase()}:${config.url}:${JSON.stringify(config.params || {})}`;
@@ -62,7 +62,7 @@ const getCacheKey = (config: InternalAxiosRequestConfig): string => {
 
 const isCacheable = (config: InternalAxiosRequestConfig): boolean => {
   return (
-    config.method?.toLowerCase() === 'get' && !config.url?.includes('/auth/')
+    config.method?.toLowerCase() === "get" && !config.url?.includes("/auth/")
   );
 };
 
@@ -78,7 +78,7 @@ const getCachedResponse = (cacheKey: string): unknown | null => {
 const setCachedResponse = (
   cacheKey: string,
   data: unknown,
-  ttl: number = 5 * 60 * 1000
+  ttl: number = 5 * 60 * 1000,
 ): void => {
   // Clear old entries if cache is too large
   if (responseCache.size >= MAX_CACHE_SIZE) {
@@ -101,38 +101,29 @@ const clearCache = (): void => {
 
 // Create axios instance with enhanced configuration
 const getApiBaseUrl = (): string => {
-  // Check for explicit API URL
-  if (process.env['REACT_APP_API_URL']) {
-    console.log('🔧 Using REACT_APP_API_URL:', process.env['REACT_APP_API_URL']);
-    return process.env['REACT_APP_API_URL'];
+  if (process.env["REACT_APP_API_URL"]) {
+    return process.env["REACT_APP_API_URL"];
   }
-  
-  // Check if we're in production (on Render)
-  if (process.env['NODE_ENV'] === 'production') {
-    // Use the current domain for production
+  if (process.env["NODE_ENV"] === "production") {
     const currentDomain = window.location.origin;
     const apiUrl = `${currentDomain}/api`;
-    console.log('🔧 Using production API URL:', apiUrl);
     return apiUrl;
   }
-  
-  // Development fallback
-  console.log('🔧 Using development API URL: http://localhost:3001/api');
-  return 'http://localhost:3001/api';
+  return "http://localhost:3001/api";
 };
 
 const api: AxiosInstance = axios.create({
   baseURL: getApiBaseUrl(),
   timeout: API_TIMEOUT,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Add request interceptor for headers
-api.interceptors.request.use(config => {
+api.interceptors.request.use((config) => {
   // Add request ID for tracking
-  config.headers['X-Request-ID'] =
+  config.headers["X-Request-ID"] =
     `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   return config;
 });
@@ -141,7 +132,7 @@ api.interceptors.request.use(config => {
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // Add auth token
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -162,9 +153,9 @@ api.interceptors.request.use(
 
     return config;
   },
-  error => {
+  (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor with retry logic
@@ -206,24 +197,24 @@ api.interceptors.response.use(
       switch (status) {
         case 401:
           // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           clearCache(); // Clear cache on auth failure
 
           // Only redirect if not already on login page to prevent infinite loops
           if (
-            window.location.pathname !== '/' &&
-            window.location.pathname !== '/login'
+            window.location.pathname !== "/" &&
+            window.location.pathname !== "/login"
           ) {
-            window.location.href = '/login';
-            toast.error('Session expired. Please login again.');
+            window.location.href = "/login";
+            toast.error("Session expired. Please login again.");
           }
           break;
 
         case 403:
           // Forbidden
           toast.error(
-            'Access denied. You do not have permission to perform this action.'
+            "Access denied. You do not have permission to perform this action.",
           );
           break;
 
@@ -236,38 +227,38 @@ api.interceptors.response.use(
           // Validation error
           if (
             data &&
-            typeof data === 'object' &&
-            'errors' in data &&
+            typeof data === "object" &&
+            "errors" in data &&
             data.errors
           ) {
             Object.values(data.errors as Record<string, any>).forEach(
               (error: any) => {
                 toast.error(error as string);
-              }
+              },
             );
           } else {
-            toast.error((data as any)?.message || 'Validation error');
+            toast.error((data as any)?.message || "Validation error");
           }
           break;
 
         case 429:
           // Rate limited
-          toast.error('Too many requests. Please try again later.');
+          toast.error("Too many requests. Please try again later.");
           break;
 
         case 500:
           // Server error
-          toast.error('Server error. Please try again later.');
+          toast.error("Server error. Please try again later.");
           break;
 
         default:
           // Other errors
-          toast.error((data as any)?.message || 'An error occurred');
+          toast.error((data as any)?.message || "An error occurred");
       }
     } else {
       // Network error - throttle to avoid spam
       const currentTime = Date.now();
-      const errorMessage = 'Network error. Please check your connection.';
+      const errorMessage = "Network error. Please check your connection.";
 
       if (
         errorMessage !== lastErrorMessage ||
@@ -276,14 +267,14 @@ api.interceptors.response.use(
         lastErrorMessage = errorMessage;
         errorMessageCount = currentTime;
         toast.error(errorMessage, {
-          toastId: 'network-error',
+          toastId: "network-error",
           autoClose: 5000,
         });
       }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // API Service interface
@@ -319,7 +310,7 @@ export interface ApiService {
   updateOrderStatus: (
     id: number,
     status: string,
-    notes?: string
+    notes?: string,
   ) => Promise<any>;
   confirmPayment: (id: number, paymentIntentId: string) => Promise<any>;
   cancelOrder: (id: number, reason: string) => Promise<any>;
@@ -336,13 +327,7 @@ export interface ApiService {
   getProductAnalytics: (params?: any) => Promise<any>;
   getCustomerAnalytics: (params?: any) => Promise<any>;
 
-  // Upload methods
-  uploadImage: (
-    file: File,
-    onProgress?: (progress: number) => void
-  ) => Promise<any>;
-  deleteImage: (publicId: string) => Promise<any>;
-  getImageInfo: (publicId: string) => Promise<any>;
+
 }
 
 // API service with enhanced methods
@@ -355,21 +340,21 @@ export const apiService: ApiService = {
 
   // Auth
   login: (credentials: { email: string; password: string }) =>
-    api.post('/auth/login', credentials),
+    api.post("/auth/login", credentials),
 
   register: (userData: {
     name: string;
     email: string;
     password: string;
     phone?: string;
-  }) => api.post('/auth/register', userData),
+  }) => api.post("/auth/register", userData),
 
   logout: () => {
     clearCache(); // Clear cache on logout
-    return api.post('/auth/logout');
+    return api.post("/auth/logout");
   },
 
-  getCurrentUser: () => api.get('/auth/me'),
+  getCurrentUser: () => api.get("/auth/me"),
 
   // Products with caching
   getProducts: (params?: {
@@ -378,15 +363,15 @@ export const apiService: ApiService = {
     page?: number;
     limit?: number;
   }) =>
-    api.get('/products', {
+    api.get("/products", {
       params,
       // Cache product listings for 2 minutes
-      headers: { 'Cache-Control': 'max-age=120' },
+      headers: { "Cache-Control": "max-age=120" },
     }),
 
   getProduct: (id: number) => api.get(`/products/${id}`),
 
-  createProduct: (productData: unknown) => api.post('/products', productData),
+  createProduct: (productData: unknown) => api.post("/products", productData),
 
   updateProduct: (id: number, productData: unknown) => {
     clearCache(); // Clear cache on product update
@@ -399,11 +384,11 @@ export const apiService: ApiService = {
   },
 
   // Categories
-  getCategories: () => api.get('/products/categories'),
+  getCategories: () => api.get("/products/categories"),
 
   createCategory: (categoryData: unknown) => {
     clearCache();
-    return api.post('/products/categories', categoryData);
+    return api.post("/products/categories", categoryData);
   },
 
   updateCategory: (id: number, categoryData: unknown) => {
@@ -418,11 +403,11 @@ export const apiService: ApiService = {
 
   // Orders
   getOrders: (params?: { status?: string; page?: number; limit?: number }) =>
-    api.get('/orders', { params }),
+    api.get("/orders", { params }),
 
   getOrder: (id: number) => api.get(`/orders/${id}`),
 
-  createOrder: (orderData: unknown) => api.post('/orders', orderData),
+  createOrder: (orderData: unknown) => api.post("/orders", orderData),
 
   updateOrderStatus: (id: number, status: string, description?: string) =>
     api.patch(`/orders/${id}/status`, { status, description }),
@@ -437,7 +422,7 @@ export const apiService: ApiService = {
 
   // Customers
   getCustomers: (params?: { search?: string; page?: number; limit?: number }) =>
-    api.get('/customers', { params }),
+    api.get("/customers", { params }),
 
   getCustomer: (id: number) => api.get(`/customers/${id}`),
 
@@ -447,43 +432,22 @@ export const apiService: ApiService = {
   deleteCustomer: (id: number) => api.delete(`/customers/${id}`),
 
   // Analytics
-  getDashboardAnalytics: () => api.get('/analytics/dashboard'),
+  getDashboardAnalytics: () => api.get("/analytics/dashboard"),
 
   getSalesReport: (params?: {
     start_date?: string;
     end_date?: string;
     group_by?: string;
-  }) => api.get('/analytics/sales', { params }),
+  }) => api.get("/analytics/sales", { params }),
 
   getProductAnalytics: (params?: { start_date?: string; end_date?: string }) =>
-    api.get('/analytics/products', { params }),
+    api.get("/analytics/products", { params }),
 
   getCustomerAnalytics: (params?: { start_date?: string; end_date?: string }) =>
-    api.get('/analytics/customers', { params }),
+    api.get("/analytics/customers", { params }),
 
   // File Upload with progress tracking
-  uploadImage: (file: File, onProgress?: (progress: number) => void) => {
-    const formData = new FormData();
-    formData.append('image', file);
 
-    return api.post('/upload/image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: progressEvent => {
-        if (onProgress && progressEvent.total) {
-          const progress = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          onProgress(progress);
-        }
-      },
-    });
-  },
-
-  deleteImage: (publicId: string) => api.delete(`/upload/image/${publicId}`),
-
-  getImageInfo: (publicId: string) => api.get(`/upload/image/${publicId}`),
 };
 
 // Export axios instance for direct use if needed

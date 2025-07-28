@@ -1,11 +1,11 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAppSelector } from '../hooks/redux';
+import { Navigate, useLocation } from "react-router-dom";
+import { useAppSelector } from "../hooks/redux";
 import {
   selectIsAuthenticated,
   selectIsAuthInitialized,
   selectUser,
-} from '../features/auth/authSlice';
-import LoadingSpinner from './LoadingSpinner';
+} from "../features/auth/authSlice";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireAdmin = false,
-  fallbackPath = '/login',
+  fallbackPath = "/login",
 }) => {
   const location = useLocation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -28,11 +28,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)",
         }}
       >
         <LoadingSpinner />
@@ -47,7 +47,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to home if admin access required but user is not admin
   if (requireAdmin && !user?.isAdmin) {
-    return <Navigate to='/home' replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <>{children}</>;

@@ -29,6 +29,98 @@ router.get('/', [
     const { category, search, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
+    // Development mode fallback - provide sample products without database
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔧 Development mode: Using sample products');
+      
+      const sampleProducts = [
+        {
+          id: 1,
+          name: 'Shawarma',
+          name_en: 'Shawarma',
+          name_he: 'שווארמה',
+          description: 'Traditional Yemenite shawarma with fresh vegetables',
+          description_en: 'Traditional Yemenite shawarma with fresh vegetables',
+          description_he: 'שווארמה תימנית מסורתית עם ירקות טריים',
+          price: 15.99,
+          category_id: 1,
+          category_name: 'Main Dishes',
+          category_name_en: 'Main Dishes',
+          category_name_he: 'מנות עיקריות',
+          image_url: '/images/shawarma.jpg',
+          is_active: true,
+          display_order: 1
+        },
+        {
+          id: 2,
+          name: 'Falafel',
+          name_en: 'Falafel',
+          name_he: 'פלאפל',
+          description: 'Crispy falafel balls with tahini sauce',
+          description_en: 'Crispy falafel balls with tahini sauce',
+          description_he: 'כדורי פלאפל פריכים עם רוטב טחינה',
+          price: 12.99,
+          category_id: 1,
+          category_name: 'Main Dishes',
+          category_name_en: 'Main Dishes',
+          category_name_he: 'מנות עיקריות',
+          image_url: '/images/falafel.jpg',
+          is_active: true,
+          display_order: 2
+        },
+        {
+          id: 3,
+          name: 'Hummus',
+          name_en: 'Hummus',
+          name_he: 'חומוס',
+          description: 'Creamy hummus with olive oil and za\'atar',
+          description_en: 'Creamy hummus with olive oil and za\'atar',
+          description_he: 'חומוס קרמי עם שמן זית וזעתר',
+          price: 8.99,
+          category_id: 2,
+          category_name: 'Appetizers',
+          category_name_en: 'Appetizers',
+          category_name_he: 'מנות פתיחה',
+          image_url: '/images/hummus.jpg',
+          is_active: true,
+          display_order: 3
+        }
+      ];
+
+      // Filter by category if specified
+      let filteredProducts = sampleProducts;
+      if (category) {
+        filteredProducts = sampleProducts.filter(product => 
+          product.category_name.toLowerCase().includes(category.toLowerCase())
+        );
+      }
+
+      // Filter by search if specified
+      if (search) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.name.toLowerCase().includes(search.toLowerCase()) ||
+          product.description.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      // Apply pagination
+      const startIndex = offset;
+      const endIndex = startIndex + limit;
+      const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+      console.log('✅ Development products fetched successfully:', { count: paginatedProducts.length, category, search });
+
+      return res.json({
+        success: true,
+        data: paginatedProducts,
+        pagination: {
+          page,
+          limit,
+          total: filteredProducts.length
+        }
+      });
+    }
+
     // Try to get from cache first (optional)
     let cached = null;
     try {

@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface UIState {
   isLoading: boolean;
@@ -15,26 +15,26 @@ const initialState: UIState = {
 };
 
 const uiSlice = createSlice({
-  name: 'ui',
+  name: "ui",
   initialState,
   reducers: {
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    toggleSidebar: state => {
+    toggleSidebar: (state) => {
       state.sidebarOpen = !state.sidebarOpen;
     },
-    openSidebar: state => {
+    openSidebar: (state) => {
       state.sidebarOpen = true;
     },
-    closeSidebar: state => {
+    closeSidebar: (state) => {
       state.sidebarOpen = false;
     },
     openModal: (state, action: PayloadAction<string>) => {
       state.modalOpen = true;
       state.modalType = action.payload;
     },
-    closeModal: state => {
+    closeModal: (state) => {
       state.modalOpen = false;
       state.modalType = null;
     },

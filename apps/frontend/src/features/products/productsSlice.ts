@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiService } from '../../utils/api';
-import { Product } from '../../types';
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import { apiService } from "../../utils/api";
+import { Product } from "../../types";
 
 interface ProductsState {
   products: Product[];
@@ -27,7 +27,7 @@ const initialState: ProductsState = {
 
 // Async thunks
 export const fetchProducts = createAsyncThunk(
-  'products/fetchProducts',
+  "products/fetchProducts",
   async (
     params: {
       category?: string;
@@ -35,91 +35,91 @@ export const fetchProducts = createAsyncThunk(
       page?: number;
       limit?: number;
     } = {},
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.getProducts(params);
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
-          ? (error as any).response?.data?.message || 'Failed to fetch products'
-          : 'Failed to fetch products';
+        error instanceof Error && "response" in error
+          ? (error as any).response?.data?.message || "Failed to fetch products"
+          : "Failed to fetch products";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const fetchCategories = createAsyncThunk(
-  'products/fetchCategories',
+  "products/fetchCategories",
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getCategories();
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
+        error instanceof Error && "response" in error
           ? (error as any).response?.data?.message ||
-            'Failed to fetch categories'
-          : 'Failed to fetch categories';
+            "Failed to fetch categories"
+          : "Failed to fetch categories";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const createProduct = createAsyncThunk(
-  'products/createProduct',
+  "products/createProduct",
   async (productData: Partial<Product>, { rejectWithValue }) => {
     try {
       const response = await apiService.createProduct(productData);
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
-          ? (error as any).response?.data?.message || 'Failed to create product'
-          : 'Failed to create product';
+        error instanceof Error && "response" in error
+          ? (error as any).response?.data?.message || "Failed to create product"
+          : "Failed to create product";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const updateProductAsync = createAsyncThunk(
-  'products/updateProduct',
+  "products/updateProduct",
   async (
     { id, productData }: { id: number; productData: Partial<Product> },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await apiService.updateProduct(id, productData);
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
-          ? (error as any).response?.data?.message || 'Failed to update product'
-          : 'Failed to update product';
+        error instanceof Error && "response" in error
+          ? (error as any).response?.data?.message || "Failed to update product"
+          : "Failed to update product";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const deleteProduct = createAsyncThunk(
-  'products/deleteProduct',
+  "products/deleteProduct",
   async (productId: number, { rejectWithValue }) => {
     try {
       await apiService.deleteProduct(productId);
       return productId;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error && 'response' in error
-          ? (error as any).response?.data?.message || 'Failed to delete product'
-          : 'Failed to delete product';
+        error instanceof Error && "response" in error
+          ? (error as any).response?.data?.message || "Failed to delete product"
+          : "Failed to delete product";
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 const productsSlice = createSlice({
-  name: 'products',
+  name: "products",
   initialState,
   reducers: {
     setProducts: (state, action: PayloadAction<Product[]>) => {
@@ -129,13 +129,13 @@ const productsSlice = createSlice({
       state.products.push(action.payload);
     },
     updateProduct: (state, action: PayloadAction<Product>) => {
-      const index = state.products.findIndex(p => p.id === action.payload.id);
+      const index = state.products.findIndex((p) => p.id === action.payload.id);
       if (index !== -1) {
         state.products[index] = action.payload;
       }
     },
     removeProduct: (state, action: PayloadAction<number>) => {
-      state.products = state.products.filter(p => p.id !== action.payload);
+      state.products = state.products.filter((p) => p.id !== action.payload);
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -144,10 +144,10 @@ const productsSlice = createSlice({
       state.error = action.payload;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
       // Fetch products
-      .addCase(fetchProducts.pending, state => {
+      .addCase(fetchProducts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
@@ -162,7 +162,7 @@ const productsSlice = createSlice({
         state.error = action.payload as string;
       })
       // Fetch categories
-      .addCase(fetchCategories.pending, state => {
+      .addCase(fetchCategories.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })

@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../hooks/redux';
-import { selectAuth, selectIsAuthInitialized } from '../features/auth/authSlice';
-import LoadingSpinner from './LoadingSpinner';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "../hooks/redux";
+import {
+  selectAuth,
+  selectIsAuthInitialized,
+} from "../features/auth/authSlice";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface AuthRedirectProps {
   children: React.ReactNode;
@@ -17,9 +20,9 @@ const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
     if (isAuthInitialized && isAuthenticated) {
       // Redirect authenticated users away from login page
       if (user?.isAdmin) {
-        navigate('/admin', { replace: true });
+        navigate("/admin", { replace: true });
       } else {
-        navigate('/home', { replace: true });
+        navigate("/home", { replace: true });
       }
     }
   }, [isAuthenticated, user?.isAdmin, isAuthInitialized, navigate]);
@@ -29,11 +32,11 @@ const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
     return (
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)",
         }}
       >
         <LoadingSpinner />
@@ -46,11 +49,11 @@ const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
     return (
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          background: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)",
         }}
       >
         <LoadingSpinner />
@@ -62,4 +65,4 @@ const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
   return <>{children}</>;
 };
 
-export default AuthRedirect; 
+export default AuthRedirect;

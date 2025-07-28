@@ -1,16 +1,16 @@
-import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from '../features/auth/authSlice';
-import cartReducer from '../features/cart/cartSlice';
-import productsReducer from '../features/products/productsSlice';
-import ordersReducer from '../features/orders/ordersSlice';
-import customersReducer from '../features/customers/customersSlice';
-import analyticsReducer from '../features/analytics/analyticsSlice';
-import languageReducer from '../features/language/languageSlice';
-import uiReducer from '../features/ui/uiSlice';
+import React, { ReactElement } from "react";
+import { render, RenderOptions } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "../features/auth/authSlice";
+import cartReducer from "../features/cart/cartSlice";
+import productsReducer from "../features/products/productsSlice";
+import ordersReducer from "../features/orders/ordersSlice";
+import customersReducer from "../features/customers/customersSlice";
+import analyticsReducer from "../features/analytics/analyticsSlice";
+import languageReducer from "../features/language/languageSlice";
+import uiReducer from "../features/ui/uiSlice";
 
 // Create a custom render function that includes providers
 const createTestStore = (preloadedState = {}) => {
@@ -29,7 +29,7 @@ const createTestStore = (preloadedState = {}) => {
   });
 };
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   preloadedState?: any;
   store?: ReturnType<typeof createTestStore>;
   route?: string;
@@ -40,9 +40,9 @@ const customRender = (
   {
     preloadedState = {},
     store = createTestStore(preloadedState),
-    route = '/',
+    route = "/",
     ...renderOptions
-  }: CustomRenderOptions = {}
+  }: CustomRenderOptions = {},
 ) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     return (
@@ -56,7 +56,7 @@ const customRender = (
 };
 
 // Re-export everything
-export * from '@testing-library/react';
+export * from "@testing-library/react";
 
 // Override render method
 export { customRender as render };
@@ -75,7 +75,7 @@ export const mockAuthState = {
     isAuthInitialized: true,
   },
   language: {
-    currentLanguage: 'he',
+    currentLanguage: "he",
     translations: {},
   },
   cart: {
@@ -86,20 +86,20 @@ export const mockAuthState = {
 // Mock data generators
 export const createMockUser = (overrides = {}) => ({
   id: 1,
-  email: 'test@example.com',
-  name: 'Test User',
+  email: "test@example.com",
+  name: "Test User",
   isAdmin: false,
-  phone: '+1234567890',
+  phone: "+1234567890",
   ...overrides,
 });
 
 export const createMockProduct = (overrides = {}) => ({
   id: 1,
-  name: 'Test Product',
-  description: 'Test product description',
+  name: "Test Product",
+  description: "Test product description",
   price: 10.99,
-  category: 'bread',
-  image: 'test-image.jpg',
+  category: "bread",
+  image: "test-image.jpg",
   isAvailable: true,
   ...overrides,
 });
@@ -112,11 +112,11 @@ export const createMockOrder = (overrides = {}) => ({
       productId: 1,
       quantity: 2,
       price: 10.99,
-      name: 'Test Product',
+      name: "Test Product",
     },
   ],
   total: 21.98,
-  status: 'pending',
+  status: "pending",
   createdAt: new Date().toISOString(),
   ...overrides,
 });
@@ -124,7 +124,7 @@ export const createMockOrder = (overrides = {}) => ({
 export const createMockCartItem = (overrides = {}) => ({
   id: 1,
   productId: 1,
-  name: 'Test Product',
+  name: "Test Product",
   price: 10.99,
   quantity: 1,
   ...overrides,
@@ -133,9 +133,9 @@ export const createMockCartItem = (overrides = {}) => ({
 // Mock functions
 export const mockNavigate = jest.fn();
 export const mockLocation = {
-  pathname: '/',
-  search: '',
-  hash: '',
+  pathname: "/",
+  search: "",
+  hash: "",
   state: null,
 };
 
@@ -167,12 +167,12 @@ export const mockSessionStorage = {
 // Setup global mocks
 beforeEach(() => {
   // Mock window
-  Object.defineProperty(window, 'innerWidth', {
+  Object.defineProperty(window, "innerWidth", {
     writable: true,
     configurable: true,
     value: mockWindow.innerWidth,
   });
-  Object.defineProperty(window, 'innerHeight', {
+  Object.defineProperty(window, "innerHeight", {
     writable: true,
     configurable: true,
     value: mockWindow.innerHeight,
@@ -182,13 +182,13 @@ beforeEach(() => {
   window.removeEventListener = mockWindow.removeEventListener;
 
   // Mock localStorage
-  Object.defineProperty(window, 'localStorage', {
+  Object.defineProperty(window, "localStorage", {
     value: mockLocalStorage,
     writable: true,
   });
 
   // Mock sessionStorage
-  Object.defineProperty(window, 'sessionStorage', {
+  Object.defineProperty(window, "sessionStorage", {
     value: mockSessionStorage,
     writable: true,
   });
@@ -211,9 +211,9 @@ beforeEach(() => {
   }));
 
   // Mock matchMedia
-  Object.defineProperty(window, 'matchMedia', {
+  Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: jest.fn().mockImplementation(query => ({
+    value: jest.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
       onchange: null,
@@ -226,7 +226,7 @@ beforeEach(() => {
   });
 
   // Mock performance
-  Object.defineProperty(window, 'performance', {
+  Object.defineProperty(window, "performance", {
     writable: true,
     value: {
       now: jest.fn(() => Date.now()),
@@ -238,7 +238,7 @@ beforeEach(() => {
   });
 
   // Mock requestAnimationFrame
-  global.requestAnimationFrame = jest.fn(cb => setTimeout(cb, 0));
+  global.requestAnimationFrame = jest.fn((cb) => setTimeout(cb, 0));
   global.cancelAnimationFrame = jest.fn();
 
   // Mock setTimeout and setInterval
@@ -252,7 +252,7 @@ afterEach(() => {
 
 // Export test helpers
 export const waitForElementToBeRemoved = (element: HTMLElement) =>
-  new Promise(resolve => {
+  new Promise((resolve) => {
     const observer = new MutationObserver(() => {
       if (!document.contains(element)) {
         observer.disconnect();
@@ -263,7 +263,7 @@ export const waitForElementToBeRemoved = (element: HTMLElement) =>
   });
 
 export const waitForLoadingToFinish = () =>
-  new Promise(resolve => setTimeout(resolve, 0));
+  new Promise((resolve) => setTimeout(resolve, 0));
 
 export const createMockEvent = (type: string, options = {}) =>
   new Event(type, { bubbles: true, cancelable: true, ...options });
@@ -336,11 +336,11 @@ export const createMockState = (overrides = {}) => ({
     error: null,
   },
   language: {
-    current: 'en',
+    current: "en",
     translations: {},
   },
   ui: {
-    theme: 'light',
+    theme: "light",
     sidebarOpen: false,
     notifications: [],
   },

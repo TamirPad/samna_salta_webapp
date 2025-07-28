@@ -1,15 +1,15 @@
-import React, { useEffect } from 'react';
-import { Order } from '../../features/orders/ordersSlice';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { selectLanguage } from '../../features/language/languageSlice';
-import { selectAuth } from '../../features/auth/authSlice';
+import React, { useEffect } from "react";
+import { Order } from "../../features/orders/ordersSlice";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
+import { selectLanguage } from "../../features/language/languageSlice";
+import { selectAuth } from "../../features/auth/authSlice";
 import {
   fetchOrders,
   clearOrdersError,
-} from '../../features/orders/ordersSlice';
-import LoadingSpinner from '../../components/LoadingSpinner';
+} from "../../features/orders/ordersSlice";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 // Styled Components
 const Container = styled.div`
@@ -66,40 +66,40 @@ const StatusBadge = styled.span<{ status: string }>`
   border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 500;
-  background: ${props => {
+  background: ${(props) => {
     switch (props.status) {
-      case 'pending':
-        return '#fff3cd';
-      case 'confirmed':
-        return '#d1ecf1';
-      case 'preparing':
-        return '#d4edda';
-      case 'ready':
-        return '#d1ecf1';
-      case 'delivered':
-        return '#d4edda';
-      case 'cancelled':
-        return '#f8d7da';
+      case "pending":
+        return "#fff3cd";
+      case "confirmed":
+        return "#d1ecf1";
+      case "preparing":
+        return "#d4edda";
+      case "ready":
+        return "#d1ecf1";
+      case "delivered":
+        return "#d4edda";
+      case "cancelled":
+        return "#f8d7da";
       default:
-        return '#e2e3e5';
+        return "#e2e3e5";
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.status) {
-      case 'pending':
-        return '#856404';
-      case 'confirmed':
-        return '#0c5460';
-      case 'preparing':
-        return '#155724';
-      case 'ready':
-        return '#0c5460';
-      case 'delivered':
-        return '#155724';
-      case 'cancelled':
-        return '#721c24';
+      case "pending":
+        return "#856404";
+      case "confirmed":
+        return "#0c5460";
+      case "preparing":
+        return "#155724";
+      case "ready":
+        return "#0c5460";
+      case "delivered":
+        return "#155724";
+      case "cancelled":
+        return "#721c24";
       default:
-        return '#6c757d';
+        return "#6c757d";
     }
   }};
 `;
@@ -138,10 +138,10 @@ const ButtonGroup = styled.div`
 `;
 
 const AuthButton = styled.button<{
-  $variant?: 'primary' | 'secondary';
+  $variant?: "primary" | "secondary";
 }>`
   background: ${(props): string =>
-    props.$variant === 'secondary' ? '#28a745' : '#8B4513'};
+    props.$variant === "secondary" ? "#28a745" : "#8B4513"};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -179,7 +179,7 @@ const AdminOrders: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
-  const { orders, isLoading, error } = useAppSelector(state => state.orders);
+  const { orders, isLoading, error } = useAppSelector((state) => state.orders);
 
   // Load orders on component mount
   useEffect(() => {
@@ -196,17 +196,17 @@ const AdminOrders: React.FC = () => {
   }, [dispatch]);
 
   const handleLogin = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
   const getStatusText = (status: string) => {
     const statusMap: { [key: string]: { he: string; en: string } } = {
-      pending: { he: 'ממתין', en: 'Pending' },
-      confirmed: { he: 'אושר', en: 'Confirmed' },
-      preparing: { he: 'בהכנה', en: 'Preparing' },
-      ready: { he: 'מוכן', en: 'Ready' },
-      delivered: { he: 'נמסר', en: 'Delivered' },
-      cancelled: { he: 'בוטל', en: 'Cancelled' },
+      pending: { he: "ממתין", en: "Pending" },
+      confirmed: { he: "אושר", en: "Confirmed" },
+      preparing: { he: "בהכנה", en: "Preparing" },
+      ready: { he: "מוכן", en: "Ready" },
+      delivered: { he: "נמסר", en: "Delivered" },
+      cancelled: { he: "בוטל", en: "Cancelled" },
     };
 
     return statusMap[status]?.[language] || status;
@@ -218,7 +218,7 @@ const AdminOrders: React.FC = () => {
         <Title>Orders Management</Title>
         <AuthCard>
           <strong>Authentication Required</strong>
-          <p style={{ margin: '1rem 0' }}>
+          <p style={{ margin: "1rem 0" }}>
             Please login to access orders management.
           </p>
           <ButtonGroup>
@@ -237,11 +237,11 @@ const AdminOrders: React.FC = () => {
         <Title>Orders Management</Title>
         <AuthCard>
           <strong>Access Denied</strong>
-          <p style={{ margin: '1rem 0' }}>
+          <p style={{ margin: "1rem 0" }}>
             Admin privileges required to access orders management.
           </p>
           <ButtonGroup>
-            <AuthButton onClick={() => navigate('/')}>Go to Home</AuthButton>
+            <AuthButton onClick={() => navigate("/")}>Go to Home</AuthButton>
           </ButtonGroup>
         </AuthCard>
       </AuthContainer>
@@ -261,8 +261,8 @@ const AdminOrders: React.FC = () => {
       {error && (
         <WarningBanner>
           <strong>⚠️ Warning:</strong> {error}
-          {error.includes('Failed to load') && (
-            <div style={{ marginTop: '0.5rem' }}>
+          {error.includes("Failed to load") && (
+            <div style={{ marginTop: "0.5rem" }}>
               <small>
                 Showing demo data. Please check your connection and refresh the
                 page.
@@ -282,7 +282,7 @@ const AdminOrders: React.FC = () => {
           <div>Actions</div>
         </TableHeader>
 
-        {(!orders || orders.length === 0) ? (
+        {!orders || orders.length === 0 ? (
           <EmptyState>
             <p>No orders found</p>
           </EmptyState>
@@ -299,10 +299,10 @@ const AdminOrders: React.FC = () => {
                 </StatusBadge>
               </div>
               <div>
-                <button style={{ padding: '0.5rem', marginRight: '0.5rem' }}>
+                <button style={{ padding: "0.5rem", marginRight: "0.5rem" }}>
                   View
                 </button>
-                <button style={{ padding: '0.5rem' }}>Edit</button>
+                <button style={{ padding: "0.5rem" }}>Edit</button>
               </div>
             </OrderRow>
           ))
@@ -311,7 +311,7 @@ const AdminOrders: React.FC = () => {
 
       {(!orders || !orders.length) && !error && (
         <DemoModeBanner>
-          <p style={{ color: '#1976d2', margin: 0 }}>
+          <p style={{ color: "#1976d2", margin: 0 }}>
             <strong>Demo Mode:</strong> Showing sample data. Connect to backend
             for live data.
           </p>

@@ -5,22 +5,22 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
-} from 'react';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { selectLanguage } from '../features/language/languageSlice';
-import { addToCart } from '../features/cart/cartSlice';
+} from "react";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAppDispatch, useAppSelector } from "../hooks/redux";
+import { selectLanguage } from "../features/language/languageSlice";
+import { addToCart } from "../features/cart/cartSlice";
 import {
   selectProductsLoading,
   selectProducts,
   selectCategories,
   fetchProducts,
   fetchCategories,
-} from '../features/products/productsSlice';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { debounce } from '../utils/performance';
-import { Product, Category } from '../types';
+} from "../features/products/productsSlice";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { debounce } from "../utils/performance";
+import { Product, Category } from "../types";
 
 // Styled Components
 const MenuContainer = styled.div`
@@ -152,9 +152,9 @@ const CategoryFilter = styled.div`
 const CategoryButton = styled.button<{ $active: boolean }>`
   padding: 0.75rem 1.25rem;
   border: 2px solid
-    ${(props): string => (props.$active ? '#8B4513' : '#e0e0e0')};
-  background: ${(props): string => (props.$active ? '#8B4513' : 'white')};
-  color: ${(props): string => (props.$active ? 'white' : '#333')};
+    ${(props): string => (props.$active ? "#8B4513" : "#e0e0e0")};
+  background: ${(props): string => (props.$active ? "#8B4513" : "white")};
+  color: ${(props): string => (props.$active ? "white" : "#333")};
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -166,7 +166,7 @@ const CategoryButton = styled.button<{ $active: boolean }>`
 
   &:hover {
     border-color: #8b4513;
-    background: ${(props): string => (props.$active ? '#8B4513' : '#f8f9fa')};
+    background: ${(props): string => (props.$active ? "#8B4513" : "#f8f9fa")};
     transform: translateY(-1px);
   }
 
@@ -212,11 +212,11 @@ const ProductImage = styled.div<{ imageUrl?: string; emoji?: string }>`
   background: ${(props): string =>
     props.imageUrl
       ? `url(${props.imageUrl}) center/cover`
-      : 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)'};
+      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: ${(props): string => (props.emoji ? '4rem' : '3rem')};
+  font-size: ${(props): string => (props.emoji ? "4rem" : "3rem")};
   color: white;
   position: relative;
 `;
@@ -339,8 +339,8 @@ const MenuPage: React.FC = () => {
   const products = useAppSelector(selectProducts);
   const categories = useAppSelector(selectCategories);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch products and categories on component mount
   useEffect(() => {
@@ -352,44 +352,44 @@ const MenuPage: React.FC = () => {
   const translations = useMemo(
     () => ({
       he: {
-        menuTitle: 'תפריט סמנה סלטה',
-        menuSubtitle: 'גלה את המגוון הרחב שלנו של לחמים ומתוקים מסורתיים',
-        allCategories: 'כל הקטגוריות',
-        searchPlaceholder: 'חפש מוצרים...',
-        addToCart: 'הוסף לעגלה',
-        preparationTime: 'זמן הכנה',
-        minutes: 'דקות',
-        new: 'חדש',
-        popular: 'פופולרי',
-        noProducts: 'לא נמצאו מוצרים',
-        noProductsDesc: 'נסה לשנות את הפילטרים שלך או לחפש משהו אחר',
-        resultsCount: 'נמצאו {count} מוצרים',
-        loading: 'טוען מוצרים...',
+        menuTitle: "תפריט סמנה סלטה",
+        menuSubtitle: "גלה את המגוון הרחב שלנו של לחמים ומתוקים מסורתיים",
+        allCategories: "כל הקטגוריות",
+        searchPlaceholder: "חפש מוצרים...",
+        addToCart: "הוסף לעגלה",
+        preparationTime: "זמן הכנה",
+        minutes: "דקות",
+        new: "חדש",
+        popular: "פופולרי",
+        noProducts: "לא נמצאו מוצרים",
+        noProductsDesc: "נסה לשנות את הפילטרים שלך או לחפש משהו אחר",
+        resultsCount: "נמצאו {count} מוצרים",
+        loading: "טוען מוצרים...",
       },
       en: {
-        menuTitle: 'Samna Salta Menu',
+        menuTitle: "Samna Salta Menu",
         menuSubtitle:
-          'Discover our wide variety of traditional breads and pastries',
-        allCategories: 'All Categories',
-        searchPlaceholder: 'Search products...',
-        addToCart: 'Add to Cart',
-        preparationTime: 'Prep time',
-        minutes: 'min',
-        new: 'New',
-        popular: 'Popular',
-        noProducts: 'No products found',
+          "Discover our wide variety of traditional breads and pastries",
+        allCategories: "All Categories",
+        searchPlaceholder: "Search products...",
+        addToCart: "Add to Cart",
+        preparationTime: "Prep time",
+        minutes: "min",
+        new: "New",
+        popular: "Popular",
+        noProducts: "No products found",
         noProductsDesc:
-          'Try changing your filters or search for something else',
-        resultsCount: 'Found {count} products',
-        loading: 'Loading products...',
+          "Try changing your filters or search for something else",
+        resultsCount: "Found {count} products",
+        loading: "Loading products...",
       },
     }),
-    []
+    [],
   );
 
   const t = useMemo(
     () => translations[language as keyof typeof translations],
-    [translations, language]
+    [translations, language],
   );
 
   // Memoized data processing
@@ -412,7 +412,7 @@ const MenuPage: React.FC = () => {
       return [allCategories];
     }
     // Cast categories to the correct type and ensure is_active property exists
-    const typedCategories = categories.map(cat => ({
+    const typedCategories = categories.map((cat) => ({
       ...cat,
       is_active: (cat as Category & { is_active?: boolean }).is_active ?? true,
     })) as Category[];
@@ -428,9 +428,9 @@ const MenuPage: React.FC = () => {
     let filtered = displayProducts;
 
     // Filter by category
-    if (selectedCategory !== 'all') {
+    if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        product => product.category_id === parseInt(selectedCategory)
+        (product) => product.category_id === parseInt(selectedCategory),
       );
     }
 
@@ -438,12 +438,12 @@ const MenuPage: React.FC = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        product =>
+        (product) =>
           product.name.toLowerCase().includes(query) ||
           (product.description &&
             product.description.toLowerCase().includes(query)) ||
           (product.name_en && product.name_en.toLowerCase().includes(query)) ||
-          (product.name_he && product.name_he.toLowerCase().includes(query))
+          (product.name_he && product.name_he.toLowerCase().includes(query)),
       );
     }
 
@@ -453,11 +453,11 @@ const MenuPage: React.FC = () => {
   // Debounced search handler
   const debouncedSearch = useCallback(
     debounce((query: unknown) => {
-      if (typeof query === 'string') {
+      if (typeof query === "string") {
         setSearchQuery(query);
       }
     }, 300),
-    [setSearchQuery]
+    [setSearchQuery],
   );
 
   // Memoized handlers
@@ -467,56 +467,56 @@ const MenuPage: React.FC = () => {
         addToCart({
           id: product.id.toString(),
           name:
-            language === 'he'
+            language === "he"
               ? product.name_he || product.name
               : product.name_en || product.name,
           price: product.price,
           quantity: 1,
-          image: product.image_url || product.image || '',
-          category: product.category?.name || '',
-        })
+          image: product.image_url || product.image || "",
+          category: product.category?.name || "",
+        }),
       );
     },
-    [dispatch, language]
+    [dispatch, language],
   );
 
   const handleCategoryChange = useCallback((categoryId: number) => {
-    setSelectedCategory(categoryId === 0 ? 'all' : categoryId.toString());
+    setSelectedCategory(categoryId === 0 ? "all" : categoryId.toString());
   }, []);
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       debouncedSearch(e.target.value);
     },
-    [debouncedSearch]
+    [debouncedSearch],
   );
 
   // Utility functions
   const getProductName = useCallback(
     (product: Product): string => {
-      return language === 'he'
+      return language === "he"
         ? product.name_he || product.name
         : product.name_en || product.name;
     },
-    [language]
+    [language],
   );
 
   const getProductDescription = useCallback(
     (product: Product): string => {
-      return language === 'he'
-        ? product.description_he || ''
-        : product.description_en || product.description || '';
+      return language === "he"
+        ? product.description_he || ""
+        : product.description_en || product.description || "";
     },
-    [language]
+    [language],
   );
 
   const getCategoryName = useCallback(
     (category: Category): string => {
-      return language === 'he'
+      return language === "he"
         ? category.name_he || category.name
         : category.name_en || category.name;
     },
-    [language]
+    [language],
   );
 
   if (isLoading) {
@@ -535,7 +535,7 @@ const MenuPage: React.FC = () => {
           <SearchContainer>
             <SearchIconWrapper>🔍</SearchIconWrapper>
             <SearchInput
-              type='text'
+              type="text"
               placeholder={t.searchPlaceholder}
               onChange={handleSearchChange}
               aria-label={t.searchPlaceholder}
@@ -553,19 +553,19 @@ const MenuPage: React.FC = () => {
                 >
                   {getCategoryName(category)}
                 </CategoryButton>
-              )
+              ),
             )}
           </CategoryFilter>
         </FilterSection>
 
         <ResultsCount>
           {t.resultsCount.replace(
-            '{count}',
-            filteredProducts.length.toString()
+            "{count}",
+            filteredProducts.length.toString(),
           )}
         </ResultsCount>
 
-        <AnimatePresence mode='wait'>
+        <AnimatePresence mode="wait">
           {filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map(
@@ -577,21 +577,21 @@ const MenuPage: React.FC = () => {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     tabIndex={0}
-                    role='button'
+                    role="button"
                     aria-label={`View ${getProductName(product)} - ₪${product.price}`}
                     onKeyDown={(e): void => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         // Handle product click if needed
                       }
                     }}
                   >
                     <ProductImage
-                      imageUrl={product.image_url || product.image || ''}
-                      emoji={product.emoji || ''}
+                      imageUrl={product.image_url || product.image || ""}
+                      emoji={product.emoji || ""}
                     >
                       {product.emoji && (
-                        <span role='img' aria-label={getProductName(product)}>
+                        <span role="img" aria-label={getProductName(product)}>
                           {product.emoji}
                         </span>
                       )}
@@ -613,9 +613,9 @@ const MenuPage: React.FC = () => {
 
                       <ProductMeta>
                         <MetaItem>
-                          <span style={{ fontSize: '14px' }}>⏱️</span>
+                          <span style={{ fontSize: "14px" }}>⏱️</span>
                           {product.preparation_time_minutes ||
-                            product.preparation_time}{' '}
+                            product.preparation_time}{" "}
                           {t.minutes}
                         </MetaItem>
                       </ProductMeta>
@@ -630,7 +630,7 @@ const MenuPage: React.FC = () => {
                       </AddToCartButton>
                     </ProductInfo>
                   </ProductCard>
-                )
+                ),
               )}
             </ProductsGrid>
           ) : (
