@@ -34,7 +34,8 @@ const { connectRedis, closeRedis } = require('./config/redis');
 // Validate environment variables
 if (!validateEnvironment()) {
   if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
+    console.log('⚠️ Environment validation failed, but continuing in production mode');
+    console.log('⚠️ Some features may not work properly');
   } else {
     logger.warn('Running in development mode with missing environment variables');
   }

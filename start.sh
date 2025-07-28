@@ -45,6 +45,16 @@ if ! kill -0 $BACKEND_PID 2>/dev/null; then
     sleep 3
 fi
 
+# Check if backend is still running after minimal server
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo "❌ Minimal server failed. Trying fallback server..."
+    kill $BACKEND_PID 2>/dev/null
+    
+    npm run start:fallback &
+    BACKEND_PID=$!
+    sleep 3
+fi
+
 # Final check
 if ! kill -0 $BACKEND_PID 2>/dev/null; then
     echo "❌ All backend startup attempts failed. Starting frontend only..."

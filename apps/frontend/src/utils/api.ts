@@ -100,8 +100,29 @@ const clearCache = (): void => {
 };
 
 // Create axios instance with enhanced configuration
+const getApiBaseUrl = (): string => {
+  // Check for explicit API URL
+  if (process.env['REACT_APP_API_URL']) {
+    console.log('🔧 Using REACT_APP_API_URL:', process.env['REACT_APP_API_URL']);
+    return process.env['REACT_APP_API_URL'];
+  }
+  
+  // Check if we're in production (on Render)
+  if (process.env['NODE_ENV'] === 'production') {
+    // Use the current domain for production
+    const currentDomain = window.location.origin;
+    const apiUrl = `${currentDomain}/api`;
+    console.log('🔧 Using production API URL:', apiUrl);
+    return apiUrl;
+  }
+  
+  // Development fallback
+  console.log('🔧 Using development API URL: http://localhost:3001/api');
+  return 'http://localhost:3001/api';
+};
+
 const api: AxiosInstance = axios.create({
-  baseURL: process.env['REACT_APP_API_URL'] || 'http://localhost:3001/api',
+  baseURL: getApiBaseUrl(),
   timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',

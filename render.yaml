@@ -60,7 +60,7 @@ services:
         sync: false
       # Frontend Environment Variables
       - key: REACT_APP_API_URL
-        value: https://samna-salta-app.onrender.com/api
+        value: https://samna-salta-webapp.onrender.com/api
       - key: REACT_APP_ENVIRONMENT
         value: production
       - key: REACT_APP_STRIPE_PUBLISHABLE_KEY
