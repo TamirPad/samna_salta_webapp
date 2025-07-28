@@ -318,7 +318,7 @@ const startServer = async () => {
     }
     
     // Use PORT from environment or default to 3001
-    const port = process.env.PORT || 3001;
+    const port = process.env.BACKEND_PORT || process.env.PORT || 3001; // Use BACKEND_PORT first
     
     // Add error handling for port conflicts
     server.on('error', (error) => {

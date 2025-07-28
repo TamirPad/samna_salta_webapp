@@ -31,7 +31,7 @@ app.get('/health', (req, res) => {
 });
 
 // Start server
-const port = process.env.PORT || 3001;
+const port = process.env.BACKEND_PORT || process.env.PORT || 3001;
 
 server.listen(port, () => {
   console.log(`✅ Minimal server running on port ${port}`);

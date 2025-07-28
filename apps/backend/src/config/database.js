@@ -67,7 +67,8 @@ const createPool = () => {
       hasConnectionString: !!process.env.SUPABASE_CONNECTION_STRING,
       hasDBHost: !!process.env.DB_HOST,
       hasDBPassword: !!process.env.DB_PASSWORD,
-      nodeEnv: process.env.NODE_ENV
+      nodeEnv: process.env.NODE_ENV,
+      connectionStringLength: process.env.SUPABASE_CONNECTION_STRING ? process.env.SUPABASE_CONNECTION_STRING.length : 0
     });
     
     pool = new Pool({
