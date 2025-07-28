@@ -19,7 +19,7 @@ trap cleanup SIGTERM SIGINT
 
 # Start backend
 echo "🔧 Starting backend..."
-cd apps/backend && npm start &
+cd apps/backend && PORT=$BACKEND_PORT npm start &
 BACKEND_PID=$!
 sleep 5
 
@@ -33,7 +33,7 @@ echo "✅ Backend started successfully!"
 
 # Start frontend
 echo "📱 Starting frontend..."
-cd ../frontend && npm start &
+cd apps/frontend && npm start &
 FRONTEND_PID=$!
 
 echo "🎉 Both servers started successfully!"
