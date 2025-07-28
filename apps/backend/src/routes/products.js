@@ -42,6 +42,7 @@ router.get('/', [
       }
     } catch (error) {
       // Cache not available, continue without it
+      console.log('💡 Cache not available, proceeding without cache');
       logger.debug('Cache not available, proceeding without cache');
     }
 
@@ -69,7 +70,37 @@ router.get('/', [
     sql += ` ORDER BY p.display_order ASC, p.name ASC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
     params.push(limit, offset);
 
-    const result = await dbQuery(sql, params);
+    let result;
+    try {
+      result = await dbQuery(sql, params);
+    } catch (dbError) {
+      console.error('❌ Database error fetching products:', dbError.message);
+      logger.error('Database error fetching products:', dbError);
+      
+      // Check if it's a connection error
+      if (dbError.message.includes('Database not connected') || 
+          dbError.message.includes('connection') ||
+          dbError.code === 'ECONNREFUSED' ||
+          dbError.code === 'ENOTFOUND') {
+        return res.status(503).json({
+          success: false,
+          error: 'Database unavailable',
+          message: 'Menu items are temporarily unavailable due to database connectivity issues.',
+          details: 'Please try again later or contact support if the problem persists.',
+          fallback: {
+            message: 'The application is currently experiencing technical difficulties.',
+            suggestion: 'Please check back in a few minutes.'
+          }
+        });
+      }
+      
+      // For other database errors, return generic error
+      return res.status(500).json({
+        success: false,
+        error: 'Database error',
+        message: 'Failed to fetch menu items due to a database error.'
+      });
+    }
 
     // Cache the result for 5 minutes (optional)
     try {
@@ -77,8 +108,12 @@ router.get('/', [
       await setCache(cacheKey, result.rows, 300);
     } catch (error) {
       // Cache not available, continue without it
+      console.log('💡 Cache not available, skipping cache set');
       logger.debug('Cache not available, skipping cache set');
     }
+
+    console.log('✅ Products fetched successfully:', { count: result.rows.length, category, search });
+    logger.info('Products fetched successfully:', { count: result.rows.length, category, search });
 
     res.json({
       success: true,
@@ -91,6 +126,7 @@ router.get('/', [
     });
 
   } catch (error) {
+    console.error('❌ Get products error:', error.message);
     logger.error('Get products error:', error);
     res.status(500).json({
       success: false,

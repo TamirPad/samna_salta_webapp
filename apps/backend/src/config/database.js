@@ -56,10 +56,19 @@ const getDatabaseConfig = () => {
 
 let pool = null;
 let isConnected = false;
+let connectionAttempts = 0;
+const maxConnectionAttempts = 3;
 
 const createPool = () => {
   if (!pool) {
     const config = getDatabaseConfig();
+    
+    console.log('🔧 Database configuration:', {
+      hasConnectionString: !!process.env.SUPABASE_CONNECTION_STRING,
+      hasDBHost: !!process.env.DB_HOST,
+      hasDBPassword: !!process.env.DB_PASSWORD,
+      nodeEnv: process.env.NODE_ENV
+    });
     
     pool = new Pool({
       ...config,
@@ -73,11 +82,14 @@ const createPool = () => {
 
     // Test the connection
     pool.on('connect', () => {
+      console.log('✅ Connected to PostgreSQL database');
       logger.info('Connected to PostgreSQL database');
       isConnected = true;
+      connectionAttempts = 0;
     });
 
     pool.on('error', (err) => {
+      console.error('❌ Database pool error:', err.message);
       logger.error('Unexpected error on idle client', err);
       isConnected = false;
       // Don't exit process in production, let it handle reconnection
@@ -93,10 +105,14 @@ const connectDB = async () => {
   try {
     createPool();
     const client = await pool.connect();
+    console.log('✅ Database connection established successfully');
     logger.info('Database connection established successfully');
     client.release();
     isConnected = true;
+    connectionAttempts = 0;
   } catch (error) {
+    connectionAttempts++;
+    console.error('❌ Database connection failed:', error.message);
     logger.error('Database connection failed:', error);
     isConnected = false;
     
@@ -109,9 +125,16 @@ const connectDB = async () => {
     
     // In production, don't throw immediately, allow retry
     if (process.env.NODE_ENV === 'production') {
-      logger.warn('Database connection failed in production, will retry on next request');
-      logger.warn('Some features may not work properly without database connection');
-      return;
+      if (connectionAttempts < maxConnectionAttempts) {
+        console.log(`⚠️ Database connection attempt ${connectionAttempts}/${maxConnectionAttempts} failed, will retry...`);
+        logger.warn(`Database connection attempt ${connectionAttempts}/${maxConnectionAttempts} failed, will retry`);
+        return;
+      } else {
+        console.log('⚠️ Database connection failed after all attempts, continuing without database');
+        logger.warn('Database connection failed after all attempts, continuing without database');
+        logger.warn('Some features may not work properly without database connection');
+        return;
+      }
     }
     
     // Only throw in non-production environments
@@ -127,6 +150,7 @@ const query = async (text, params) => {
       try {
         await connectDB();
       } catch (error) {
+        console.error('❌ Failed to reconnect to database:', error.message);
         logger.error('Failed to reconnect to database:', error);
         throw new Error('Database not connected. Please ensure PostgreSQL is running.');
       }
@@ -147,6 +171,7 @@ const query = async (text, params) => {
       return res;
     } catch (error) {
       lastError = error;
+      console.warn(`⚠️ Query attempt ${attempt} failed:`, error.message);
       logger.warn(`Query attempt ${attempt} failed:`, error.message);
       
       // Don't retry on certain errors
@@ -160,6 +185,7 @@ const query = async (text, params) => {
     }
   }
   
+  console.error('❌ Query failed after all retries:', lastError.message);
   logger.error('Query failed after all retries:', lastError);
   throw lastError;
 };

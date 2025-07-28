@@ -132,10 +132,36 @@ router.post('/login', validateLogin, async (req, res) => {
     const { email, password } = req.body;
 
     // Find user
-    const result = await query(
-      'SELECT id, name, email, password_hash, phone, is_admin FROM users WHERE email = $1',
-      [email]
-    );
+    let result;
+    try {
+      result = await query(
+        'SELECT id, name, email, password_hash, phone, is_admin FROM users WHERE email = $1',
+        [email]
+      );
+    } catch (dbError) {
+      console.error('❌ Database error during login:', dbError.message);
+      logger.error('Database error during login:', dbError);
+      
+      // Check if it's a connection error
+      if (dbError.message.includes('Database not connected') || 
+          dbError.message.includes('connection') ||
+          dbError.code === 'ECONNREFUSED' ||
+          dbError.code === 'ENOTFOUND') {
+        return res.status(503).json({
+          success: false,
+          error: 'Database unavailable',
+          message: 'Database connection is not available. Please try again later.',
+          details: 'The application is currently experiencing database connectivity issues.'
+        });
+      }
+      
+      // For other database errors, return generic error
+      return res.status(500).json({
+        success: false,
+        error: 'Database error',
+        message: 'An error occurred while processing your request.'
+      });
+    }
 
     if (result.rows.length === 0) {
       return res.status(401).json({
@@ -165,7 +191,13 @@ router.post('/login', validateLogin, async (req, res) => {
       isAdmin: user.is_admin
     };
 
-    await setSession(sessionId, sessionData);
+    try {
+      await setSession(sessionId, sessionData);
+    } catch (sessionError) {
+      console.warn('⚠️ Session creation failed, continuing without session:', sessionError.message);
+      logger.warn('Session creation failed:', sessionError);
+      // Continue without session - JWT will still work
+    }
 
     // Generate JWT token
     const token = jwt.sign(
@@ -179,12 +211,19 @@ router.post('/login', validateLogin, async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Update last login
-    await query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
-      [user.id]
-    );
+    // Update last login (optional - don't fail if this fails)
+    try {
+      await query(
+        'UPDATE users SET last_login = NOW() WHERE id = $1',
+        [user.id]
+      );
+    } catch (updateError) {
+      console.warn('⚠️ Failed to update last login:', updateError.message);
+      logger.warn('Failed to update last login:', updateError);
+      // Don't fail the login for this
+    }
 
+    console.log('✅ User logged in successfully:', { userId: user.id, email });
     logger.info('User logged in successfully:', { userId: user.id, email });
 
     res.json({
@@ -203,6 +242,7 @@ router.post('/login', validateLogin, async (req, res) => {
     });
 
   } catch (error) {
+    console.error('❌ Login error:', error.message);
     logger.error('Login error:', error);
     res.status(500).json({
       success: false,
