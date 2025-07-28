@@ -138,6 +138,7 @@ async function handleStaticRequest(request) {
     console.warn('Static asset fetch failed:', error);
     // Return a fallback response for critical assets
     if (request.url.includes('bundle.js')) {
+      return new Response('// Fallback for bundle.js', {
         headers: { 'Content-Type': 'application/javascript' }
       });
     }

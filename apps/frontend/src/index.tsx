@@ -17,10 +17,12 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js')
       .then(registration => {
-        // Service worker registered successfully
+        console.log('✅ Service Worker registered successfully:', registration);
       })
       .catch(registrationError => {
-        // Service worker registration failed
+        console.warn('⚠️ Service Worker registration failed:', registrationError);
+        console.log('💡 This is normal if the service worker has syntax errors');
+        console.log('💡 The app will still work without offline support');
       });
   });
 }
