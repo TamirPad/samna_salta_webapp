@@ -1,12 +1,4 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useState,
-  useEffect,
-  useCallback,
-  memo,
-  useMemo,
-} from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
@@ -629,4 +621,4 @@ const Header: React.FC = (): JSX.Element => {
   );
 };
 
-export default memo(Header);
+export default Header;

@@ -364,4 +364,7 @@ export type FormatDateFunction = (date: string) => string;
 export type GetProductNameFunction = (product: Product) => string;
 export type GetCategoryNameFunction = (category: string) => string;
 export type GetStatusTextFunction = (status: string) => string;
-export type DebounceFunction = (func: Function, delay: number) => Function;
+export type DebounceFunction = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number,
+) => (...args: Parameters<T>) => void;

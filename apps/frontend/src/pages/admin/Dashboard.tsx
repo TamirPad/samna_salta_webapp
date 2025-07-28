@@ -1,11 +1,4 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
@@ -224,6 +217,7 @@ const Dashboard: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [dispatch, isAuthenticated, user?.isAdmin]);
 
   // Clear error when component unmounts

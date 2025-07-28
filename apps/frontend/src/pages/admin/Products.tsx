@@ -1,22 +1,15 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus,
   Search,
-  Filter,
+  Plus,
+  Eye,
   Edit,
   Trash2,
-  Eye,
-  Package,
   AlertCircle,
+  Package,
+  Filter,
 } from "lucide-react";
 import { useAppSelector } from "../../hooks/redux";
 import { selectLanguage } from "../../features/language/languageSlice";
@@ -577,21 +570,23 @@ const AdminProducts: React.FC = () => {
   }, [mockProducts, selectedCategory, searchQuery]);
 
   // Debounced search handler
-  const debouncedSearch = useCallback(
-    debounce((query: unknown) => {
-      if (typeof query === "string") {
-        setSearchQuery(query);
-      }
-    }, 300),
-    [],
+  const debouncedSearch = useCallback((query: unknown) => {
+    if (typeof query === "string") {
+      setSearchQuery(query);
+    }
+  }, []);
+
+  const debouncedSearchHandler = useMemo(
+    () => debounce(debouncedSearch, 300),
+    [debouncedSearch],
   );
 
   // Memoized handlers
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      debouncedSearch(e.target.value);
+      debouncedSearchHandler(e.target.value);
     },
-    [debouncedSearch],
+    [debouncedSearchHandler],
   );
 
   const handleAddProduct = useCallback(() => {

@@ -326,8 +326,6 @@ export interface ApiService {
   getSalesReport: (params?: any) => Promise<any>;
   getProductAnalytics: (params?: any) => Promise<any>;
   getCustomerAnalytics: (params?: any) => Promise<any>;
-
-
 }
 
 // API service with enhanced methods
@@ -447,7 +445,6 @@ export const apiService: ApiService = {
     api.get("/analytics/customers", { params }),
 
   // File Upload with progress tracking
-
 };
 
 // Export axios instance for direct use if needed

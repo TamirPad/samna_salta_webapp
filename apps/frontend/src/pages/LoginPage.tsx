@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
-import {
-  loginStart,
-  loginSuccess,
-  loginFailure,
+import { 
+  loginStart, 
+  loginSuccess, 
+  loginFailure, 
+  selectAuth, 
+  selectIsAuthInitialized 
 } from "../features/auth/authSlice";
-import {
-  selectAuth,
-  selectIsAuthInitialized,
-} from "../features/auth/authSlice";
-import { apiService } from "../utils/api";
+import { selectLanguage } from "../features/language/languageSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 import AuthRedirect from "../components/AuthRedirect";
+import { apiService } from "../utils/api";
 
 const LoginPage: React.FC = (): JSX.Element => {
   const [email, setEmail] = useState<string>("");

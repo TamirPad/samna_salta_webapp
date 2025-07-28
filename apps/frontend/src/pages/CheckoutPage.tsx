@@ -1,10 +1,4 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useState,
-  useEffect,
-  useMemo,
-} from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -483,7 +477,7 @@ const CheckoutPage: React.FC = () => {
     if (!formData.customer_phone.trim()) {
       newErrors["customer_phone"] = t.requiredField;
     } else if (
-      !/^[\+]?[1-9][\d]{0,15}$/.test(formData.customer_phone.replace(/\s/g, ""))
+      !/^[+]?[1-9][\d]{0,15}$/.test(formData.customer_phone.replace(/\s/g, ""))
     ) {
       newErrors["customer_phone"] = t.invalidPhone;
     }

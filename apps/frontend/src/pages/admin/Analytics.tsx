@@ -279,6 +279,7 @@ const AdminAnalytics: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [dispatch, isAuthenticated, user?.isAdmin]);
 
   // Clear error when component unmounts

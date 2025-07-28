@@ -1,12 +1,4 @@
-import React, {
-  Suspense,
-  lazy,
-  useMemo,
-  useEffect,
-  ReactElement,
-  ReactNode,
-  useState,
-} from "react";
+import React, { Suspense, lazy, useEffect, useMemo } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,12 +11,8 @@ import AuthProvider from "./components/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppSelector } from "./hooks/redux";
 import { selectLanguage } from "./features/language/languageSlice";
-import {
-  saveRouteState,
-  handlePageRefresh,
-  wasPageRefreshed,
-  clearNavigationError,
-} from "./utils/routeUtils";
+import { selectAuth } from "./features/auth/authSlice";
+import { saveRouteState, handlePageRefresh, wasPageRefreshed, clearNavigationError } from "./utils/routeUtils";
 
 // Lazy load pages with explicit chunk names for better webpack handling
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -133,6 +121,7 @@ const RoutePersistence: React.FC = () => {
 
 const App: React.FC = (): JSX.Element => {
   const language = useAppSelector(selectLanguage);
+  const { isAuthenticated } = useAppSelector(selectAuth);
 
   // Memoized route rendering
   const routeElements = useMemo(

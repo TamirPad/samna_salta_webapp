@@ -1,10 +1,4 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useState,
-  useEffect,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -584,7 +578,7 @@ const OrderTrackingPage: React.FC = () => {
     [orderId],
   );
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -603,7 +597,7 @@ const OrderTrackingPage: React.FC = () => {
       setError("Failed to fetch order details");
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -615,7 +609,7 @@ const OrderTrackingPage: React.FC = () => {
     if (orderId) {
       fetchOrder();
     }
-  }, [orderId]);
+  }, [orderId, fetchOrder]);
 
   const getStatusSteps = () => {
     const steps = [

@@ -1,0 +1,18 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="30" cy="30" r="25" fill="#8B4513" stroke="#D2691E" stroke-width="2"/>
+  
+  <!-- Fork and knife icon -->
+  <path d="M25 15 L25 45 M20 20 L30 20 M20 25 L30 25 M20 30 L30 30" 
+        stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <path d="M35 15 L35 45 M32 18 L38 18 M32 22 L38 22 M32 26 L38 26" 
+        stroke="white" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Text -->
+  <text x="70" y="25" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#8B4513">
+    SAMNA SALTA
+  </text>
+  <text x="70" y="40" font-family="Arial, sans-serif" font-size="10" fill="#D2691E">
+    RESTAURANT
+  </text>
+</svg> 

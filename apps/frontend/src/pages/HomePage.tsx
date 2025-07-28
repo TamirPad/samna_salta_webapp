@@ -1,11 +1,4 @@
-import React, {
-  ReactElement,
-  ReactNode,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
@@ -330,7 +323,7 @@ const HomePage: React.FC = () => {
   const language = useAppSelector(selectLanguage);
 
   // Memoized translations
-  const translations = useMemo(
+  const translations = React.useMemo(
     () => ({
       he: {
         heroTitle: "ברוכים הבאים לסמנה סלטה",
@@ -388,13 +381,13 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const t = useMemo(
+  const t = React.useMemo(
     () => translations[language as keyof typeof translations],
     [translations, language],
   );
 
   // Memoized features data
-  const features = useMemo(
+  const features = React.useMemo(
     (): Feature[] => [
       {
         icon: "🍞",
@@ -416,7 +409,7 @@ const HomePage: React.FC = () => {
   );
 
   // Memoized products data
-  const products = useMemo(
+  const products = React.useMemo(
     (): Product[] => [
       {
         icon: "🍞",
@@ -447,16 +440,16 @@ const HomePage: React.FC = () => {
   );
 
   // Memoized handlers with useCallback
-  const handleFeatureClick = useCallback((_feature: Feature): void => {
+  const handleFeatureClick = React.useCallback((_feature: Feature): void => {
     // Analytics tracking or navigation logic can be implemented here
   }, []);
 
-  const handleProductClick = useCallback((_product: Product): void => {
+  const handleProductClick = React.useCallback((_product: Product): void => {
     // Navigate to menu or product detail
   }, []);
 
   // Memoized animation variants
-  const containerVariants = useMemo(
+  const containerVariants = React.useMemo(
     () => ({
       hidden: { opacity: 0 },
       visible: {
@@ -469,7 +462,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const itemVariants = useMemo(
+  const itemVariants = React.useMemo(
     () => ({
       hidden: { opacity: 0, y: 30 },
       visible: { opacity: 1, y: 0 },
