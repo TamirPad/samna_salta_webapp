@@ -296,27 +296,24 @@ app.use('*', (req, res) => {
 
 const startServer = async () => {
   try {
+    console.log('🚀 Starting Samna Salta Backend Server...');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Port:', process.env.PORT || 3001);
+    
     // Try to connect to database (but don't fail if it doesn't work)
     try {
       await connectDB();
-      logger.info('Database connection established', { service: 'samna-salta-api' });
+      console.log('✅ Database connection established');
     } catch (dbError) {
-      logger.warn('Database connection failed, server will start without database:', { 
-        service: 'samna-salta-api', 
-        error: dbError.message 
-      });
-      logger.warn('Some features may not work properly without database connection');
+      console.log('⚠️ Database connection failed, continuing without database:', dbError.message);
     }
     
     // Try to connect to Redis (but don't fail if it doesn't work)
     try {
       await connectRedis();
-      logger.info('Redis connection established', { service: 'samna-salta-api' });
+      console.log('✅ Redis connection established');
     } catch (redisError) {
-      logger.warn('Redis connection failed, using in-memory fallback:', { 
-        service: 'samna-salta-api', 
-        error: redisError.message 
-      });
+      console.log('⚠️ Redis connection failed, using in-memory fallback:', redisError.message);
     }
     
     // Use PORT from environment or default to 3001
@@ -324,11 +321,12 @@ const startServer = async () => {
     
     // Add error handling for port conflicts
     server.on('error', (error) => {
+      console.error('❌ Server error:', error.message);
       if (error.code === 'EADDRINUSE') {
-        logger.error(`Port ${port} is already in use. Trying port ${port + 1}`);
+        console.log(`⚠️ Port ${port} is already in use. Trying port ${port + 1}`);
         server.listen(port + 1);
       } else {
-        logger.error('Server error:', error);
+        console.error('❌ Fatal server error:', error);
         // Don't exit process in production, just log the error
         if (process.env.NODE_ENV !== 'production') {
           process.exit(1);
@@ -337,10 +335,12 @@ const startServer = async () => {
     });
     
     server.listen(port, () => {
-      logger.info(`Server running on port ${port}`, { service: 'samna-salta-api' });
+      console.log(`✅ Server running on port ${port}`);
+      console.log(`🌐 Health check: http://localhost:${port}/health`);
+      console.log(`🧪 Test endpoint: http://localhost:${port}/api/test`);
     });
   } catch (error) {
-    logger.error('Failed to start server:', { service: 'samna-salta-api', error: error.message });
+    console.error('❌ Failed to start server:', error.message);
     // Don't exit process in production, just log the error
     if (process.env.NODE_ENV !== 'production') {
       process.exit(1);
@@ -352,22 +352,37 @@ startServer();
 
 // Graceful shutdown
 const gracefulShutdown = async (signal) => {
-  logger.info(`${signal} received, shutting down gracefully`);
+  console.log(`🛑 ${signal} received, shutting down gracefully`);
   
   try {
     // Close server
     server.close(() => {
-      logger.info('HTTP server closed');
+      console.log('✅ HTTP server closed');
     });
     
     // Close database connections
-    await closePool();
-    await closeRedis();
+    try {
+      await closePool();
+      console.log('✅ Database pool closed');
+    } catch (error) {
+      console.log('⚠️ Error closing database pool:', error.message);
+    }
     
-    logger.info('Graceful shutdown completed');
-    process.exit(0);
+    try {
+      await closeRedis();
+      console.log('✅ Redis connection closed');
+    } catch (error) {
+      console.log('⚠️ Error closing Redis connection:', error.message);
+    }
+    
+    console.log('✅ Graceful shutdown completed');
+    
+    // Only exit if not in production or if it's a critical error
+    if (process.env.NODE_ENV !== 'production' || signal === 'uncaughtException' || signal === 'unhandledRejection') {
+      process.exit(0);
+    }
   } catch (error) {
-    logger.error('Error during graceful shutdown:', error);
+    console.error('❌ Error during graceful shutdown:', error);
     process.exit(1);
   }
 };
@@ -377,13 +392,29 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
+  console.error('❌ Uncaught Exception:', error.message);
+  console.error('Stack trace:', error.stack);
+  
+  // In production, don't exit immediately, try to log and continue
+  if (process.env.NODE_ENV === 'production') {
+    console.log('⚠️ Continuing in production despite uncaught exception');
+    return;
+  }
+  
   gracefulShutdown('uncaughtException');
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('Reason:', reason);
+  
+  // In production, don't exit immediately, try to log and continue
+  if (process.env.NODE_ENV === 'production') {
+    console.log('⚠️ Continuing in production despite unhandled rejection');
+    return;
+  }
+  
   gracefulShutdown('unhandledRejection');
 });
 
