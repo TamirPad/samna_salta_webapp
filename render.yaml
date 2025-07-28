@@ -1,0 +1,22 @@
+services:
+  # Single Web Service (Backend + Frontend)
+  - type: web
+    name: samna-salta-webapp
+    env: node
+    plan: free
+    rootDir: apps/backend
+    buildCommand: npm install && cd ../frontend && npm install && npm run build && cd ../backend
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://samna-salta-webapp.onrender.com
+      - key: LOG_LEVEL
+        value: info 

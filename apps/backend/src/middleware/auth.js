@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const { getSession } = require('../config/redis');
 const logger = require('../utils/logger');
 
 const authenticateToken = async (req, res, next) => {
@@ -17,16 +16,7 @@ const authenticateToken = async (req, res, next) => {
     // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Check if user session exists in Redis
-    const session = await getSession(decoded.sessionId);
-    if (!session) {
-      return res.status(401).json({ 
-        success: false,
-        error: 'Invalid session'
-      });
-    }
-
-    // Add user info to request
+    // Add user info to request (no session validation needed)
     req.user = {
       id: decoded.userId || decoded.id,
       email: decoded.email,
@@ -76,16 +66,12 @@ const optionalAuth = async (req, res, next) => {
 
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const session = await getSession(decoded.sessionId);
-      
-      if (session) {
-        req.user = {
-          id: decoded.userId || decoded.id,
-          email: decoded.email,
-          isAdmin: decoded.isAdmin,
-          sessionId: decoded.sessionId
-        };
-      }
+      req.user = {
+        id: decoded.userId || decoded.id,
+        email: decoded.email,
+        isAdmin: decoded.isAdmin,
+        sessionId: decoded.sessionId
+      };
     }
     
     next();

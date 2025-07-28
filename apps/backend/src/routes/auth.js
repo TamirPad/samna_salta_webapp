@@ -5,7 +5,6 @@ const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 
 const { query } = require('../config/database');
-const { setSession, deleteSession } = require('../config/redis');
 const { authenticateToken } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
@@ -67,23 +66,13 @@ router.post('/register', validateRegistration, async (req, res) => {
 
     const user = result.rows[0];
 
-    // Create session
-    const sessionId = uuidv4();
-    const sessionData = {
-      userId: user.id,
-      email: user.email,
-      isAdmin: user.is_admin
-    };
-
-    await setSession(sessionId, sessionData);
-
     // Generate JWT token
     const token = jwt.sign(
       {
         userId: user.id,
         email: user.email,
         isAdmin: user.is_admin,
-        sessionId
+        sessionId: uuidv4()
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
@@ -149,7 +138,7 @@ router.post('/login', validateLogin, async (req, res) => {
           userId: testUser.id,
           email: testUser.email,
           isAdmin: testUser.isAdmin,
-          sessionId: 'dev-session'
+          sessionId: uuidv4()
         },
         process.env.JWT_SECRET || 'dev-secret-key',
         { expiresIn: '7d' }
@@ -219,29 +208,13 @@ router.post('/login', validateLogin, async (req, res) => {
       });
     }
 
-    // Create session
-    const sessionId = uuidv4();
-    const sessionData = {
-      userId: user.id,
-      email: user.email,
-      isAdmin: user.is_admin
-    };
-
-    try {
-      await setSession(sessionId, sessionData);
-    } catch (sessionError) {
-      console.warn('⚠️ Session creation failed, continuing without session:', sessionError.message);
-      logger.warn('Session creation failed:', sessionError);
-      // Continue without session - JWT will still work
-    }
-
     // Generate JWT token
     const token = jwt.sign(
       {
         userId: user.id,
         email: user.email,
         isAdmin: user.is_admin,
-        sessionId
+        sessionId: uuidv4()
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
@@ -334,9 +307,6 @@ router.get('/me', authenticateToken, async (req, res) => {
 // Logout user
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
-    // Delete session
-    await deleteSession(req.user.sessionId);
-
     logger.info('User logged out successfully:', { userId: req.user.id });
 
     res.json({
@@ -353,7 +323,5 @@ router.post('/logout', authenticateToken, async (req, res) => {
     });
   }
 });
-
-
 
 module.exports = router; 
