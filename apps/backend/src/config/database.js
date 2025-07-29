@@ -4,23 +4,66 @@ const config = require('./environment');
 
 // Simple database configuration
 const getDatabaseConfig = () => {
-  const dbConfig = {
-    connectionString: config.DATABASE_URL,
-    host: config.DB_HOST,
-    port: config.DB_PORT,
-    database: config.DB_NAME,
-    user: config.DB_USER,
-    password: config.DB_PASSWORD,
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 30000
-  };
-
-  // SSL configuration for Supabase
-  if (config.isProduction()) {
-    dbConfig.ssl = {
-      rejectUnauthorized: false
+  // Parse DATABASE_URL to extract components
+  let dbConfig;
+  
+  if (config.DATABASE_URL) {
+    try {
+      const url = new URL(config.DATABASE_URL);
+      dbConfig = {
+        host: url.hostname,
+        port: parseInt(url.port) || 5432,
+        database: url.pathname.slice(1), // Remove leading slash
+        user: url.username,
+        password: url.password,
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 30000
+      };
+      
+      // Force IPv4 connection
+      dbConfig.host = url.hostname;
+      
+      // SSL configuration for Supabase
+      if (config.isProduction()) {
+        dbConfig.ssl = {
+          rejectUnauthorized: false
+        };
+      }
+    } catch (error) {
+      console.error('❌ Error parsing DATABASE_URL:', error);
+      // Fallback to individual env vars
+      dbConfig = {
+        connectionString: config.DATABASE_URL,
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 30000
+      };
+      
+      if (config.isProduction()) {
+        dbConfig.ssl = {
+          rejectUnauthorized: false
+        };
+      }
+    }
+  } else {
+    // Fallback to individual environment variables
+    dbConfig = {
+      host: config.DB_HOST,
+      port: config.DB_PORT,
+      database: config.DB_NAME,
+      user: config.DB_USER,
+      password: config.DB_PASSWORD,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 30000
     };
+    
+    if (config.isProduction()) {
+      dbConfig.ssl = {
+        rejectUnauthorized: false
+      };
+    }
   }
 
   return dbConfig;
@@ -60,12 +103,14 @@ const connectDB = async () => {
 
     console.log('🔧 Attempting to connect to database...');
     console.log('🔧 DATABASE_URL (first 50 chars):', config.DATABASE_URL.substring(0, 50) + '...');
-    console.log('📊 Database config:', {
-      host: config.DB_HOST || 'from connection string',
-      port: config.DB_PORT || 'from connection string',
-      database: config.DB_NAME || 'from connection string',
-      user: config.DB_USER || 'from connection string',
-      ssl: config.isProduction() ? {rejectUnauthorized: false} : false
+    
+    const dbConfig = getDatabaseConfig();
+    console.log('📊 Parsed database config:', {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database,
+      user: dbConfig.user,
+      ssl: dbConfig.ssl
     });
 
     createPool();
