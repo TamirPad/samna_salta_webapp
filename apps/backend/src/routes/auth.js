@@ -121,7 +121,7 @@ router.post('/login', validateLogin, async (req, res) => {
     const {email, password} = req.body;
 
     // Development mode fallback - allow any login without database
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || !process.env.DATABASE_URL) {
       console.log('🔧 Development mode: Using fallback login for any credentials');
 
       const testUser = {

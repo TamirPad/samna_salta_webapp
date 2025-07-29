@@ -26,9 +26,13 @@ const {connectDB, closePool} = require('./config/database');
 const {connectRedis, closeRedis} = require('./config/redis');
 
 const app = express();
+
+// Trust proxy for rate limiting behind load balancers
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 3001;
 
-// Basic middleware
+// Security middleware
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
