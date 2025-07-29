@@ -1,20 +1,20 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
+const {body, validationResult} = require('express-validator');
+const {v4: uuidv4} = require('uuid');
 
-const { query } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const {query} = require('../config/database');
+const {authenticateToken} = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 const router = express.Router();
 
 // Validation middleware
 const validateRegistration = [
-  body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+  body('name').trim().isLength({min: 2, max: 50}).withMessage('Name must be between 2 and 50 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+  body('password').isLength({min: 6}).withMessage('Password must be at least 6 characters long'),
   body('phone').optional().isMobilePhone().withMessage('Please provide a valid phone number')
 ];
 
@@ -36,7 +36,7 @@ router.post('/register', validateRegistration, async (req, res) => {
       });
     }
 
-    const { name, email, password, phone } = req.body;
+    const {name, email, password, phone} = req.body;
 
     // Check if user already exists
     const existingUser = await query(
@@ -75,10 +75,10 @@ router.post('/register', validateRegistration, async (req, res) => {
         sessionId: uuidv4()
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      {expiresIn: '7d'}
     );
 
-    logger.info('User registered successfully:', { userId: user.id, email });
+    logger.info('User registered successfully:', {userId: user.id, email});
 
     res.status(201).json({
       success: true,
@@ -118,16 +118,16 @@ router.post('/login', validateLogin, async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
+    const {email, password} = req.body;
 
     // Development mode fallback - allow any login without database
     if (process.env.NODE_ENV === 'development') {
       console.log('🔧 Development mode: Using fallback login for any credentials');
-      
+
       const testUser = {
         id: 1,
         name: 'Test User',
-        email: email,
+        email,
         phone: '+1234567890',
         isAdmin: true
       };
@@ -141,10 +141,10 @@ router.post('/login', validateLogin, async (req, res) => {
           sessionId: uuidv4()
         },
         process.env.JWT_SECRET || 'dev-secret-key',
-        { expiresIn: '7d' }
+        {expiresIn: '7d'}
       );
 
-      console.log('✅ Development login successful:', { userId: testUser.id, email });
+      console.log('✅ Development login successful:', {userId: testUser.id, email});
 
       return res.json({
         success: true,
@@ -166,9 +166,9 @@ router.post('/login', validateLogin, async (req, res) => {
     } catch (dbError) {
       console.error('❌ Database error during login:', dbError.message);
       logger.error('Database error during login:', dbError);
-      
+
       // Check if it's a connection error
-      if (dbError.message.includes('Database not connected') || 
+      if (dbError.message.includes('Database not connected') ||
           dbError.message.includes('connection') ||
           dbError.code === 'ECONNREFUSED' ||
           dbError.code === 'ENOTFOUND') {
@@ -179,7 +179,7 @@ router.post('/login', validateLogin, async (req, res) => {
           details: 'The application is currently experiencing database connectivity issues.'
         });
       }
-      
+
       // For other database errors, return generic error
       return res.status(500).json({
         success: false,
@@ -217,7 +217,7 @@ router.post('/login', validateLogin, async (req, res) => {
         sessionId: uuidv4()
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      {expiresIn: '7d'}
     );
 
     // Update last login (optional - don't fail if this fails)
@@ -232,8 +232,8 @@ router.post('/login', validateLogin, async (req, res) => {
       // Don't fail the login for this
     }
 
-    console.log('✅ User logged in successfully:', { userId: user.id, email });
-    logger.info('User logged in successfully:', { userId: user.id, email });
+    console.log('✅ User logged in successfully:', {userId: user.id, email});
+    logger.info('User logged in successfully:', {userId: user.id, email});
 
     res.json({
       success: true,
@@ -307,7 +307,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 // Logout user
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
-    logger.info('User logged out successfully:', { userId: req.user.id });
+    logger.info('User logged out successfully:', {userId: req.user.id});
 
     res.json({
       success: true,
@@ -324,4 +324,4 @@ router.post('/logout', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

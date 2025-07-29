@@ -1,7 +1,7 @@
 const express = require('express');
-const { body, validationResult, query } = require('express-validator');
-const { authenticateToken, requireAdmin, optionalAuth } = require('../middleware/auth');
-const { query: dbQuery, getClient } = require('../config/database');
+const {body, validationResult, query} = require('express-validator');
+const {authenticateToken, requireAdmin, optionalAuth} = require('../middleware/auth');
+const {query: dbQuery, getClient} = require('../config/database');
 const Stripe = require('stripe');
 const logger = require('../utils/logger');
 
@@ -10,17 +10,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Validation middleware
 const validateOrder = [
-  body('customer_name').trim().isLength({ min: 2, max: 100 }).withMessage('Customer name must be between 2 and 100 characters'),
-  body('customer_phone').trim().isLength({ min: 5, max: 20 }).withMessage('Phone number must be between 5 and 20 characters'),
+  body('customer_name').trim().isLength({min: 2, max: 100}).withMessage('Customer name must be between 2 and 100 characters'),
+  body('customer_phone').trim().isLength({min: 5, max: 20}).withMessage('Phone number must be between 5 and 20 characters'),
   body('customer_email').optional().isEmail().withMessage('Please provide a valid email'),
   body('delivery_method').isIn(['pickup', 'delivery']).withMessage('Delivery method must be pickup or delivery'),
   body('delivery_address').if(body('delivery_method').equals('delivery')).notEmpty().withMessage('Delivery address is required for delivery orders'),
   body('payment_method').isIn(['cash', 'card', 'online']).withMessage('Payment method must be cash, card, or online'),
-  body('order_items').isArray({ min: 1 }).withMessage('Order must contain at least one item'),
-  body('order_items.*.product_id').isInt({ min: 1 }).withMessage('Product ID must be a positive integer'),
-  body('order_items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
-  body('subtotal').isFloat({ min: 0 }).withMessage('Subtotal must be a positive number'),
-  body('total').isFloat({ min: 0 }).withMessage('Total must be a positive number')
+  body('order_items').isArray({min: 1}).withMessage('Order must contain at least one item'),
+  body('order_items.*.product_id').isInt({min: 1}).withMessage('Product ID must be a positive integer'),
+  body('order_items.*.quantity').isInt({min: 1}).withMessage('Quantity must be at least 1'),
+  body('subtotal').isFloat({min: 0}).withMessage('Subtotal must be a positive number'),
+  body('total').isFloat({min: 0}).withMessage('Total must be a positive number')
 ];
 
 // Generate order number
@@ -33,7 +33,7 @@ const generateOrderNumber = () => {
 // Create order (public)
 router.post('/', optionalAuth, validateOrder, async (req, res) => {
   const client = await getClient();
-  
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -64,7 +64,7 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
         'SELECT id FROM customers WHERE email = $1',
         [customer_email]
       );
-      
+
       if (customerResult.rows.length > 0) {
         customerId = customerResult.rows[0].id;
       } else {
@@ -154,7 +154,7 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
       });
     }
 
-    logger.info('Order created successfully:', { orderId: order.id, orderNumber });
+    logger.info('Order created successfully:', {orderId: order.id, orderNumber});
 
     res.status(201).json({
       success: true,
@@ -189,7 +189,7 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
 // Get order by ID (public for order tracking)
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
 
     const orderResult = await dbQuery(
       `SELECT o.*, 
@@ -248,11 +248,11 @@ router.get('/:id', async (req, res) => {
 // Get orders (admin only)
 router.get('/', authenticateToken, requireAdmin, [
   query('status').optional().isString(),
-  query('page').optional().isInt({ min: 1 }),
-  query('limit').optional().isInt({ min: 1, max: 100 })
+  query('page').optional().isInt({min: 1}),
+  query('limit').optional().isInt({min: 1, max: 100})
 ], async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
+    const {status, page = 1, limit = 20} = req.query;
     const offset = (page - 1) * limit;
 
     let sql = `
@@ -263,7 +263,7 @@ router.get('/', authenticateToken, requireAdmin, [
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN order_status_updates osu ON o.id = osu.order_id
     `;
-    
+
     const params = [];
     let paramCount = 0;
 
@@ -313,7 +313,7 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
   body('description').optional().isString()
 ], async (req, res) => {
   const client = await getClient();
-  
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -324,8 +324,8 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
       });
     }
 
-    const { id } = req.params;
-    const { status, description } = req.body;
+    const {id} = req.params;
+    const {status, description} = req.body;
 
     await client.query('BEGIN');
 
@@ -360,12 +360,12 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
     if (io) {
       io.to(`order-${id}`).emit('order-update', {
         orderId: id,
-        status: status,
+        status,
         message: description || `Order status updated to ${status}`
       });
     }
 
-    logger.info('Order status updated:', { orderId: id, status, updatedBy: req.user.id });
+    logger.info('Order status updated:', {orderId: id, status, updatedBy: req.user.id});
 
     res.json({
       success: true,
@@ -389,8 +389,8 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
 // Confirm payment (for online payments)
 router.post('/:id/confirm-payment', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { payment_intent_id } = req.body;
+    const {id} = req.params;
+    const {payment_intent_id} = req.body;
 
     if (!payment_intent_id) {
       return res.status(400).json({
@@ -402,7 +402,7 @@ router.post('/:id/confirm-payment', async (req, res) => {
 
     // Verify payment with Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
-    
+
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({
         success: false,
@@ -434,7 +434,7 @@ router.post('/:id/confirm-payment', async (req, res) => {
       });
     }
 
-    logger.info('Payment confirmed:', { orderId: id, paymentIntentId: payment_intent_id });
+    logger.info('Payment confirmed:', {orderId: id, paymentIntentId: payment_intent_id});
 
     res.json({
       success: true,
@@ -456,10 +456,10 @@ router.post('/:id/cancel', authenticateToken, requireAdmin, [
   body('reason').optional().isString()
 ], async (req, res) => {
   const client = await getClient();
-  
+
   try {
-    const { id } = req.params;
-    const { reason } = req.body;
+    const {id} = req.params;
+    const {reason} = req.body;
 
     await client.query('BEGIN');
 
@@ -513,7 +513,7 @@ router.post('/:id/cancel', authenticateToken, requireAdmin, [
       });
     }
 
-    logger.info('Order cancelled:', { orderId: id, reason, cancelledBy: req.user.id });
+    logger.info('Order cancelled:', {orderId: id, reason, cancelledBy: req.user.id});
 
     res.json({
       success: true,
@@ -533,4 +533,4 @@ router.post('/:id/cancel', authenticateToken, requireAdmin, [
   }
 });
 
-module.exports = router; 
+module.exports = router;

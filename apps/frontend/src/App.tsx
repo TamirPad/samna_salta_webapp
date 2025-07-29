@@ -12,7 +12,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppSelector } from "./hooks/redux";
 import { selectLanguage } from "./features/language/languageSlice";
 import { selectAuth } from "./features/auth/authSlice";
-import { saveRouteState, handlePageRefresh, wasPageRefreshed, clearNavigationError } from "./utils/routeUtils";
+import {
+  saveRouteState,
+  handlePageRefresh,
+  wasPageRefreshed,
+  clearNavigationError,
+} from "./utils/routeUtils";
 
 // Lazy load pages with explicit chunk names for better webpack handling
 const HomePage = lazy(() => import("./pages/HomePage"));

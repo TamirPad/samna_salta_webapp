@@ -46,18 +46,18 @@ describe('Authentication Core Functions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockReq = {
       body: {},
       headers: {},
       user: null
     };
-    
+
     mockRes = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
     };
-    
+
     mockNext = jest.fn();
   });
 
@@ -65,10 +65,10 @@ describe('Authentication Core Functions', () => {
     it('should hash password correctly', async () => {
       const password = 'testpassword123';
       const hashedPassword = await bcrypt.hash(password, 12);
-      
+
       expect(hashedPassword).toBeDefined();
       expect(hashedPassword).not.toBe(password);
-      
+
       const isValid = await bcrypt.compare(password, hashedPassword);
       expect(isValid).toBe(true);
     });
@@ -76,10 +76,10 @@ describe('Authentication Core Functions', () => {
     it('should verify password correctly', async () => {
       const password = 'testpassword123';
       const hashedPassword = await bcrypt.hash(password, 12);
-      
+
       const isValid = await bcrypt.compare(password, hashedPassword);
       expect(isValid).toBe(true);
-      
+
       const isInvalid = await bcrypt.compare('wrongpassword', hashedPassword);
       expect(isInvalid).toBe(false);
     });
@@ -92,12 +92,12 @@ describe('Authentication Core Functions', () => {
         email: 'test@example.com',
         isAdmin: false
       };
-      
-      const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '1h' });
-      
+
+      const token = jwt.sign(userData, process.env.JWT_SECRET, {expiresIn: '1h'});
+
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
-      
+
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       expect(decoded.id).toBe(userData.id);
       expect(decoded.email).toBe(userData.email);
@@ -110,16 +110,16 @@ describe('Authentication Core Functions', () => {
         email: 'test@example.com',
         isAdmin: false
       };
-      
-      const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '1h' });
-      
+
+      const token = jwt.sign(userData, process.env.JWT_SECRET, {expiresIn: '1h'});
+
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       expect(decoded).toMatchObject(userData);
     });
 
     it('should reject invalid JWT token', () => {
       const invalidToken = 'invalid.token.here';
-      
+
       expect(() => {
         jwt.verify(invalidToken, process.env.JWT_SECRET);
       }).toThrow();
@@ -133,18 +133,18 @@ describe('Authentication Core Functions', () => {
         'user.name@domain.co.uk',
         'user+tag@example.org'
       ];
-      
+
       const invalidEmails = [
         'invalid-email',
         '@example.com',
         'user@',
         'user@.com'
       ];
-      
+
       validEmails.forEach(email => {
         expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       });
-      
+
       invalidEmails.forEach(email => {
         expect(email).not.toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       });
@@ -153,9 +153,9 @@ describe('Authentication Core Functions', () => {
     it('should validate password strength', () => {
       const strongPassword = 'StrongPass123!';
       const weakPassword = '123';
-      
+
       expect(strongPassword.length).toBeGreaterThanOrEqual(8);
       expect(weakPassword.length).toBeLessThan(8);
     });
   });
-}); 
+});

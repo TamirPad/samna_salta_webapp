@@ -7,7 +7,7 @@ const authenticateToken = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
         error: 'Access token required'
       });
@@ -15,7 +15,7 @@ const authenticateToken = async (req, res, next) => {
 
     // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Add user info to request (no session validation needed)
     req.user = {
       id: decoded.userId || decoded.id,
@@ -27,33 +27,33 @@ const authenticateToken = async (req, res, next) => {
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
-    
+
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Token expired',
-        message: 'Authentication token has expired' 
-      });
-    }
-    
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ 
-        error: 'Invalid token',
-        message: 'Invalid authentication token' 
+        message: 'Authentication token has expired'
       });
     }
 
-    return res.status(500).json({ 
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        error: 'Invalid token',
+        message: 'Invalid authentication token'
+      });
+    }
+
+    return res.status(500).json({
       error: 'Authentication failed',
-      message: 'Internal server error during authentication' 
+      message: 'Internal server error during authentication'
     });
   }
 };
 
 const requireAdmin = (req, res, next) => {
   if (!req.user || !req.user.isAdmin) {
-    return res.status(403).json({ 
+    return res.status(403).json({
       error: 'Admin access required',
-      message: 'You do not have permission to access this resource' 
+      message: 'You do not have permission to access this resource'
     });
   }
   next();
@@ -73,7 +73,7 @@ const optionalAuth = async (req, res, next) => {
         sessionId: decoded.sessionId
       };
     }
-    
+
     next();
   } catch (error) {
     // Continue without authentication for optional routes
@@ -85,4 +85,4 @@ module.exports = {
   authenticateToken,
   requireAdmin,
   optionalAuth
-}; 
+};

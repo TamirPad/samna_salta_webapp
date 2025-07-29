@@ -35,14 +35,14 @@ describe('Redis Configuration', () => {
   describe('Cache Operations', () => {
     it('should set cache successfully', async () => {
       await setCache('test-key', 'test-value', 3600);
-      
+
       const result = await getCache('test-key');
       expect(result).toBe('test-value');
     });
 
     it('should get cache successfully', async () => {
       await setCache('test-key', 'test-value');
-      
+
       const result = await getCache('test-key');
       expect(result).toBe('test-value');
     });
@@ -55,7 +55,7 @@ describe('Redis Configuration', () => {
     it('should delete cache successfully', async () => {
       await setCache('test-key', 'test-value');
       await deleteCache('test-key');
-      
+
       const result = await getCache('test-key');
       expect(result).toBeNull();
     });
@@ -64,24 +64,24 @@ describe('Redis Configuration', () => {
       await setCache('key1', 'value1');
       await setCache('key2', 'value2');
       await clearCache();
-      
+
       const result1 = await getCache('key1');
       const result2 = await getCache('key2');
-      
+
       expect(result1).toBeNull();
       expect(result2).toBeNull();
     });
 
     it('should expire cache after specified time', async () => {
       await setCache('test-key', 'test-value', 1); // 1 second
-      
+
       // Should exist immediately
       let result = await getCache('test-key');
       expect(result).toBe('test-value');
-      
+
       // Advance time by 2 seconds
       jest.advanceTimersByTime(2000);
-      
+
       // Should be expired
       result = await getCache('test-key');
       expect(result).toBeNull();
@@ -90,17 +90,17 @@ describe('Redis Configuration', () => {
 
   describe('Session Operations', () => {
     it('should set session successfully', async () => {
-      const sessionData = { userId: 1, email: 'test@example.com' };
+      const sessionData = {userId: 1, email: 'test@example.com'};
       await setSession('session-id', sessionData, 86400);
-      
+
       const result = await getSession('session-id');
       expect(result).toEqual(sessionData);
     });
 
     it('should get session successfully', async () => {
-      const sessionData = { userId: 1, email: 'test@example.com' };
+      const sessionData = {userId: 1, email: 'test@example.com'};
       await setSession('session-id', sessionData);
-      
+
       const result = await getSession('session-id');
       expect(result).toEqual(sessionData);
     });
@@ -111,25 +111,25 @@ describe('Redis Configuration', () => {
     });
 
     it('should delete session successfully', async () => {
-      const sessionData = { userId: 1, email: 'test@example.com' };
+      const sessionData = {userId: 1, email: 'test@example.com'};
       await setSession('session-id', sessionData);
       await deleteSession('session-id');
-      
+
       const result = await getSession('session-id');
       expect(result).toBeNull();
     });
 
     it('should expire session after specified time', async () => {
-      const sessionData = { userId: 1, email: 'test@example.com' };
+      const sessionData = {userId: 1, email: 'test@example.com'};
       await setSession('session-id', sessionData, 1); // 1 second
-      
+
       // Should exist immediately
       let result = await getSession('session-id');
       expect(result).toEqual(sessionData);
-      
+
       // Advance time by 2 seconds
       jest.advanceTimersByTime(2000);
-      
+
       // Should be expired
       result = await getSession('session-id');
       expect(result).toBeNull();
@@ -148,7 +148,7 @@ describe('Redis Configuration', () => {
     });
 
     it('should handle session set errors gracefully', async () => {
-      await expect(setSession('session-id', { test: 'data' })).resolves.not.toThrow();
+      await expect(setSession('session-id', {test: 'data'})).resolves.not.toThrow();
     });
 
     it('should handle session get errors gracefully', async () => {
@@ -156,4 +156,4 @@ describe('Redis Configuration', () => {
       expect(result).toBeDefined();
     });
   });
-}); 
+});

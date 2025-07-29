@@ -1,4 +1,4 @@
-const { connectDB, query, getClient, pool } = require('../../config/database');
+const {connectDB, query, getClient, pool} = require('../../config/database');
 
 // Mock the logger
 jest.mock('../../utils/logger', () => ({
@@ -45,13 +45,13 @@ describe('Database Configuration', () => {
   describe('query', () => {
     it('should execute query successfully', async () => {
       const mockResult = {
-        rows: [{ id: 1, name: 'test' }],
+        rows: [{id: 1, name: 'test'}],
         rowCount: 1
       };
       pool.query = jest.fn().mockResolvedValue(mockResult);
 
       const result = await query('SELECT * FROM users WHERE id = $1', [1]);
-      
+
       expect(result).toEqual(mockResult);
       expect(pool.query).toHaveBeenCalledWith('SELECT * FROM users WHERE id = $1', [1]);
     });
@@ -65,11 +65,11 @@ describe('Database Configuration', () => {
 
   describe('getClient', () => {
     it('should return a client from the pool', async () => {
-      const mockClient = { id: 'test-client' };
+      const mockClient = {id: 'test-client'};
       pool.connect = jest.fn().mockResolvedValue(mockClient);
 
       const client = await getClient();
-      
+
       expect(client).toEqual(mockClient);
       expect(pool.connect).toHaveBeenCalled();
     });
@@ -83,4 +83,4 @@ describe('Database Configuration', () => {
       expect(pool.options.ssl.rejectUnauthorized).toBe(false);
     });
   });
-}); 
+});

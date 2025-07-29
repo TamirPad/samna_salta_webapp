@@ -1,8 +1,8 @@
 const express = require('express');
-const { query } = require('express-validator');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { query: dbQuery } = require('../config/database');
-const { getCache, setCache } = require('../config/redis');
+const {query} = require('express-validator');
+const {authenticateToken, requireAdmin} = require('../middleware/auth');
+const {query: dbQuery} = require('../config/database');
+const {getCache, setCache} = require('../config/redis');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -52,7 +52,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
 
     // Pending orders
     const pendingOrdersResult = await dbQuery(
-      `SELECT COUNT(*) as count FROM orders WHERE status IN ('pending', 'confirmed', 'preparing')`
+      'SELECT COUNT(*) as count FROM orders WHERE status IN (\'pending\', \'confirmed\', \'preparing\')'
     );
 
     // Top selling products
@@ -130,24 +130,24 @@ router.get('/sales', authenticateToken, requireAdmin, [
   query('group_by').optional().isIn(['day', 'week', 'month'])
 ], async (req, res) => {
   try {
-    const { start_date, end_date, group_by = 'day' } = req.query;
+    const {start_date, end_date, group_by = 'day'} = req.query;
 
-    let startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
-    let endDate = end_date ? new Date(end_date) : new Date();
+    const startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
+    const endDate = end_date ? new Date(end_date) : new Date();
 
     let dateFormat, groupByClause;
     switch (group_by) {
-      case 'week':
-        dateFormat = 'YYYY-WW';
-        groupByClause = 'DATE_TRUNC(\'week\', created_at)';
-        break;
-      case 'month':
-        dateFormat = 'YYYY-MM';
-        groupByClause = 'DATE_TRUNC(\'month\', created_at)';
-        break;
-      default:
-        dateFormat = 'YYYY-MM-DD';
-        groupByClause = 'DATE(created_at)';
+    case 'week':
+      dateFormat = 'YYYY-WW';
+      groupByClause = 'DATE_TRUNC(\'week\', created_at)';
+      break;
+    case 'month':
+      dateFormat = 'YYYY-MM';
+      groupByClause = 'DATE_TRUNC(\'month\', created_at)';
+      break;
+    default:
+      dateFormat = 'YYYY-MM-DD';
+      groupByClause = 'DATE(created_at)';
     }
 
     const salesResult = await dbQuery(
@@ -188,10 +188,10 @@ router.get('/products', authenticateToken, requireAdmin, [
   query('end_date').optional().isISO8601()
 ], async (req, res) => {
   try {
-    const { start_date, end_date } = req.query;
+    const {start_date, end_date} = req.query;
 
-    let startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
-    let endDate = end_date ? new Date(end_date) : new Date();
+    const startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
+    const endDate = end_date ? new Date(end_date) : new Date();
 
     const productAnalyticsResult = await dbQuery(
       `SELECT p.id, p.name, p.name_he, p.name_en, p.price,
@@ -232,13 +232,13 @@ router.get('/customers', authenticateToken, requireAdmin, [
   query('end_date').optional().isISO8601()
 ], async (req, res) => {
   try {
-    const { start_date, end_date } = req.query;
+    const {start_date, end_date} = req.query;
 
-    let startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
-    let endDate = end_date ? new Date(end_date) : new Date();
+    const startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
+    const endDate = end_date ? new Date(end_date) : new Date();
 
     // For now, return a simple response to avoid database issues
-    const customerAnalyticsResult = { rows: [] };
+    const customerAnalyticsResult = {rows: []};
 
     res.json({
       success: true,
@@ -259,4 +259,4 @@ router.get('/customers', authenticateToken, requireAdmin, [
   }
 });
 
-module.exports = router; 
+module.exports = router;

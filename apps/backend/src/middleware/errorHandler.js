@@ -6,7 +6,7 @@ const errorHandler = (err, req, res, next) => {
     err = new Error('Unknown error');
   }
 
-  let error = { ...err };
+  let error = {...err};
   error.message = err.message || 'Server Error';
 
   // Log error safely
@@ -25,28 +25,28 @@ const errorHandler = (err, req, res, next) => {
 
   // Handle different error types
   if (err.name === 'CastError') {
-    error = { message: 'Resource not found', statusCode: 404 };
+    error = {message: 'Resource not found', statusCode: 404};
   } else if (err.code === 11000) {
-    error = { message: 'Duplicate field value entered', statusCode: 400 };
+    error = {message: 'Duplicate field value entered', statusCode: 400};
   } else if (err.name === 'ValidationError') {
     const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = { message, statusCode: 400 };
+    error = {message, statusCode: 400};
   } else if (err.name === 'JsonWebTokenError') {
-    error = { message: 'Invalid token', statusCode: 401 };
+    error = {message: 'Invalid token', statusCode: 401};
   } else if (err.name === 'TokenExpiredError') {
-    error = { message: 'Token expired', statusCode: 401 };
+    error = {message: 'Token expired', statusCode: 401};
   } else if (err.code === '23505') {
-    error = { message: 'Duplicate entry', statusCode: 400 };
+    error = {message: 'Duplicate entry', statusCode: 400};
   } else if (err.code === '23503') {
-    error = { message: 'Referenced record does not exist', statusCode: 400 };
+    error = {message: 'Referenced record does not exist', statusCode: 400};
   } else if (err.code === '23502') {
-    error = { message: 'Required field missing', statusCode: 400 };
+    error = {message: 'Required field missing', statusCode: 400};
   } else if (err.code === 'LIMIT_FILE_SIZE') {
-    error = { message: 'File too large', statusCode: 400 };
+    error = {message: 'File too large', statusCode: 400};
   } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-    error = { message: 'Unexpected file field', statusCode: 400 };
+    error = {message: 'Unexpected file field', statusCode: 400};
   } else if (err.status === 429) {
-    error = { message: 'Too many requests', statusCode: 429 };
+    error = {message: 'Too many requests', statusCode: 429};
   }
 
   // Set default values
@@ -61,4 +61,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = { errorHandler }; 
+module.exports = {errorHandler};

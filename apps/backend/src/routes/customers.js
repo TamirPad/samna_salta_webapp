@@ -1,14 +1,14 @@
 const express = require('express');
-const { body, validationResult, query } = require('express-validator');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { query: dbQuery } = require('../config/database');
+const {body, validationResult, query} = require('express-validator');
+const {authenticateToken, requireAdmin} = require('../middleware/auth');
+const {query: dbQuery} = require('../config/database');
 const logger = require('../utils/logger');
 
 const router = express.Router();
 
 // Validation middleware
 const validateCustomer = [
-  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+  body('name').trim().isLength({min: 2, max: 100}).withMessage('Name must be between 2 and 100 characters'),
   body('email').optional().isEmail().withMessage('Please provide a valid email'),
   body('phone').optional().isMobilePhone().withMessage('Please provide a valid phone number')
 ];
@@ -16,11 +16,11 @@ const validateCustomer = [
 // Get all customers (admin only)
 router.get('/', authenticateToken, requireAdmin, [
   query('search').optional().isString(),
-  query('page').optional().isInt({ min: 1 }),
-  query('limit').optional().isInt({ min: 1, max: 100 })
+  query('page').optional().isInt({min: 1}),
+  query('limit').optional().isInt({min: 1, max: 100})
 ], async (req, res) => {
   try {
-    const { search, page = 1, limit = 20 } = req.query;
+    const {search, page = 1, limit = 20} = req.query;
     const offset = (page - 1) * limit;
 
     let sql = `
@@ -31,7 +31,7 @@ router.get('/', authenticateToken, requireAdmin, [
       FROM customers c
       LEFT JOIN orders o ON c.id = o.customer_id
     `;
-    
+
     const params = [];
     let paramCount = 0;
 
@@ -78,7 +78,7 @@ router.get('/', authenticateToken, requireAdmin, [
 // Get customer by ID (admin only)
 router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
 
     const customerResult = await dbQuery(
       'SELECT * FROM customers WHERE id = $1',
@@ -139,8 +139,8 @@ router.put('/:id', authenticateToken, requireAdmin, validateCustomer, async (req
       });
     }
 
-    const { id } = req.params;
-    const { name, name_en, name_he, email, phone, address, language } = req.body;
+    const {id} = req.params;
+    const {name, name_en, name_he, email, phone, address, language} = req.body;
 
     const result = await dbQuery(
       `UPDATE customers SET 
@@ -160,7 +160,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateCustomer, async (req
 
     const customer = result.rows[0];
 
-    logger.info('Customer updated:', { customerId: customer.id, name: customer.name });
+    logger.info('Customer updated:', {customerId: customer.id, name: customer.name});
 
     res.json({
       success: true,
@@ -181,7 +181,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateCustomer, async (req
 // Delete customer (admin only)
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
 
     // Check if customer has orders
     const ordersResult = await dbQuery(
@@ -212,7 +212,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     const customer = result.rows[0];
 
-    logger.info('Customer deleted:', { customerId: customer.id, name: customer.name });
+    logger.info('Customer deleted:', {customerId: customer.id, name: customer.name});
 
     res.json({
       success: true,
@@ -230,4 +230,4 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

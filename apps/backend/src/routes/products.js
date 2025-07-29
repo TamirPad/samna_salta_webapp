@@ -1,38 +1,38 @@
 const express = require('express');
-const { body, validationResult, query } = require('express-validator');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { query: dbQuery, getCache, setCache } = require('../config/database');
+const {body, validationResult, query} = require('express-validator');
+const {authenticateToken, requireAdmin} = require('../middleware/auth');
+const {query: dbQuery, getCache, setCache} = require('../config/database');
 const logger = require('../utils/logger');
 
 const router = express.Router();
 
 // Validation middleware
 const validateProduct = [
-  body('name').trim().isLength({ min: 2, max: 200 }).withMessage('Name must be between 2 and 200 characters'),
-  body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('category_id').optional().isInt({ min: 1 }).withMessage('Category ID must be a positive integer'),
-  body('preparation_time').optional().isInt({ min: 0 }).withMessage('Preparation time must be a non-negative integer')
+  body('name').trim().isLength({min: 2, max: 200}).withMessage('Name must be between 2 and 200 characters'),
+  body('price').isFloat({min: 0}).withMessage('Price must be a positive number'),
+  body('category_id').optional().isInt({min: 1}).withMessage('Category ID must be a positive integer'),
+  body('preparation_time').optional().isInt({min: 0}).withMessage('Preparation time must be a non-negative integer')
 ];
 
 const validateCategory = [
-  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters')
+  body('name').trim().isLength({min: 2, max: 100}).withMessage('Name must be between 2 and 100 characters')
 ];
 
 // Get all products (public)
 router.get('/', [
   query('category').optional().isString(),
   query('search').optional().isString(),
-  query('page').optional().isInt({ min: 1 }),
-  query('limit').optional().isInt({ min: 1, max: 100 })
+  query('page').optional().isInt({min: 1}),
+  query('limit').optional().isInt({min: 1, max: 100})
 ], async (req, res) => {
   try {
-    const { category, search, page = 1, limit = 20 } = req.query;
+    const {category, search, page = 1, limit = 20} = req.query;
     const offset = (page - 1) * limit;
 
     // Development mode fallback - provide sample products without database
     if (process.env.NODE_ENV === 'development') {
       console.log('🔧 Development mode: Using sample products');
-      
+
       const sampleProducts = [
         {
           id: 1,
@@ -90,14 +90,14 @@ router.get('/', [
       // Filter by category if specified
       let filteredProducts = sampleProducts;
       if (category) {
-        filteredProducts = sampleProducts.filter(product => 
+        filteredProducts = sampleProducts.filter(product =>
           product.category_name.toLowerCase().includes(category.toLowerCase())
         );
       }
 
       // Filter by search if specified
       if (search) {
-        filteredProducts = filteredProducts.filter(product => 
+        filteredProducts = filteredProducts.filter(product =>
           product.name.toLowerCase().includes(search.toLowerCase()) ||
           product.description.toLowerCase().includes(search.toLowerCase())
         );
@@ -108,7 +108,7 @@ router.get('/', [
       const endIndex = startIndex + limit;
       const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
-      console.log('✅ Development products fetched successfully:', { count: paginatedProducts.length, category, search });
+      console.log('✅ Development products fetched successfully:', {count: paginatedProducts.length, category, search});
 
       return res.json({
         success: true,
@@ -168,9 +168,9 @@ router.get('/', [
     } catch (dbError) {
       console.error('❌ Database error fetching products:', dbError.message);
       logger.error('Database error fetching products:', dbError);
-      
+
       // Check if it's a connection error
-      if (dbError.message.includes('Database not connected') || 
+      if (dbError.message.includes('Database not connected') ||
           dbError.message.includes('connection') ||
           dbError.code === 'ECONNREFUSED' ||
           dbError.code === 'ENOTFOUND') {
@@ -185,7 +185,7 @@ router.get('/', [
           }
         });
       }
-      
+
       // For other database errors, return generic error
       return res.status(500).json({
         success: false,
@@ -204,8 +204,8 @@ router.get('/', [
       logger.debug('Cache not available, skipping cache set');
     }
 
-    console.log('✅ Products fetched successfully:', { count: result.rows.length, category, search });
-    logger.info('Products fetched successfully:', { count: result.rows.length, category, search });
+    console.log('✅ Products fetched successfully:', {count: result.rows.length, category, search});
+    logger.info('Products fetched successfully:', {count: result.rows.length, category, search});
 
     res.json({
       success: true,
@@ -278,7 +278,7 @@ router.get('/categories', async (req, res) => {
 // Get single product (public)
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
 
     // Try to get from cache first (optional)
     let cached = null;
@@ -373,7 +373,7 @@ router.post('/', authenticateToken, requireAdmin, validateProduct, async (req, r
 
     const product = result.rows[0];
 
-    logger.info('Product created:', { productId: product.id, name: product.name });
+    logger.info('Product created:', {productId: product.id, name: product.name});
 
     res.status(201).json({
       success: true,
@@ -403,7 +403,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
       });
     }
 
-    const { id } = req.params;
+    const {id} = req.params;
     const {
       name, name_en, name_he, description, description_en, description_he,
       price, category_id, image_url, emoji, preparation_time,
@@ -434,7 +434,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
 
     const product = result.rows[0];
 
-    logger.info('Product updated:', { productId: product.id, name: product.name });
+    logger.info('Product updated:', {productId: product.id, name: product.name});
 
     res.json({
       success: true,
@@ -455,7 +455,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
 // Delete product (admin only)
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
 
     const result = await dbQuery(
       'DELETE FROM menu_products WHERE id = $1 RETURNING *',
@@ -472,7 +472,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     const product = result.rows[0];
 
-    logger.info('Product deleted:', { productId: product.id, name: product.name });
+    logger.info('Product deleted:', {productId: product.id, name: product.name});
 
     res.json({
       success: true,
@@ -504,7 +504,7 @@ router.post('/categories', authenticateToken, requireAdmin, validateCategory, as
       });
     }
 
-    const { name, name_en, name_he, description, description_en, description_he, image_url, sort_order } = req.body;
+    const {name, name_en, name_he, description, description_en, description_he, image_url, sort_order} = req.body;
 
     const result = await dbQuery(
       `INSERT INTO menu_categories (name, name_en, name_he, description, description_en, description_he,
@@ -516,7 +516,7 @@ router.post('/categories', authenticateToken, requireAdmin, validateCategory, as
 
     const category = result.rows[0];
 
-    logger.info('Category created:', { categoryId: category.id, name: category.name });
+    logger.info('Category created:', {categoryId: category.id, name: category.name});
 
     res.status(201).json({
       success: true,
@@ -546,8 +546,8 @@ router.put('/categories/:id', authenticateToken, requireAdmin, validateCategory,
       });
     }
 
-    const { id } = req.params;
-    const { name, name_en, name_he, description, description_en, description_he, image_url, sort_order, is_active } = req.body;
+    const {id} = req.params;
+    const {name, name_en, name_he, description, description_en, description_he, image_url, sort_order, is_active} = req.body;
 
     const result = await dbQuery(
       `UPDATE menu_categories SET 
@@ -568,7 +568,7 @@ router.put('/categories/:id', authenticateToken, requireAdmin, validateCategory,
 
     const category = result.rows[0];
 
-    logger.info('Category updated:', { categoryId: category.id, name: category.name });
+    logger.info('Category updated:', {categoryId: category.id, name: category.name});
 
     res.json({
       success: true,
@@ -589,7 +589,7 @@ router.put('/categories/:id', authenticateToken, requireAdmin, validateCategory,
 // Delete category (admin only)
 router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
 
     // Check if category has products
     const productsResult = await dbQuery(
@@ -620,7 +620,7 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
 
     const category = result.rows[0];
 
-    logger.info('Category deleted:', { categoryId: category.id, name: category.name });
+    logger.info('Category deleted:', {categoryId: category.id, name: category.name});
 
     res.json({
       success: true,
@@ -638,4 +638,4 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
   }
 });
 
-module.exports = router; 
+module.exports = router;

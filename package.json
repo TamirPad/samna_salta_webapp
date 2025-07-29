@@ -18,8 +18,16 @@
     "test:frontend": "npm run test --workspace=apps/frontend",
     "test:backend": "npm run test --workspace=apps/backend",
     "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
     "clean": "rm -rf node_modules && npm install",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "start:prod": "cd apps/backend && npm start",
+    "deploy:check": "npm run build && npm run test",
+    "deploy:prepare": "npm run clean && npm run install:all && npm run build",
+    "db:migrate": "cd apps/backend && npm run db:migrate",
+    "db:seed": "cd apps/backend && npm run db:seed",
+    "logs": "cd apps/backend && npm run logs",
+    "health": "curl http://localhost:3001/health"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

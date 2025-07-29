@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
-import { 
-  loginStart, 
-  loginSuccess, 
-  loginFailure, 
-  selectAuth, 
-  selectIsAuthInitialized 
+import {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  selectAuth,
+  selectIsAuthInitialized,
 } from "../features/auth/authSlice";
 import { selectLanguage } from "../features/language/languageSlice";
 import LoadingSpinner from "../components/LoadingSpinner";

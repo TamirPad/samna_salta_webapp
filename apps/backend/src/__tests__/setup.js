@@ -19,8 +19,8 @@ jest.mock('../config/database', () => ({
   getClient: jest.fn().mockReturnValue({
     query: jest.fn(),
     connect: jest.fn(),
-    end: jest.fn(),
-  }),
+    end: jest.fn()
+  })
 }));
 
 // Mock Redis connection
@@ -30,6 +30,6 @@ jest.mock('../config/redis', () => ({
     set: jest.fn(),
     del: jest.fn(),
     exists: jest.fn(),
-    expire: jest.fn(),
-  }),
-})); 
+    expire: jest.fn()
+  })
+}));

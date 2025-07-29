@@ -5,8 +5,8 @@ services:
     env: node
     plan: free
     rootDir: apps/backend
-    buildCommand: npm install && cd ../frontend && npm install && npm run build && cd ../backend
-    startCommand: npm start
+    buildCommand: npm install && cd ../frontend && npm install && npm run build && cd ../backend && chmod +x start-production.sh
+    startCommand: ./start-production.sh
     envVars:
       - key: NODE_ENV
         value: production

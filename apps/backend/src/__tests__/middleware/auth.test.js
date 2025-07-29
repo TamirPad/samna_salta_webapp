@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { authenticateToken, requireAdmin, optionalAuth } = require('../../middleware/auth');
-const { getSession } = require('../../config/redis');
+const {authenticateToken, requireAdmin, optionalAuth} = require('../../middleware/auth');
+const {getSession} = require('../../config/redis');
 
 // Mock dependencies
 jest.mock('../../config/redis');
@@ -15,17 +15,17 @@ describe('Auth Middleware', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockReq = {
       headers: {},
-      user: null,
+      user: null
     };
-    
+
     mockRes = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
     };
-    
+
     mockNext = jest.fn();
   });
 
@@ -35,12 +35,12 @@ describe('Auth Middleware', () => {
         id: 1,
         email: 'test@example.com',
         isAdmin: false,
-        sessionId: 'test-session-id',
+        sessionId: 'test-session-id'
       };
 
-      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, {expiresIn: '1h'});
       mockReq.headers.authorization = `Bearer ${token}`;
-      
+
       mockGetSession.mockResolvedValue(JSON.stringify(testUser));
 
       await authenticateToken(mockReq, mockRes, mockNext);
@@ -55,7 +55,7 @@ describe('Auth Middleware', () => {
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Access token required',
+        error: 'Access token required'
       });
     });
 
@@ -67,39 +67,39 @@ describe('Auth Middleware', () => {
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
         error: 'Invalid token',
-        message: 'Authentication token is invalid',
+        message: 'Authentication token is invalid'
       });
     });
   });
 
   describe('requireAdmin', () => {
     it('should allow admin user to proceed', () => {
-      mockReq.user = { id: 1, isAdmin: true };
-      
+      mockReq.user = {id: 1, isAdmin: true};
+
       requireAdmin(mockReq, mockRes, mockNext);
-      
+
       expect(mockNext).toHaveBeenCalledWith();
     });
 
     it('should return 403 for non-admin user', () => {
-      mockReq.user = { id: 1, isAdmin: false };
-      
+      mockReq.user = {id: 1, isAdmin: false};
+
       requireAdmin(mockReq, mockRes, mockNext);
-      
+
       expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Admin access required',
+        error: 'Admin access required'
       });
     });
   });
 
   describe('optionalAuth', () => {
     it('should set user when valid token provided', async () => {
-      const testUser = { id: 1, email: 'test@example.com' };
-      const token = jwt.sign(testUser, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const testUser = {id: 1, email: 'test@example.com'};
+      const token = jwt.sign(testUser, process.env.JWT_SECRET, {expiresIn: '1h'});
       mockReq.headers.authorization = `Bearer ${token}`;
-      
+
       mockGetSession.mockResolvedValue(JSON.stringify(testUser));
 
       await optionalAuth(mockReq, mockRes, mockNext);
@@ -115,4 +115,4 @@ describe('Auth Middleware', () => {
       expect(mockNext).toHaveBeenCalledWith();
     });
   });
-}); 
+});

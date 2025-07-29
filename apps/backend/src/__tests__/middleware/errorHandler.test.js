@@ -1,4 +1,4 @@
-const { errorHandler } = require('../../middleware/errorHandler');
+const {errorHandler} = require('../../middleware/errorHandler');
 const logger = require('../../utils/logger');
 
 // Mock dependencies
@@ -13,21 +13,21 @@ describe('Error Handler Middleware', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockReq = {
       url: '/api/test',
       method: 'GET',
       ip: '127.0.0.1',
       get: jest.fn().mockReturnValue('Mozilla/5.0'),
-      user: { id: 1, email: 'test@example.com' },
-      id: 'req-123',
+      user: {id: 1, email: 'test@example.com'},
+      id: 'req-123'
     };
-    
+
     mockRes = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
     };
-    
+
     mockNext = jest.fn();
   });
 
@@ -43,7 +43,7 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Invalid token',
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
 
@@ -58,7 +58,7 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Token expired',
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
   });
@@ -67,9 +67,9 @@ describe('Error Handler Middleware', () => {
     it('should handle express-validator errors', () => {
       const error = {
         errors: [
-          { msg: 'Email is required', param: 'email', location: 'body' },
-          { msg: 'Password is required', param: 'password', location: 'body' },
-        ],
+          {msg: 'Email is required', param: 'email', location: 'body'},
+          {msg: 'Password is required', param: 'password', location: 'body'}
+        ]
       };
 
       errorHandler(error, mockReq, mockRes, mockNext);
@@ -79,11 +79,11 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Validation failed',
         details: [
-          { field: 'email', message: 'Email is required' },
-          { field: 'password', message: 'Password is required' },
+          {field: 'email', message: 'Email is required'},
+          {field: 'password', message: 'Password is required'}
         ],
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
   });
@@ -100,7 +100,7 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Resource already exists',
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
 
@@ -115,7 +115,7 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Invalid reference',
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
   });
@@ -131,7 +131,7 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Internal server error',
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
 
@@ -143,8 +143,8 @@ describe('Error Handler Middleware', () => {
         success: false,
         error: 'Internal server error',
         requestId: 'req-123',
-        timestamp: expect.any(String),
+        timestamp: expect.any(String)
       });
     });
   });
-}); 
+});

@@ -5,7 +5,7 @@ const fs = require('fs');
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../logs');
 if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+  fs.mkdirSync(logsDir, {recursive: true});
 }
 
 // Define log format
@@ -13,7 +13,7 @@ const logFormat = winston.format.combine(
   winston.format.timestamp({
     format: 'YYYY-MM-DD HH:mm:ss'
   }),
-  winston.format.errors({ stack: true }),
+  winston.format.errors({stack: true}),
   winston.format.json()
 );
 
@@ -23,7 +23,7 @@ const consoleFormat = winston.format.combine(
   winston.format.timestamp({
     format: 'YYYY-MM-DD HH:mm:ss'
   }),
-  winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
+  winston.format.printf(({timestamp, level, message, stack, ...meta}) => {
     let log = `${timestamp} [${level}]: ${message}`;
     if (Object.keys(meta).length > 0) {
       log += ` ${JSON.stringify(meta)}`;
@@ -39,7 +39,7 @@ const consoleFormat = winston.format.combine(
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  defaultMeta: { service: 'samna-salta-api' },
+  defaultMeta: {service: 'samna-salta-api'},
   transports: [
     // Write all logs with level 'error' and below to error.log
     new winston.transports.File({
@@ -47,22 +47,22 @@ const logger = winston.createLogger({
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-      tailable: true,
+      tailable: true
     }),
     // Write all logs with level 'info' and below to combined.log
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-      tailable: true,
-    }),
+      tailable: true
+    })
   ],
   // Handle uncaught exceptions
   exceptionHandlers: [
     new winston.transports.File({
       filename: path.join(logsDir, 'exceptions.log'),
       maxsize: 5242880, // 5MB
-      maxFiles: 5,
+      maxFiles: 5
     })
   ],
   // Handle unhandled promise rejections
@@ -70,9 +70,9 @@ const logger = winston.createLogger({
     new winston.transports.File({
       filename: path.join(logsDir, 'rejections.log'),
       maxsize: 5242880, // 5MB
-      maxFiles: 5,
+      maxFiles: 5
     })
-  ],
+  ]
 });
 
 // If we're not in production, log to console as well
@@ -92,7 +92,7 @@ logger.stream = {
 // Add request logging middleware
 logger.logRequest = (req, res, next) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.info('HTTP Request', {
@@ -104,7 +104,7 @@ logger.logRequest = (req, res, next) => {
       userAgent: req.get('User-Agent')
     });
   });
-  
+
   next();
 };
 
@@ -117,4 +117,4 @@ logger.logError = (error, context = {}) => {
   });
 };
 
-module.exports = logger; 
+module.exports = logger;

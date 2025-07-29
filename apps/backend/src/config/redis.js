@@ -7,14 +7,14 @@ const sessionStore = new Map();
 // Clean up expired items every 5 minutes
 const cleanupInterval = setInterval(() => {
   const now = Date.now();
-  
+
   // Clean up cache
   for (const [key, value] of memoryStore.entries()) {
     if (value.expiresAt && value.expiresAt < now) {
       memoryStore.delete(key);
     }
   }
-  
+
   // Clean up sessions
   for (const [key, value] of sessionStore.entries()) {
     if (value.expiresAt && value.expiresAt < now) {
@@ -54,7 +54,7 @@ const isRedisConnected = () => {
 const setCache = async (key, value, expireTime = 3600) => {
   try {
     const expiresAt = Date.now() + (expireTime * 1000);
-    memoryStore.set(key, { value, expiresAt });
+    memoryStore.set(key, {value, expiresAt});
     return true;
   } catch (error) {
     logger.error('Failed to set cache:', error);
@@ -65,13 +65,15 @@ const setCache = async (key, value, expireTime = 3600) => {
 const getCache = async (key) => {
   try {
     const item = memoryStore.get(key);
-    if (!item) return null;
-    
+    if (!item) {
+      return null;
+    }
+
     if (item.expiresAt && item.expiresAt < Date.now()) {
       memoryStore.delete(key);
       return null;
     }
-    
+
     return item.value;
   } catch (error) {
     logger.error('Failed to get cache:', error);
@@ -102,7 +104,7 @@ const clearCache = async () => {
 const setSession = async (sessionId, userData, expireTime = 86400) => {
   try {
     const expiresAt = Date.now() + (expireTime * 1000);
-    sessionStore.set(sessionId, { userData, expiresAt });
+    sessionStore.set(sessionId, {userData, expiresAt});
     return true;
   } catch (error) {
     logger.error('Failed to set session:', error);
@@ -113,13 +115,15 @@ const setSession = async (sessionId, userData, expireTime = 86400) => {
 const getSession = async (sessionId) => {
   try {
     const item = sessionStore.get(sessionId);
-    if (!item) return null;
-    
+    if (!item) {
+      return null;
+    }
+
     if (item.expiresAt && item.expiresAt < Date.now()) {
       sessionStore.delete(sessionId);
       return null;
     }
-    
+
     return item.userData;
   } catch (error) {
     logger.error('Failed to get session:', error);
@@ -159,4 +163,4 @@ module.exports = {
   getSession,
   deleteSession,
   closeRedis
-}; 
+};
