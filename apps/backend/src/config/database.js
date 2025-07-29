@@ -59,6 +59,7 @@ const connectDB = async () => {
     }
 
     console.log('🔧 Attempting to connect to database...');
+    console.log('🔧 DATABASE_URL (first 50 chars):', config.DATABASE_URL.substring(0, 50) + '...');
     console.log('📊 Database config:', {
       host: config.DB_HOST || 'from connection string',
       port: config.DB_PORT || 'from connection string',
