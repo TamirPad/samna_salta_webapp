@@ -1,324 +1,511 @@
-import React, { useEffect } from "react";
-import { Order } from "../../features/orders/ordersSlice";
-import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-import { selectLanguage } from "../../features/language/languageSlice";
-import { selectAuth } from "../../features/auth/authSlice";
-import {
-  fetchOrders,
-  clearOrdersError,
-} from "../../features/orders/ordersSlice";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import React, { useState, useEffect } from 'react';
+import { useAppSelector } from '../../hooks/redux';
+import { selectLanguage } from '../../features/language/languageSlice';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import styled from 'styled-components';
 
-// Styled Components
-const Container = styled.div`
+interface Order {
+  id: string;
+  customerName: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+  total: number;
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  createdAt: string;
+  deliveryAddress?: string;
+  phone?: string;
+}
+
+const OrdersContainer = styled.div`
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
 `;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+const OrdersHeader = styled.div`
   margin-bottom: 2rem;
 `;
 
-const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
-  margin: 0;
+const OrdersTitle = styled.h1`
+  color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
 `;
 
-const OrdersTable = styled.div`
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+const OrdersSubtitle = styled.p`
+  color: #666;
+  font-size: 1.1rem;
 `;
 
-const TableHeader = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 120px;
+const FiltersContainer = styled.div`
+  display: flex;
   gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 `;
 
-const OrderRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 120px;
-  gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  align-items: center;
-
+const FilterButton = styled.button<{ active: boolean }>`
+  padding: 0.5rem 1rem;
+  border: 2px solid ${({ active }) => active ? '#8B4513' : '#ddd'};
+  background: ${({ active }) => active ? '#8B4513' : 'white'};
+  color: ${({ active }) => active ? 'white' : '#666'};
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  
   &:hover {
-    background: #f8f9fa;
+    border-color: #8B4513;
+    background: ${({ active }) => active ? '#A0522D' : '#f8f9fa'};
   }
 `;
 
-const StatusBadge = styled.span<{ status: string }>`
-  padding: 0.25rem 0.75rem;
+const OrdersGrid = styled.div`
+  display: grid;
+  gap: 1.5rem;
+`;
+
+const OrderCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+`;
+
+const OrderHeader = styled.div`
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+`;
+
+const OrderInfo = styled.div`
+  flex: 1;
+`;
+
+const OrderId = styled.h3`
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
+const OrderCustomer = styled.p`
+  color: #666;
+  margin-bottom: 0.25rem;
+`;
+
+const OrderDate = styled.p`
+  color: #999;
+  font-size: 0.9rem;
+`;
+
+const OrderStatus = styled.span<{ status: string }>`
+  padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  
+  ${({ status }) => {
+    switch (status) {
+      case 'pending':
+        return 'background: #fff3cd; color: #856404;';
+      case 'confirmed':
+        return 'background: #d1ecf1; color: #0c5460;';
+      case 'preparing':
+        return 'background: #d4edda; color: #155724;';
+      case 'ready':
+        return 'background: #cce5ff; color: #004085;';
+      case 'delivered':
+        return 'background: #d4edda; color: #155724;';
+      case 'cancelled':
+        return 'background: #f8d7da; color: #721c24;';
+      default:
+        return 'background: #f8f9fa; color: #6c757d;';
+    }
+  }}
+`;
+
+const OrderBody = styled.div`
+  padding: 1.5rem;
+`;
+
+const OrderItems = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const OrderItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8f9fa;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const ItemInfo = styled.div`
+  flex: 1;
+`;
+
+const ItemName = styled.span`
   font-weight: 500;
-  background: ${(props) => {
-    switch (props.status) {
-      case "pending":
-        return "#fff3cd";
-      case "confirmed":
-        return "#d1ecf1";
-      case "preparing":
-        return "#d4edda";
-      case "ready":
-        return "#d1ecf1";
-      case "delivered":
-        return "#d4edda";
-      case "cancelled":
-        return "#f8d7da";
+  color: #2c3e50;
+`;
+
+const ItemQuantity = styled.span`
+  color: #666;
+  margin-left: 0.5rem;
+`;
+
+const ItemPrice = styled.span`
+  font-weight: 600;
+  color: #8B4513;
+`;
+
+const OrderTotal = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 2px solid #eee;
+  font-weight: 600;
+  font-size: 1.1rem;
+`;
+
+const TotalLabel = styled.span`
+  color: #2c3e50;
+`;
+
+const TotalAmount = styled.span`
+  color: #8B4513;
+  font-size: 1.2rem;
+`;
+
+const OrderActions = styled.div`
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const ActionButton = styled.button<{ variant: 'primary' | 'secondary' | 'danger' }>`
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  
+  ${({ variant }) => {
+    switch (variant) {
+      case 'primary':
+        return `
+          background: #8B4513;
+          color: white;
+          &:hover { background: #A0522D; }
+        `;
+      case 'secondary':
+        return `
+          background: #6c757d;
+          color: white;
+          &:hover { background: #5a6268; }
+        `;
+      case 'danger':
+        return `
+          background: #dc3545;
+          color: white;
+          &:hover { background: #c82333; }
+        `;
       default:
-        return "#e2e3e5";
+        return '';
     }
-  }};
-  color: ${(props) => {
-    switch (props.status) {
-      case "pending":
-        return "#856404";
-      case "confirmed":
-        return "#0c5460";
-      case "preparing":
-        return "#155724";
-      case "ready":
-        return "#0c5460";
-      case "delivered":
-        return "#155724";
-      case "cancelled":
-        return "#721c24";
-      default:
-        return "#6c757d";
-    }
-  }};
+  }}
 `;
 
 const EmptyState = styled.div`
   text-align: center;
   padding: 3rem;
-  color: #6c757d;
+  color: #666;
 `;
 
-const AuthContainer = styled.div`
-  padding: 2rem;
-  background: #f8f9fa;
-  min-height: 100vh;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+const EmptyIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 1rem;
 `;
 
-const AuthCard = styled.div`
-  background: #fee;
-  color: #c33;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  max-width: 500px;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-`;
-
-const AuthButton = styled.button<{
-  $variant?: "primary" | "secondary";
-}>`
-  background: ${(props): string =>
-    props.$variant === "secondary" ? "#28a745" : "#8B4513"};
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-`;
-
-const WarningBanner = styled.div`
-  background: #fff3cd;
-  color: #856404;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  border: 1px solid #ffeaa7;
-`;
-
-const DemoModeBanner = styled.div`
-  margin-top: 2rem;
-  padding: 1rem;
-  background: #e3f2fd;
-  border-radius: 8px;
-  max-width: 600px;
-  margin: 2rem auto 0;
-`;
-
-const AdminOrders: React.FC = () => {
+const Orders: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAppSelector(selectAuth);
-  const { orders, isLoading, error } = useAppSelector((state) => state.orders);
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filter, setFilter] = useState<string>('all');
 
-  // Load orders on component mount
   useEffect(() => {
-    if (isAuthenticated && user?.isAdmin) {
-      dispatch(fetchOrders({}));
+    const loadOrders = async () => {
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockOrders: Order[] = [
+          {
+            id: 'ORD-001',
+            customerName: 'John Doe',
+            items: [
+              { name: 'Kubaneh', quantity: 2, price: 25 },
+              { name: 'Samneh', quantity: 1, price: 15 }
+            ],
+            total: 65,
+            status: 'pending',
+            createdAt: '2024-01-15T10:30:00Z',
+            deliveryAddress: '123 Main St, Tel Aviv',
+            phone: '+972-50-123-4567'
+          },
+          {
+            id: 'ORD-002',
+            customerName: 'Sarah Smith',
+            items: [
+              { name: 'Red Bisbas', quantity: 1, price: 12 },
+              { name: 'Hilbeh', quantity: 2, price: 10 }
+            ],
+            total: 32,
+            status: 'confirmed',
+            createdAt: '2024-01-15T09:15:00Z',
+            deliveryAddress: '456 Oak Ave, Tel Aviv',
+            phone: '+972-50-987-6543'
+          },
+          {
+            id: 'ORD-003',
+            customerName: 'Mike Johnson',
+            items: [
+              { name: 'Kubaneh', quantity: 1, price: 25 },
+              { name: 'Samneh', quantity: 1, price: 15 },
+              { name: 'Red Bisbas', quantity: 1, price: 12 }
+            ],
+            total: 52,
+            status: 'delivered',
+            createdAt: '2024-01-14T16:45:00Z',
+            deliveryAddress: '789 Pine Rd, Tel Aviv',
+            phone: '+972-50-555-1234'
+          }
+        ];
+        
+        setOrders(mockOrders);
+      } catch (error) {
+        console.error('Error loading orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  const getContent = () => {
+    if (language === 'he') {
+      return {
+        title: 'הזמנות',
+        subtitle: 'ניהול הזמנות לקוחות',
+        filters: {
+          all: 'הכל',
+          pending: 'ממתין',
+          confirmed: 'אושר',
+          preparing: 'בהכנה',
+          ready: 'מוכן',
+          delivered: 'נמסר',
+          cancelled: 'בוטל'
+        },
+        status: {
+          pending: 'ממתין',
+          confirmed: 'אושר',
+          preparing: 'בהכנה',
+          ready: 'מוכן',
+          delivered: 'נמסר',
+          cancelled: 'בוטל'
+        },
+        actions: {
+          confirm: 'אשר',
+          prepare: 'הכן',
+          ready: 'מוכן',
+          deliver: 'מסור',
+          cancel: 'בטל'
+        },
+        empty: 'אין הזמנות להצגה',
+        total: 'סה"כ'
+      };
+    } else {
+      return {
+        title: 'Orders',
+        subtitle: 'Manage customer orders',
+        filters: {
+          all: 'All',
+          pending: 'Pending',
+          confirmed: 'Confirmed',
+          preparing: 'Preparing',
+          ready: 'Ready',
+          delivered: 'Delivered',
+          cancelled: 'Cancelled'
+        },
+        status: {
+          pending: 'Pending',
+          confirmed: 'Confirmed',
+          preparing: 'Preparing',
+          ready: 'Ready',
+          delivered: 'Delivered',
+          cancelled: 'Cancelled'
+        },
+        actions: {
+          confirm: 'Confirm',
+          prepare: 'Prepare',
+          ready: 'Ready',
+          deliver: 'Deliver',
+          cancel: 'Cancel'
+        },
+        empty: 'No orders to display',
+        total: 'Total'
+      };
     }
-  }, [dispatch, isAuthenticated, user]);
-
-  // Clear error when component unmounts
-  useEffect(() => {
-    return () => {
-      dispatch(clearOrdersError());
-    };
-  }, [dispatch]);
-
-  const handleLogin = () => {
-    navigate("/login");
   };
 
-  const getStatusText = (status: string) => {
-    const statusMap: { [key: string]: { he: string; en: string } } = {
-      pending: { he: "ממתין", en: "Pending" },
-      confirmed: { he: "אושר", en: "Confirmed" },
-      preparing: { he: "בהכנה", en: "Preparing" },
-      ready: { he: "מוכן", en: "Ready" },
-      delivered: { he: "נמסר", en: "Delivered" },
-      cancelled: { he: "בוטל", en: "Cancelled" },
-    };
+  const content = getContent();
 
-    return statusMap[status]?.[language] || status;
+  const filteredOrders = filter === 'all' 
+    ? orders 
+    : orders.filter(order => order.status === filter);
+
+  const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
+    setOrders(prev => prev.map(order => 
+      order.id === orderId ? { ...order, status: newStatus } : order
+    ));
   };
 
-  if (!isAuthenticated) {
-    return (
-      <AuthContainer>
-        <Title>Orders Management</Title>
-        <AuthCard>
-          <strong>Authentication Required</strong>
-          <p style={{ margin: "1rem 0" }}>
-            Please login to access orders management.
-          </p>
-          <ButtonGroup>
-            <AuthButton onClick={handleLogin}>
-              Login to Access Orders
-            </AuthButton>
-          </ButtonGroup>
-        </AuthCard>
-      </AuthContainer>
-    );
-  }
-
-  if (!user?.isAdmin) {
-    return (
-      <AuthContainer>
-        <Title>Orders Management</Title>
-        <AuthCard>
-          <strong>Access Denied</strong>
-          <p style={{ margin: "1rem 0" }}>
-            Admin privileges required to access orders management.
-          </p>
-          <ButtonGroup>
-            <AuthButton onClick={() => navigate("/")}>Go to Home</AuthButton>
-          </ButtonGroup>
-        </AuthCard>
-      </AuthContainer>
-    );
-  }
-
-  if (isLoading && (!orders || !orders.length)) {
-    return <LoadingSpinner />;
+  if (loading) {
+    return <LoadingSpinner text={language === 'he' ? 'טוען הזמנות...' : 'Loading orders...'} />;
   }
 
   return (
-    <Container>
-      <Header>
-        <Title>Orders Management</Title>
-      </Header>
+    <OrdersContainer>
+      <OrdersHeader>
+        <OrdersTitle>{content.title}</OrdersTitle>
+        <OrdersSubtitle>{content.subtitle}</OrdersSubtitle>
+      </OrdersHeader>
 
-      {error && (
-        <WarningBanner>
-          <strong>⚠️ Warning:</strong> {error}
-          {error.includes("Failed to load") && (
-            <div style={{ marginTop: "0.5rem" }}>
-              <small>
-                Showing demo data. Please check your connection and refresh the
-                page.
-              </small>
-            </div>
-          )}
-        </WarningBanner>
+      <FiltersContainer>
+        {Object.entries(content.filters).map(([key, label]) => (
+          <FilterButton
+            key={key}
+            active={filter === key}
+            onClick={() => setFilter(key)}
+          >
+            {label}
+          </FilterButton>
+        ))}
+      </FiltersContainer>
+
+      {filteredOrders.length === 0 ? (
+        <EmptyState>
+          <EmptyIcon>📦</EmptyIcon>
+          <p>{content.empty}</p>
+        </EmptyState>
+      ) : (
+        <OrdersGrid>
+          {filteredOrders.map((order) => (
+            <OrderCard key={order.id}>
+              <OrderHeader>
+                <OrderInfo>
+                  <OrderId>{order.id}</OrderId>
+                  <OrderCustomer>{order.customerName}</OrderCustomer>
+                  <OrderDate>
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </OrderDate>
+                </OrderInfo>
+                <OrderStatus status={order.status}>
+                  {content.status[order.status]}
+                </OrderStatus>
+              </OrderHeader>
+
+              <OrderBody>
+                <OrderItems>
+                  {order.items.map((item, index) => (
+                    <OrderItem key={index}>
+                      <ItemInfo>
+                        <ItemName>{item.name}</ItemName>
+                        <ItemQuantity>× {item.quantity}</ItemQuantity>
+                      </ItemInfo>
+                      <ItemPrice>₪{item.price}</ItemPrice>
+                    </OrderItem>
+                  ))}
+                </OrderItems>
+
+                <OrderTotal>
+                  <TotalLabel>{content.total}:</TotalLabel>
+                  <TotalAmount>₪{order.total}</TotalAmount>
+                </OrderTotal>
+              </OrderBody>
+
+              <OrderActions>
+                {order.status === 'pending' && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => handleStatusChange(order.id, 'confirmed')}
+                  >
+                    {content.actions.confirm}
+                  </ActionButton>
+                )}
+                {order.status === 'confirmed' && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => handleStatusChange(order.id, 'preparing')}
+                  >
+                    {content.actions.prepare}
+                  </ActionButton>
+                )}
+                {order.status === 'preparing' && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => handleStatusChange(order.id, 'ready')}
+                  >
+                    {content.actions.ready}
+                  </ActionButton>
+                )}
+                {order.status === 'ready' && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => handleStatusChange(order.id, 'delivered')}
+                  >
+                    {content.actions.deliver}
+                  </ActionButton>
+                )}
+                {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                  <ActionButton
+                    variant="danger"
+                    onClick={() => handleStatusChange(order.id, 'cancelled')}
+                  >
+                    {content.actions.cancel}
+                  </ActionButton>
+                )}
+              </OrderActions>
+            </OrderCard>
+          ))}
+        </OrdersGrid>
       )}
-
-      <OrdersTable>
-        <TableHeader>
-          <div>Order ID</div>
-          <div>Customer</div>
-          <div>Items</div>
-          <div>Total</div>
-          <div>Status</div>
-          <div>Actions</div>
-        </TableHeader>
-
-        {!orders || orders.length === 0 ? (
-          <EmptyState>
-            <p>No orders found</p>
-          </EmptyState>
-        ) : (
-          orders.map((order: Order) => (
-            <OrderRow key={order.id}>
-              <div>#{order.id}</div>
-              <div>{order.customer_name}</div>
-              <div>{order.items?.length || 0} items</div>
-              <div>₪{order.total_amount}</div>
-              <div>
-                <StatusBadge status={order.status}>
-                  {getStatusText(order.status)}
-                </StatusBadge>
-              </div>
-              <div>
-                <button style={{ padding: "0.5rem", marginRight: "0.5rem" }}>
-                  View
-                </button>
-                <button style={{ padding: "0.5rem" }}>Edit</button>
-              </div>
-            </OrderRow>
-          ))
-        )}
-      </OrdersTable>
-
-      {(!orders || !orders.length) && !error && (
-        <DemoModeBanner>
-          <p style={{ color: "#1976d2", margin: 0 }}>
-            <strong>Demo Mode:</strong> Showing sample data. Connect to backend
-            for live data.
-          </p>
-        </DemoModeBanner>
-      )}
-    </Container>
+    </OrdersContainer>
   );
 };
 
-export default AdminOrders;
+export default Orders;
