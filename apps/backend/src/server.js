@@ -90,23 +90,29 @@ app.use(errorHandler);
 if (process.env.NODE_ENV === 'production') {
   const frontendBuildPath = path.join(__dirname, '../../frontend/build');
   
-  // Serve static files first
+  // Serve static files with explicit MIME type handling
   app.use(express.static(frontendBuildPath, {
     setHeaders: (res, path) => {
+      console.log('🔧 Serving static file:', path);
       if (path.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript');
+        console.log('✅ Set JS MIME type for:', path);
       } else if (path.endsWith('.css')) {
         res.setHeader('Content-Type', 'text/css');
+        console.log('✅ Set CSS MIME type for:', path);
       } else if (path.endsWith('.json')) {
         res.setHeader('Content-Type', 'application/json');
+        console.log('✅ Set JSON MIME type for:', path);
       } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
         res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
+        console.log('✅ Set image MIME type for:', path);
       }
     }
   }));
   
   // Serve index.html for all other routes (React Router will handle routing)
   app.get('*', (req, res) => {
+    console.log('🔧 Serving React app for route:', req.path);
     res.sendFile(path.join(__dirname, '../../frontend/build/index.html'));
   });
 } else {
