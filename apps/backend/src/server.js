@@ -24,6 +24,7 @@ const {errorHandler} = require('./middleware/errorHandler');
 // Import database connection
 const {connectDB, closePool} = require('./config/database');
 const {connectRedis, closeRedis} = require('./config/redis');
+const {runMigrations} = require('./config/migration');
 
 const app = express();
 
@@ -150,6 +151,8 @@ const startServer = async () => {
     // Connect to database (optional)
     try {
       await connectDB();
+      // Run database migrations
+      await runMigrations();
     } catch (dbError) {
       console.log('⚠️ Database connection failed, running in development mode');
       console.log('ℹ️ Set DATABASE_URL environment variable to enable database features');

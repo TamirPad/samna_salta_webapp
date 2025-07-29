@@ -1,0 +1,56 @@
+const { query } = require('./database');
+const logger = require('../utils/logger');
+
+async function runMigrations() {
+  try {
+    logger.info('Starting database migrations...');
+
+    // Migration 1: Add phone column to users table if it doesn't exist
+    try {
+      await query(`
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema = 'samna_salta_webapp' 
+            AND table_name = 'users' 
+            AND column_name = 'phone'
+          ) THEN
+            ALTER TABLE samna_salta_webapp.users ADD COLUMN phone VARCHAR(20);
+          END IF;
+        END $$;
+      `);
+      logger.info('✅ Migration 1 completed: phone column added to users table');
+    } catch (error) {
+      logger.error('❌ Migration 1 failed:', error.message);
+      // Continue with other migrations even if this one fails
+    }
+
+    // Migration 2: Add is_admin column to users table if it doesn't exist
+    try {
+      await query(`
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema = 'samna_salta_webapp' 
+            AND table_name = 'users' 
+            AND column_name = 'is_admin'
+          ) THEN
+            ALTER TABLE samna_salta_webapp.users ADD COLUMN is_admin BOOLEAN DEFAULT false;
+          END IF;
+        END $$;
+      `);
+      logger.info('✅ Migration 2 completed: is_admin column added to users table');
+    } catch (error) {
+      logger.error('❌ Migration 2 failed:', error.message);
+    }
+
+    logger.info('✅ All migrations completed successfully');
+  } catch (error) {
+    logger.error('❌ Migration process failed:', error);
+    throw error;
+  }
+}
+
+module.exports = { runMigrations }; 
