@@ -4,9 +4,16 @@ const config = require('./environment');
 
 // Simple database configuration
 const getDatabaseConfig = () => {
-  // Use connection string directly with explicit SSL config
+  // Force IPv4 by adding family=4 parameter to connection string
+  let connectionString = config.DATABASE_URL;
+  if (config.isProduction() && connectionString) {
+    // Add family=4 to force IPv4
+    const separator = connectionString.includes('?') ? '&' : '?';
+    connectionString += `${separator}family=4`;
+  }
+  
   const dbConfig = {
-    connectionString: config.DATABASE_URL,
+    connectionString: connectionString,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 30000
