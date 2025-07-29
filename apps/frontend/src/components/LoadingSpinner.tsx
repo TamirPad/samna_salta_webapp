@@ -1,89 +1,75 @@
-import React, { memo } from "react";
-import styled, { keyframes } from "styled-components";
+import React from 'react';
+import styled, { keyframes } from 'styled-components';
 
-// Animation keyframes
+interface LoadingSpinnerProps {
+  size?: 'small' | 'medium' | 'large';
+  color?: string;
+  text?: string;
+  fullScreen?: boolean;
+}
+
 const spin = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 `;
 
-const pulse = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-`;
-
-// Styled Components
-const SpinnerContainer = styled.div`
+const SpinnerContainer = styled.div<{ fullScreen: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
-  padding: 2rem;
-  width: 100%;
-
-  @media (max-width: 768px) {
-    min-height: 150px;
-    padding: 1.5rem;
-  }
+  ${({ fullScreen }) => fullScreen && `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+  `}
 `;
 
-const Spinner = styled.div`
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #8b4513;
+const Spinner = styled.div<{ size: string; color: string }>`
+  width: ${({ size }) => {
+    switch (size) {
+      case 'small': return '20px';
+      case 'large': return '60px';
+      default: return '40px';
+    }
+  }};
+  height: ${({ size }) => {
+    switch (size) {
+      case 'small': return '20px';
+      case 'large': return '60px';
+      default: return '40px';
+    }
+  }};
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid ${({ color }) => color};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
-  margin-bottom: 1rem;
-  will-change: transform;
-
-  @media (max-width: 768px) {
-    width: 32px;
-    height: 32px;
-    border-width: 3px;
-  }
+  margin-bottom: ${({ size }) => size === 'small' ? '8px' : '16px'};
 `;
 
-const LoadingText = styled.div`
+const LoadingText = styled.p<{ size: string }>`
+  margin: 0;
   color: #666;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: ${({ size }) => size === 'small' ? '12px' : '14px'};
   text-align: center;
-  animation: ${pulse} 2s ease-in-out infinite;
-  will-change: opacity;
-
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
 `;
-
-// Types
-interface LoadingSpinnerProps {
-  text?: string;
-  size?: "small" | "medium" | "large" | "default";
-  className?: string;
-}
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  text = "Loading...",
-  size = "default",
-  className,
+  size = 'medium',
+  color = '#8B4513',
+  text,
+  fullScreen = false
 }) => {
-  const sizeClass = `loading-spinner--${size}`;
-  const combinedClassName = className ? `${sizeClass} ${className}` : sizeClass;
-
   return (
-    <SpinnerContainer
-      role="status"
-      aria-live="polite"
-      className={combinedClassName}
-      data-testid="loading-spinner"
-    >
-      <Spinner aria-hidden="true" role="presentation" />
-      <LoadingText>{text}</LoadingText>
+    <SpinnerContainer fullScreen={fullScreen}>
+      <Spinner size={size} color={color} />
+      {text && <LoadingText size={size}>{text}</LoadingText>}
     </SpinnerContainer>
   );
 };
 
-export default memo(LoadingSpinner);
+export default LoadingSpinner;

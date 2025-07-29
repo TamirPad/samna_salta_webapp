@@ -1,12 +1,12 @@
-import styled from "styled-components";
-import { Link } from "react-router-dom";
-import { useAppSelector } from "../../hooks/redux";
-import { selectLanguage } from "../../features/language/languageSlice";
+import React from 'react';
+import styled from 'styled-components';
+import { useAppSelector } from '../../hooks/redux';
+import { selectLanguage } from '../../features/language/languageSlice';
 
 const FooterContainer = styled.footer`
-  background: linear-gradient(135deg, #2f2f2f 0%, #4a4a4a 100%);
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
-  padding: 3rem 0 1rem;
+  padding: 2rem 0 1rem;
   margin-top: auto;
 `;
 
@@ -14,10 +14,6 @@ const FooterContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
-
-  @media (max-width: 768px) {
-    padding: 0 0.5rem;
-  }
 `;
 
 const FooterGrid = styled.div`
@@ -25,7 +21,7 @@ const FooterGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   margin-bottom: 2rem;
-
+  
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -34,73 +30,68 @@ const FooterGrid = styled.div`
 
 const FooterSection = styled.div`
   h3 {
-    color: #d2691e;
+    color: #ecf0f1;
     margin-bottom: 1rem;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+    font-weight: 600;
   }
-
+  
   p {
+    color: #bdc3c7;
     line-height: 1.6;
-    margin-bottom: 1rem;
-    color: #ccc;
+    margin-bottom: 0.5rem;
   }
-`;
-
-const FooterLinks = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-
-  a {
-    color: #ccc;
-    text-decoration: none;
-    transition: color 0.3s ease;
-
-    &:hover {
-      color: #d2691e;
-    }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
-`;
-
-const SocialLinks = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-
+  
+  li {
+    margin-bottom: 0.5rem;
+  }
+  
   a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    color: white;
+    color: #bdc3c7;
     text-decoration: none;
-    transition: all 0.3s ease;
-
+    transition: color 0.2s;
+    
     &:hover {
-      background: #d2691e;
-      transform: translateY(-2px);
+      color: #ecf0f1;
     }
   }
 `;
 
 const ContactInfo = styled.div`
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #bdc3c7;
+`;
 
-  .contact-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #ccc;
+const SocialLinks = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
 
-    .icon {
-      color: #d2691e;
-      font-size: 1.2rem;
-    }
+const SocialLink = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
   }
 `;
 
@@ -108,17 +99,8 @@ const FooterBottom = styled.div`
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1rem;
   text-align: center;
-  color: #999;
+  color: #95a5a6;
   font-size: 0.9rem;
-
-  a {
-    color: #d2691e;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 `;
 
 const Footer: React.FC = () => {
@@ -126,137 +108,112 @@ const Footer: React.FC = () => {
 
   const currentYear = new Date().getFullYear();
 
-  const translations = {
-    he: {
-      about: "אודות",
-      aboutText:
-        "סמנה סלטה - המאפייה הטובה ביותר בעיר עם מגוון רחב של לחמים טריים ומתוקים.",
-      quickLinks: "קישורים מהירים",
-      contact: "צור קשר",
-      address: "רחוב הראשי 123, תל אביב",
-      phone: "+972-3-123-4567",
-      email: "info@sammasalta.co.il",
-      hours: "א-ה: 7:00-22:00, ו: 7:00-15:00",
-      followUs: "עקבו אחרינו",
-      allRightsReserved: "כל הזכויות שמורות",
-      privacyPolicy: "מדיניות פרטיות",
-      termsOfService: "תנאי שימוש",
-    },
-    en: {
-      about: "About",
-      aboutText:
-        "Samna Salta - The best bakery in town with a wide variety of fresh breads and pastries.",
-      quickLinks: "Quick Links",
-      contact: "Contact",
-      address: "123 Main Street, Tel Aviv",
-      phone: "+972-3-123-4567",
-      email: "info@sammasalta.co.il",
-      hours: "Sun-Thu: 7:00-22:00, Fri: 7:00-15:00",
-      followUs: "Follow Us",
-      allRightsReserved: "All rights reserved",
-      privacyPolicy: "Privacy Policy",
-      termsOfService: "Terms of Service",
-    },
+  const getContent = () => {
+    if (language === 'he') {
+      return {
+        about: {
+          title: 'אודות',
+          description: 'סמנה סלטה - מסעדה מסורתית לתימנית עם טעמים אותנטיים ומנות מסורתיות.',
+          address: 'רחוב הרצל 123, תל אביב',
+          phone: '+972-3-123-4567',
+          email: 'info@sammasalta.co.il'
+        },
+        hours: {
+          title: 'שעות פעילות',
+          sunday: 'ראשון - חמישי: 11:00 - 22:00',
+          friday: 'שישי: 11:00 - 15:00',
+          saturday: 'שבת: סגור'
+        },
+        links: {
+          title: 'קישורים מהירים',
+          menu: 'תפריט',
+          about: 'אודות',
+          contact: 'צור קשר',
+          privacy: 'מדיניות פרטיות',
+          terms: 'תנאי שימוש'
+        },
+        copyright: `© ${currentYear} סמנה סלטה. כל הזכויות שמורות.`
+      };
+    } else {
+      return {
+        about: {
+          title: 'About',
+          description: 'Samna Salta - Traditional Yemenite restaurant with authentic flavors and traditional dishes.',
+          address: '123 Herzl Street, Tel Aviv',
+          phone: '+972-3-123-4567',
+          email: 'info@sammasalta.co.il'
+        },
+        hours: {
+          title: 'Opening Hours',
+          sunday: 'Sunday - Thursday: 11:00 - 22:00',
+          friday: 'Friday: 11:00 - 15:00',
+          saturday: 'Saturday: Closed'
+        },
+        links: {
+          title: 'Quick Links',
+          menu: 'Menu',
+          about: 'About',
+          contact: 'Contact',
+          privacy: 'Privacy Policy',
+          terms: 'Terms of Service'
+        },
+        copyright: `© ${currentYear} Samna Salta. All rights reserved.`
+      };
+    }
   };
 
-  const t = translations[language as keyof typeof translations];
+  const content = getContent();
 
   return (
     <FooterContainer>
       <FooterContent>
         <FooterGrid>
           <FooterSection>
-            <h3>🍞 {language === "he" ? "סמנה סלטה" : "Samna Salta"}</h3>
-            <p>{t.aboutText}</p>
+            <h3>{content.about.title}</h3>
+            <p>{content.about.description}</p>
+            <ContactInfo>
+              📍 {content.about.address}
+            </ContactInfo>
+            <ContactInfo>
+              📞 {content.about.phone}
+            </ContactInfo>
+            <ContactInfo>
+              ✉️ {content.about.email}
+            </ContactInfo>
             <SocialLinks>
-              <a
-                href="https://facebook.com/samnasalta"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-              >
+              <SocialLink href="#" aria-label="Facebook">
                 📘
-              </a>
-              <a
-                href="https://instagram.com/samnasalta"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-              >
+              </SocialLink>
+              <SocialLink href="#" aria-label="Instagram">
                 📷
-              </a>
-              <a
-                href="https://twitter.com/samnasalta"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter"
-              >
-                🐦
-              </a>
-              <a
-                href="https://wa.me/97231234567"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-              >
-                📱
-              </a>
+              </SocialLink>
+              <SocialLink href="#" aria-label="WhatsApp">
+                💬
+              </SocialLink>
             </SocialLinks>
           </FooterSection>
 
           <FooterSection>
-            <h3>{t.quickLinks}</h3>
-            <FooterLinks>
-              <Link to="/">{language === "he" ? "בית" : "Home"}</Link>
-              <Link to="/menu">{language === "he" ? "תפריט" : "Menu"}</Link>
-              <Link to="/cart">{language === "he" ? "עגלה" : "Cart"}</Link>
-              <Link to="/order/123">
-                {language === "he" ? "מעקב הזמנה" : "Track Order"}
-              </Link>
-              <Link to="/dashboard">
-                {language === "he" ? "ניהול" : "Manage"}
-              </Link>
-              <Link to="/orders">
-                {language === "he" ? "הזמנות" : "Orders"}
-              </Link>
-              <Link to="/analytics">
-                {language === "he" ? "ניתוח" : "Analytics"}
-              </Link>
-            </FooterLinks>
+            <h3>{content.hours.title}</h3>
+            <p>{content.hours.sunday}</p>
+            <p>{content.hours.friday}</p>
+            <p>{content.hours.saturday}</p>
           </FooterSection>
 
           <FooterSection>
-            <h3>{t.contact}</h3>
-            <ContactInfo>
-              <div className="contact-item">
-                <span className="icon">📍</span>
-                <span>{t.address}</span>
-              </div>
-              <div className="contact-item">
-                <span className="icon">📞</span>
-                <span>{t.phone}</span>
-              </div>
-              <div className="contact-item">
-                <span className="icon">✉️</span>
-                <span>{t.email}</span>
-              </div>
-              <div className="contact-item">
-                <span className="icon">🕒</span>
-                <span>{t.hours}</span>
-              </div>
-            </ContactInfo>
+            <h3>{content.links.title}</h3>
+            <ul>
+              <li><a href="/menu">{content.links.menu}</a></li>
+              <li><a href="/about">{content.links.about}</a></li>
+              <li><a href="/contact">{content.links.contact}</a></li>
+              <li><a href="/privacy">{content.links.privacy}</a></li>
+              <li><a href="/terms">{content.links.terms}</a></li>
+            </ul>
           </FooterSection>
         </FooterGrid>
 
         <FooterBottom>
-          <p>
-            © {currentYear} {language === "he" ? "סמנה סלטה" : "Samna Salta"}.{" "}
-            {t.allRightsReserved}
-          </p>
-          <p>
-            <Link to="/privacy">{t.privacyPolicy}</Link> |{" "}
-            <Link to="/terms">{t.termsOfService}</Link>
-          </p>
+          {content.copyright}
         </FooterBottom>
       </FooterContent>
     </FooterContainer>
