@@ -33,22 +33,18 @@ let pool = null;
 let isConnected = false;
 let isDevelopmentMode = false;
 
-const createPool = () => {
-  if (!pool) {
-    const config = getDatabaseConfig();
-    pool = new Pool(config);
-
-    pool.on('connect', () => {
-      console.log('✅ Connected to PostgreSQL database');
-      isConnected = true;
-    });
-
-    pool.on('error', (err) => {
-      console.error('❌ Database pool error:', err.message);
-      isConnected = false;
-    });
+const createPool = (config = null) => {
+  if (pool) {
+    pool.end();
   }
-  return pool;
+  
+  const poolConfig = config || getDatabaseConfig();
+  pool = new Pool(poolConfig);
+  
+  pool.on('error', (err) => {
+    console.error('❌ Unexpected error on idle client', err);
+    logger.error('Unexpected error on idle client', err);
+  });
 };
 
 const connectDB = async () => {
@@ -70,22 +66,46 @@ const connectDB = async () => {
       ssl: dbConfig.ssl
     });
 
-    // Try direct client connection first
-    const { Client } = require('pg');
-    const client = new Client(dbConfig);
+    // Try to resolve hostname to IPv4
+    const { URL } = require('url');
+    const { lookup } = require('dns').promises;
     
-    console.log('🔧 Testing direct connection...');
-    await client.connect();
-    console.log('✅ Direct connection successful');
-    await client.end();
-    
-    // Now create the pool
-    createPool();
-    const poolClient = await pool.connect();
-    console.log('✅ Pool connection established');
-    poolClient.release();
-    isConnected = true;
-    isDevelopmentMode = false;
+    try {
+      const url = new URL(config.DATABASE_URL);
+      console.log('🔧 Resolving hostname:', url.hostname);
+      
+      const addresses = await lookup(url.hostname, { family: 4 });
+      console.log('✅ Resolved to IPv4:', addresses.address);
+      
+      // Create new connection string with IP
+      const ipConnectionString = config.DATABASE_URL.replace(url.hostname, addresses.address);
+      console.log('🔧 Using IP connection string (first 50 chars):', ipConnectionString.substring(0, 50) + '...');
+      
+      const ipDbConfig = {
+        ...dbConfig,
+        connectionString: ipConnectionString
+      };
+      
+      // Test direct client connection with IP
+      const { Client } = require('pg');
+      const client = new Client(ipDbConfig);
+      
+      console.log('🔧 Testing direct connection with IP...');
+      await client.connect();
+      console.log('✅ Direct connection successful');
+      await client.end();
+      
+      // Now create the pool with IP
+      createPool(ipDbConfig);
+      const poolClient = await pool.connect();
+      console.log('✅ Pool connection established');
+      poolClient.release();
+      isConnected = true;
+      isDevelopmentMode = false;
+    } catch (resolveError) {
+      console.error('❌ Failed to resolve hostname:', resolveError.message);
+      throw resolveError;
+    }
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
     console.error('❌ Error details:', error);
