@@ -24,6 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "ESLINT_CONFIG_FILE=.eslintrc.prod.js react-scripts build",
+    "build:prod": "ESLINT_CONFIG_FILE=.eslintrc.prod.js react-scripts build",
     "test": "react-scripts test --watchAll=false",
     "lint": "eslint src --ext .ts,.tsx --fix",
     "lint:check": "eslint src --ext .ts,.tsx"

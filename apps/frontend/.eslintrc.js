@@ -1,11 +1,7 @@
 module.exports = {
   extends: [
     'react-app',
-    'react-app/jest',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'eslint-config-prettier'
+    'react-app/jest'
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -25,8 +21,6 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
-    '@typescript-eslint/prefer-const': 'off',
-    '@typescript-eslint/no-var-requires': 'off',
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
     'react/jsx-key': 'error',
@@ -34,15 +28,9 @@ module.exports = {
     'react/jsx-no-undef': 'error',
     'react/no-array-index-key': 'warn',
     'react/no-unescaped-entities': 'warn',
-    'react/self-closing-comp': 'warn',
     'react-hooks/exhaustive-deps': 'warn',
     'react-hooks/rules-of-hooks': 'error',
-    'no-console': 'warn',
-    'prefer-const': 'off',
-    'no-var': 'error',
-    'no-unused-vars': 'off',
-    'prefer-template': 'error',
-    'object-shorthand': 'error'
+    'no-console': 'warn'
   },
   settings: {
     react: {
