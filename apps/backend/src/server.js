@@ -96,22 +96,28 @@ const startServer = async () => {
       console.log('⚠️ Database connection failed, running in development mode');
       console.log('ℹ️ Set DATABASE_URL environment variable to enable database features');
     }
-
+    
     // Connect to Redis (optional)
     try {
       await connectRedis();
     } catch (redisError) {
       console.log('⚠️ Redis connection failed, using in-memory storage');
     }
-
+    
     // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 Health check: http://localhost:${PORT}/health`);
-      console.log(`📱 Frontend: http://localhost:${PORT}`);
+      if (process.env.NODE_ENV === 'production') {
+        console.log(`📱 Frontend: http://localhost:${PORT}`);
+      } else {
+        console.log(`📱 Frontend: http://localhost:3000`);
+      }
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
     process.exit(1);
   }
 };
