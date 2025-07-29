@@ -164,8 +164,8 @@ export const mockSessionStorage = {
   clear: () => {},
 };
 
-// Setup global mocks
-beforeEach(() => {
+// Export mock functions for testing
+export const setupTestMocks = () => {
   // Mock window
   Object.defineProperty(window, "innerWidth", {
     writable: true,
@@ -242,15 +242,7 @@ beforeEach(() => {
   // Mock requestAnimationFrame
   global.requestAnimationFrame = (callback) => setTimeout(callback, 0);
   global.cancelAnimationFrame = () => {};
-
-  // Mock setTimeout and setInterval
-  jest.useFakeTimers();
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-  jest.clearAllTimers();
-});
+};
 
 // Export test helpers
 export const waitForElementToBeRemoved = (element: HTMLElement) =>
