@@ -131,7 +131,7 @@ export const createMockCartItem = (overrides = {}) => ({
 });
 
 // Mock functions
-export const mockNavigate = jest.fn();
+export const mockNavigate = () => {};
 export const mockLocation = {
   pathname: "/",
   search: "",
@@ -143,25 +143,25 @@ export const mockLocation = {
 export const mockWindow = {
   innerWidth: 1024,
   innerHeight: 768,
-  scrollTo: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
+  scrollTo: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
 };
 
 // Mock localStorage
 export const mockLocalStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: () => {},
+  setItem: () => {},
+  removeItem: () => {},
+  clear: () => {},
 };
 
 // Mock sessionStorage
 export const mockSessionStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: () => {},
+  setItem: () => {},
+  removeItem: () => {},
+  clear: () => {},
 };
 
 // Setup global mocks
@@ -194,52 +194,54 @@ beforeEach(() => {
   });
 
   // Mock fetch
-  global.fetch = jest.fn();
+  global.fetch = (() => Promise.resolve({} as Response)) as any;
 
   // Mock IntersectionObserver
-  global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-    disconnect: jest.fn(),
-  }));
+  global.IntersectionObserver = (() => ({
+    observe: () => {},
+    unobserve: () => {},
+    disconnect: () => {},
+  })) as any;
 
   // Mock ResizeObserver
-  global.ResizeObserver = jest.fn().mockImplementation(() => ({
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-    disconnect: jest.fn(),
-  }));
+  global.ResizeObserver = (() => ({
+    observe: () => {},
+    unobserve: () => {},
+    disconnect: () => {},
+  })) as any;
 
   // Mock matchMedia
   Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: jest.fn().mockImplementation((query) => ({
+    value: (() => ({
       matches: false,
-      media: query,
+      media: "",
       onchange: null,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn(),
-    })),
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => {},
+    })) as any,
   });
 
   // Mock performance
   Object.defineProperty(window, "performance", {
     writable: true,
     value: {
-      now: jest.fn(() => Date.now()),
-      mark: jest.fn(),
-      measure: jest.fn(),
-      getEntriesByType: jest.fn(() => []),
-      getEntriesByName: jest.fn(() => []),
+      now: () => Date.now(),
+      mark: () => {},
+      measure: () => {},
+      getEntriesByType: () => [],
+      getEntriesByName: () => [],
+      clearMarks: () => {},
+      clearMeasures: () => {},
     },
   });
 
   // Mock requestAnimationFrame
-  global.requestAnimationFrame = jest.fn((cb) => setTimeout(cb, 0));
-  global.cancelAnimationFrame = jest.fn();
+  global.requestAnimationFrame = (callback) => setTimeout(callback, 0);
+  global.cancelAnimationFrame = () => {};
 
   // Mock setTimeout and setInterval
   jest.useFakeTimers();
