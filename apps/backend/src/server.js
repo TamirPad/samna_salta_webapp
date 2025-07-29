@@ -90,30 +90,33 @@ app.use(errorHandler);
 if (process.env.NODE_ENV === 'production') {
   const frontendBuildPath = path.join(__dirname, '../../frontend/build');
   
-  // Serve static files only for actual static file paths
-  app.use('/static', express.static(path.join(frontendBuildPath, 'static'), {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (path.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-      }
-    }
-  }));
-  
-  // Serve other static files (manifest.json, favicon.ico, etc.) but not for admin routes
+  // Serve static files only for actual static file requests
   app.use((req, res, next) => {
-    // Only serve static files for actual static file requests
+    // Check if this is a static file request
     if (req.path.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/)) {
-      express.static(frontendBuildPath, {
-        setHeaders: (res, path) => {
-          if (path.endsWith('.json')) {
-            res.setHeader('Content-Type', 'application/json');
-          } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
-            res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
+      // Serve static files with proper MIME types
+      if (req.path.startsWith('/static/')) {
+        express.static(path.join(frontendBuildPath, 'static'), {
+          setHeaders: (res, path) => {
+            if (path.endsWith('.js')) {
+              res.setHeader('Content-Type', 'application/javascript');
+            } else if (path.endsWith('.css')) {
+              res.setHeader('Content-Type', 'text/css');
+            }
           }
-        }
-      })(req, res, next);
+        })(req, res, next);
+      } else {
+        // Serve other static files (manifest.json, favicon.ico, etc.)
+        express.static(frontendBuildPath, {
+          setHeaders: (res, path) => {
+            if (path.endsWith('.json')) {
+              res.setHeader('Content-Type', 'application/json');
+            } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
+              res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
+            }
+          }
+        })(req, res, next);
+      }
     } else {
       next();
     }
