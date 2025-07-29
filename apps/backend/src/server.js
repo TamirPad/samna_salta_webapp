@@ -38,9 +38,9 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
-      fontSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
       mediaSrc: ["'self'"],
       objectSrc: ["'none'"],
@@ -58,26 +58,6 @@ app.use(express.json({limit: '10mb'}));
 
 // Serve static files from public directory
 app.use(express.static('public'));
-
-// Serve frontend build files in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendBuildPath = path.join(__dirname, '../../frontend/build');
-  
-  // Serve static files with proper MIME types
-  app.use(express.static(frontendBuildPath, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (path.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-      } else if (path.endsWith('.json')) {
-        res.setHeader('Content-Type', 'application/json');
-      } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
-        res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
-      }
-    }
-  }));
-}
 
 // Simple rate limiting
 const limiter = rateLimit({
@@ -108,6 +88,24 @@ app.use(errorHandler);
 
 // Serve React app for all non-API routes in production
 if (process.env.NODE_ENV === 'production') {
+  const frontendBuildPath = path.join(__dirname, '../../frontend/build');
+  
+  // Serve static files first
+  app.use(express.static(frontendBuildPath, {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      } else if (path.endsWith('.json')) {
+        res.setHeader('Content-Type', 'application/json');
+      } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
+        res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
+      }
+    }
+  }));
+  
+  // Serve index.html for all other routes (React Router will handle routing)
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/build/index.html'));
   });
