@@ -103,7 +103,7 @@ const ActivityContent = styled.div`
   flex: 1;
 `;
 
-const ActivityTitle = styled.div`
+const ActivityItemTitle = styled.div`
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 0.25rem;
@@ -291,7 +291,7 @@ const Dashboard: React.FC = () => {
             <ActivityItem key={activity.id}>
               <ActivityIcon>{activity.icon}</ActivityIcon>
               <ActivityContent>
-                <ActivityTitle>{activity.title}</ActivityTitle>
+                <ActivityItemTitle>{activity.title}</ActivityItemTitle>
                 <ActivityDescription>{activity.description}</ActivityDescription>
               </ActivityContent>
               <ActivityTime>{activity.time}</ActivityTime>
