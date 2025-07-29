@@ -2,11 +2,19 @@ const express = require('express');
 const {body, validationResult, query} = require('express-validator');
 const {authenticateToken, requireAdmin, optionalAuth} = require('../middleware/auth');
 const {query: dbQuery, getClient} = require('../config/database');
-const Stripe = require('stripe');
 const logger = require('../utils/logger');
 
+// Optional stripe import
+let Stripe, stripe;
+try {
+  Stripe = require('stripe');
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+} catch (error) {
+  console.log('⚠️ Stripe not available, payment features will be disabled');
+  stripe = null;
+}
+
 const router = express.Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Validation middleware
 const validateOrder = [
@@ -116,6 +124,14 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
     // Process payment if online
     let paymentIntent = null;
     if (payment_method === 'online') {
+      if (!stripe) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+          success: false,
+          error: 'Payment processing unavailable',
+          message: 'Payment processing features are currently unavailable. Please try again later.'
+        });
+      }
       try {
         paymentIntent = await stripe.paymentIntents.create({
           amount: Math.round(total * 100), // Convert to cents
@@ -397,6 +413,14 @@ router.post('/:id/confirm-payment', async (req, res) => {
         success: false,
         error: 'Payment intent required',
         message: 'Payment intent ID is required'
+      });
+    }
+
+    if (!stripe) {
+      return res.status(500).json({
+        success: false,
+        error: 'Payment processing unavailable',
+        message: 'Payment processing features are currently unavailable. Please try again later.'
       });
     }
 
