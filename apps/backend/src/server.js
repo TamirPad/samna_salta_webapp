@@ -90,7 +90,7 @@ app.use(errorHandler);
 if (process.env.NODE_ENV === 'production') {
   const frontendBuildPath = path.join(__dirname, '../../frontend/build');
   
-  // Serve static files with explicit path handling
+  // Serve static files only for actual static file paths
   app.use('/static', express.static(path.join(frontendBuildPath, 'static'), {
     setHeaders: (res, path) => {
       if (path.endsWith('.js')) {
@@ -101,16 +101,23 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
   
-  // Serve other static files (manifest.json, favicon.ico, etc.)
-  app.use(express.static(frontendBuildPath, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.json')) {
-        res.setHeader('Content-Type', 'application/json');
-      } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
-        res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
-      }
+  // Serve other static files (manifest.json, favicon.ico, etc.) but not for admin routes
+  app.use((req, res, next) => {
+    // Only serve static files for actual static file requests
+    if (req.path.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/)) {
+      express.static(frontendBuildPath, {
+        setHeaders: (res, path) => {
+          if (path.endsWith('.json')) {
+            res.setHeader('Content-Type', 'application/json');
+          } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
+            res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
+          }
+        }
+      })(req, res, next);
+    } else {
+      next();
     }
-  }));
+  });
   
   // Serve index.html for all other routes (React Router will handle routing)
   app.get('*', (req, res) => {
