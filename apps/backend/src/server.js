@@ -90,32 +90,43 @@ app.use(errorHandler);
 if (process.env.NODE_ENV === 'production') {
   const frontendBuildPath = path.join(__dirname, '../../frontend/build');
   
-  // Serve static files only for actual static file requests
+  // Serve static files with explicit MIME type handling
+  app.use('/static', (req, res, next) => {
+    const filePath = path.join(frontendBuildPath, 'static', req.path);
+    
+    // Check if file exists
+    if (require('fs').existsSync(filePath)) {
+      const ext = path.extname(filePath);
+      
+      // Set proper MIME types
+      if (ext === '.js') {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (ext === '.css') {
+        res.setHeader('Content-Type', 'text/css');
+      }
+      
+      res.sendFile(filePath);
+    } else {
+      next();
+    }
+  });
+  
+  // Serve other static files (manifest.json, favicon.ico, etc.)
   app.use((req, res, next) => {
-    // Check if this is a static file request
-    if (req.path.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|ico)$/)) {
-      // Serve static files with proper MIME types
-      if (req.path.startsWith('/static/')) {
-        express.static(path.join(frontendBuildPath, 'static'), {
-          setHeaders: (res, path) => {
-            if (path.endsWith('.js')) {
-              res.setHeader('Content-Type', 'application/javascript');
-            } else if (path.endsWith('.css')) {
-              res.setHeader('Content-Type', 'text/css');
-            }
-          }
-        })(req, res, next);
+    const ext = path.extname(req.path);
+    if (ext === '.json' || ext === '.ico' || ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif' || ext === '.svg') {
+      const filePath = path.join(frontendBuildPath, req.path);
+      
+      if (require('fs').existsSync(filePath)) {
+        if (ext === '.json') {
+          res.setHeader('Content-Type', 'application/json');
+        } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif' || ext === '.svg') {
+          res.setHeader('Content-Type', `image/${ext.slice(1)}`);
+        }
+        
+        res.sendFile(filePath);
       } else {
-        // Serve other static files (manifest.json, favicon.ico, etc.)
-        express.static(frontendBuildPath, {
-          setHeaders: (res, path) => {
-            if (path.endsWith('.json')) {
-              res.setHeader('Content-Type', 'application/json');
-            } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
-              res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
-            }
-          }
-        })(req, res, next);
+        next();
       }
     } else {
       next();
