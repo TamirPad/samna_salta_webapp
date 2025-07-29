@@ -12,6 +12,8 @@ import { GlobalStyles } from "./styles/GlobalStyles";
 import reportWebVitals from "./utils/webVitals";
 
 // Register service worker for offline support
+// Disabled for now due to MIME type issues in production
+/*
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
@@ -31,6 +33,7 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+*/
 
 // Initialize performance monitoring
 reportWebVitals();

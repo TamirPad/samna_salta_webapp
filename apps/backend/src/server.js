@@ -48,7 +48,21 @@ app.use(express.static('public'));
 // Serve frontend build files in production
 if (process.env.NODE_ENV === 'production') {
   const frontendBuildPath = path.join(__dirname, '../../frontend/build');
-  app.use(express.static(frontendBuildPath));
+  
+  // Serve static files with proper MIME types
+  app.use(express.static(frontendBuildPath, {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      } else if (path.endsWith('.json')) {
+        res.setHeader('Content-Type', 'application/json');
+      } else if (path.endsWith('.png') || path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.gif') || path.endsWith('.svg')) {
+        res.setHeader('Content-Type', `image/${path.split('.').pop()}`);
+      }
+    }
+  }));
 }
 
 // Simple rate limiting
