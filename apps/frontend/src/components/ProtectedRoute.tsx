@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
 import {
   selectIsAuthenticated,
@@ -81,6 +81,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallbackPath = '/login',
   showLoading = true
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const location = useLocation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isAuthInitialized = useAppSelector(selectIsAuthInitialized);
@@ -118,7 +119,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <AccessDeniedIcon>🚫</AccessDeniedIcon>
         <AccessDeniedTitle>Access Denied</AccessDeniedTitle>
         <AccessDeniedMessage>
-          You don't have permission to access this page. 
+          You don&apos;t have permission to access this page. 
           Please contact an administrator if you believe this is an error.
         </AccessDeniedMessage>
         <LoginButton onClick={() => window.location.href = '/home'}>

@@ -124,6 +124,7 @@ class ErrorBoundary extends Component<Props, State> {
 
     // Log error to console in development
     if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }
 
@@ -136,6 +137,7 @@ class ErrorBoundary extends Component<Props, State> {
     if (process.env.NODE_ENV === 'production') {
       // You can integrate with error reporting services here
       // Example: Sentry, LogRocket, etc.
+      // eslint-disable-next-line no-console
       console.error('Production error:', {
         message: error.message,
         stack: error.stack,
@@ -171,7 +173,7 @@ class ErrorBoundary extends Component<Props, State> {
           <ErrorIcon>⚠️</ErrorIcon>
           <ErrorTitle>Something went wrong</ErrorTitle>
           <ErrorMessage>
-            We're sorry, but something unexpected happened. 
+            We&apos;re sorry, but something unexpected happened. 
             Please try refreshing the page or contact support if the problem persists.
           </ErrorMessage>
 

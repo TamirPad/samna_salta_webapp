@@ -597,7 +597,7 @@ const OrderTrackingPage: React.FC = () => {
       setError("Failed to fetch order details");
       setLoading(false);
     }
-  }, []);
+  }, [mockOrder]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,27 +14,42 @@ import {
 import { useAppSelector } from "../../hooks/redux";
 import { selectLanguage } from "../../features/language/languageSlice";
 import { debounce } from "../../utils/performance";
+import { apiService } from "../../utils/api";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 // Types
 interface Product {
-  id: string;
+  id: number;
   name: string;
   name_en?: string;
   name_he?: string;
+  description?: string;
+  description_en?: string;
+  description_he?: string;
   price: number;
-  category: string;
-  category_en?: string;
-  category_he?: string;
-  emoji?: string;
-  preparation_time: number;
+  category_id?: number;
+  category_name?: string;
+  category_name_en?: string;
+  category_name_he?: string;
+  image_url?: string;
   is_active: boolean;
+  is_popular: boolean;
+  is_new: boolean;
+  preparation_time_minutes?: number;
+  display_order?: number;
+  created_at: string;
+  updated_at: string;
+  emoji?: string;
 }
 
 interface Category {
-  id: string;
+  id: number;
   name: string;
   name_en?: string;
   name_he?: string;
+  description?: string;
+  is_active: boolean;
+  display_order?: number;
 }
 
 // Styled Components
@@ -403,9 +418,48 @@ const ErrorMessage = styled.div`
 
 const AdminProducts: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory] = useState("all");
-  const [error, setError] = useState<string>("");
+  const [products, setProducts] = useState<Product[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [searchTerm, setSearchTerm] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [showInactive, setShowInactive] = useState(false);
+
+  // Load products and categories
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Load products
+        const productsResponse = await apiService.getProducts();
+        if (productsResponse.success) {
+          setProducts(productsResponse.data);
+        }
+
+        // Load categories
+        const categoriesResponse = await apiService.getCategories();
+        if (categoriesResponse.success) {
+          setCategories(categoriesResponse.data);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error loading products:', error);
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Memoized translations
   const translations = useMemo(
@@ -461,103 +515,18 @@ const AdminProducts: React.FC = () => {
     [translations, language],
   );
 
-  // Memoized mock products data
-  const mockProducts = useMemo(
-    (): Product[] => [
-      {
-        id: "1",
-        name: "Kubaneh",
-        name_en: "Kubaneh",
-        name_he: "כובאנה",
-        price: 25,
-        category: "breads",
-        category_en: "Breads",
-        category_he: "לחמים",
-        emoji: "🍞",
-        preparation_time: 30,
-        is_active: true,
-      },
-      {
-        id: "2",
-        name: "Samneh",
-        name_en: "Samneh",
-        name_he: "סמנה",
-        price: 15,
-        category: "dairy",
-        category_en: "Dairy",
-        category_he: "מוצרי חלב",
-        emoji: "🧈",
-        preparation_time: 15,
-        is_active: true,
-      },
-      {
-        id: "3",
-        name: "Red Bisbas",
-        name_en: "Red Bisbas",
-        name_he: "ביסבוס אדום",
-        price: 12,
-        category: "spices",
-        category_en: "Spices",
-        category_he: "תבלינים",
-        emoji: "🌶️",
-        preparation_time: 5,
-        is_active: false,
-      },
-      {
-        id: "4",
-        name: "Hilbeh",
-        name_en: "Hilbeh",
-        name_he: "חילבה",
-        price: 10,
-        category: "spices",
-        category_en: "Spices",
-        category_he: "תבלינים",
-        emoji: "🌿",
-        preparation_time: 5,
-        is_active: true,
-      },
-      {
-        id: "5",
-        name: "Jachnun",
-        name_en: "Jachnun",
-        name_he: "ג'חנון",
-        price: 20,
-        category: "pastries",
-        category_en: "Pastries",
-        category_he: "מאפים",
-        emoji: "🥐",
-        preparation_time: 45,
-        is_active: true,
-      },
-      {
-        id: "6",
-        name: "Malawach",
-        name_en: "Malawach",
-        name_he: "מלאווח",
-        price: 18,
-        category: "breads",
-        category_en: "Breads",
-        category_he: "לחמים",
-        emoji: "🥖",
-        preparation_time: 25,
-        is_active: true,
-      },
-    ],
-    [],
-  );
-
   // Memoized filtered products
   const filteredProducts = useMemo((): Product[] => {
-    let filtered = mockProducts;
+    let filtered = products;
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (product) => product.category === selectedCategory,
+        (product) => product.category_name === selectedCategory,
       );
     }
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (product) =>
           product.name.toLowerCase().includes(query) ||
@@ -567,12 +536,12 @@ const AdminProducts: React.FC = () => {
     }
 
     return filtered;
-  }, [mockProducts, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, searchTerm]);
 
   // Debounced search handler
   const debouncedSearch = useCallback((query: unknown) => {
     if (typeof query === "string") {
-      setSearchQuery(query);
+      setSearchTerm(query);
     }
   }, []);
 
@@ -598,7 +567,7 @@ const AdminProducts: React.FC = () => {
   }, [t.errorOccurred]);
 
   const handleViewProduct = useCallback(
-    (_productId: string) => {
+    (_productId: number) => {
       try {
         // View product functionality can be implemented here
       } catch (err) {
@@ -609,7 +578,7 @@ const AdminProducts: React.FC = () => {
   );
 
   const handleEditProduct = useCallback(
-    (_productId: string) => {
+    (_productId: number) => {
       try {
         // Edit product functionality can be implemented here
       } catch (err) {
@@ -620,7 +589,7 @@ const AdminProducts: React.FC = () => {
   );
 
   const handleDeleteProduct = useCallback(
-    (_productId: string) => {
+    (_productId: number) => {
       try {
         if (window.confirm(t.confirmDelete)) {
           // Delete product functionality can be implemented here
@@ -696,7 +665,9 @@ const AdminProducts: React.FC = () => {
         </ResultsCount>
 
         <AnimatePresence mode="wait">
-          {filteredProducts && filteredProducts.length > 0 ? (
+          {loading ? (
+            <LoadingSpinner />
+          ) : filteredProducts && filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map((product, index) => (
                 <ProductCard
@@ -715,9 +686,9 @@ const AdminProducts: React.FC = () => {
                     }
                   }}
                 >
-                  <ProductImage emoji={product.emoji || ""}>
+                  <ProductImage emoji={product.image_url ? "" : product.emoji}>
                     <span role="img" aria-label={getProductName(product)}>
-                      {product.emoji}
+                      {product.image_url ? "🍽️" : product.emoji}
                     </span>
                     <ProductStatus active={product.is_active}>
                       {product.is_active ? t.active : t.inactive}
@@ -734,16 +705,18 @@ const AdminProducts: React.FC = () => {
                       <MetaItem>
                         <Package size={14} />
                         {getCategoryName({
-                          id: product.category,
+                          id: product.category_id || 0,
                           name:
-                            product.category_en || product.category_he || "",
-                          name_en: product.category_en || "",
-                          name_he: product.category_he || "",
+                            product.category_name || product.category_name_en || product.category_name_he || "",
+                          name_en: product.category_name_en || "",
+                          name_he: product.category_name_he || "",
+                          is_active: true,
+                          description: ""
                         })}
                       </MetaItem>
                       <MetaItem>
                         <span style={{ fontSize: "14px" }}>⏱️</span>
-                        {product.preparation_time} {t.minutes}
+                        {product.preparation_time_minutes || 0} {t.minutes}
                       </MetaItem>
                     </ProductMeta>
 

@@ -3,20 +3,30 @@ import { useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import styled from 'styled-components';
+import { apiService } from '../../utils/api';
 
 interface Order {
-  id: string;
-  customerName: string;
-  items: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>;
+  id: number;
+  order_number: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email?: string;
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
+  order_type: 'pickup' | 'delivery';
+  delivery_address?: string;
+  subtotal: number;
+  delivery_charge: number;
   total: number;
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
-  createdAt: string;
-  deliveryAddress?: string;
-  phone?: string;
+  created_at: string;
+  updated_at: string;
+  order_items: Array<{
+    id: number;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
 }
 
 const OrdersContainer = styled.div`
@@ -252,62 +262,30 @@ const EmptyIcon = styled.div`
 
 const Orders: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [filter, setFilter] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockOrders: Order[] = [
-          {
-            id: 'ORD-001',
-            customerName: 'John Doe',
-            items: [
-              { name: 'Kubaneh', quantity: 2, price: 25 },
-              { name: 'Samneh', quantity: 1, price: 15 }
-            ],
-            total: 65,
-            status: 'pending',
-            createdAt: '2024-01-15T10:30:00Z',
-            deliveryAddress: '123 Main St, Tel Aviv',
-            phone: '+972-50-123-4567'
-          },
-          {
-            id: 'ORD-002',
-            customerName: 'Sarah Smith',
-            items: [
-              { name: 'Red Bisbas', quantity: 1, price: 12 },
-              { name: 'Hilbeh', quantity: 2, price: 10 }
-            ],
-            total: 32,
-            status: 'confirmed',
-            createdAt: '2024-01-15T09:15:00Z',
-            deliveryAddress: '456 Oak Ave, Tel Aviv',
-            phone: '+972-50-987-6543'
-          },
-          {
-            id: 'ORD-003',
-            customerName: 'Mike Johnson',
-            items: [
-              { name: 'Kubaneh', quantity: 1, price: 25 },
-              { name: 'Samneh', quantity: 1, price: 15 },
-              { name: 'Red Bisbas', quantity: 1, price: 12 }
-            ],
-            total: 52,
-            status: 'delivered',
-            createdAt: '2024-01-14T16:45:00Z',
-            deliveryAddress: '789 Pine Rd, Tel Aviv',
-            phone: '+972-50-555-1234'
-          }
-        ];
-        
-        setOrders(mockOrders);
+        setLoading(true);
+        setError(null);
+
+        const response = await apiService.getOrders();
+        if (response.success) {
+          setOrders(response.data);
+        } else {
+          setError('Failed to load orders');
+        }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error loading orders:', error);
+        setError('Failed to load orders');
       } finally {
         setLoading(false);
       }
@@ -335,6 +313,7 @@ const Orders: React.FC = () => {
           confirmed: 'אושר',
           preparing: 'בהכנה',
           ready: 'מוכן',
+          delivering: 'במסירה',
           delivered: 'נמסר',
           cancelled: 'בוטל'
         },
@@ -366,6 +345,7 @@ const Orders: React.FC = () => {
           confirmed: 'Confirmed',
           preparing: 'Preparing',
           ready: 'Ready',
+          delivering: 'Delivering',
           delivered: 'Delivered',
           cancelled: 'Cancelled'
         },
@@ -384,14 +364,28 @@ const Orders: React.FC = () => {
 
   const content = getContent();
 
-  const filteredOrders = filter === 'all' 
+  const filteredOrders = statusFilter === 'all' 
     ? orders 
-    : orders.filter(order => order.status === filter);
+    : orders.filter(order => order.status === statusFilter);
 
-  const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
+  const handleStatusChange = async (orderId: number, newStatus: Order['status']) => {
+    try {
+      const response = await apiService.updateOrderStatus(orderId, newStatus);
+      
+      if (response.success) {
+        // Update the order in the local state
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order.id === orderId 
+              ? { ...order, status: newStatus }
+              : order
+          )
+        );
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating order status:', error);
+    }
   };
 
   if (loading) {
@@ -409,8 +403,8 @@ const Orders: React.FC = () => {
         {Object.entries(content.filters).map(([key, label]) => (
           <FilterButton
             key={key}
-            active={filter === key}
-            onClick={() => setFilter(key)}
+            active={statusFilter === key}
+            onClick={() => setStatusFilter(key)}
           >
             {label}
           </FilterButton>
@@ -428,10 +422,10 @@ const Orders: React.FC = () => {
             <OrderCard key={order.id}>
               <OrderHeader>
                 <OrderInfo>
-                  <OrderId>{order.id}</OrderId>
-                  <OrderCustomer>{order.customerName}</OrderCustomer>
+                  <OrderId>{order.order_number}</OrderId>
+                  <OrderCustomer>{order.customer_name}</OrderCustomer>
                   <OrderDate>
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {new Date(order.created_at).toLocaleDateString()}
                   </OrderDate>
                 </OrderInfo>
                 <OrderStatus status={order.status}>
@@ -441,13 +435,14 @@ const Orders: React.FC = () => {
 
               <OrderBody>
                 <OrderItems>
-                  {order.items.map((item, index) => (
-                    <OrderItem key={index}>
+                  {order.order_items.map((item, index) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <OrderItem key={`item-${index}`}>
                       <ItemInfo>
-                        <ItemName>{item.name}</ItemName>
+                        <ItemName>{item.product_name}</ItemName>
                         <ItemQuantity>× {item.quantity}</ItemQuantity>
                       </ItemInfo>
-                      <ItemPrice>₪{item.price}</ItemPrice>
+                      <ItemPrice>₪{item.unit_price}</ItemPrice>
                     </OrderItem>
                   ))}
                 </OrderItems>

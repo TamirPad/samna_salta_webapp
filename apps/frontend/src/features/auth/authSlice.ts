@@ -39,17 +39,20 @@ export const initializeAuth = createAsyncThunk(
       const userData = localStorage.getItem("user");
 
       if (!token || !userData) {
+        // eslint-disable-next-line no-console
         console.log(
           "🔍 No token or user data found, returning unauthenticated",
         );
         return { user: null, isAuthenticated: false };
       }
 
+      // eslint-disable-next-line no-console
       console.log("🔍 Attempting to validate token with backend...");
 
       // Validate token with backend
       const response = await apiService.getCurrentUser();
 
+      // eslint-disable-next-line no-console
       console.log("🔍 Backend response:", response);
 
       // Handle different response structures
@@ -57,24 +60,30 @@ export const initializeAuth = createAsyncThunk(
       if (response.data && response.data.data) {
         // Backend returns { data: { data: user } }
         user = response.data.data;
+        // eslint-disable-next-line no-console
         console.log("🔍 Using response.data.data structure");
       } else if (response.data && response.data.user) {
         // Backend returns { data: { user: user } }
         user = response.data.user;
+        // eslint-disable-next-line no-console
         console.log("🔍 Using response.data.user structure");
       } else if (response.data) {
         // Backend returns { data: user }
         user = response.data;
+        // eslint-disable-next-line no-console
         console.log("🔍 Using response.data structure");
       } else {
         // No data in response
+        // eslint-disable-next-line no-console
         console.error("❌ Invalid response structure:", response);
         throw new Error("Invalid response structure");
       }
 
+      // eslint-disable-next-line no-console
       console.log("✅ User authenticated successfully:", user);
       return { user, isAuthenticated: true };
     } catch (error: unknown) {
+      // eslint-disable-next-line no-console
       console.error("❌ Authentication initialization failed:", error);
 
       // Clear invalid tokens
@@ -82,6 +91,7 @@ export const initializeAuth = createAsyncThunk(
       localStorage.removeItem("user");
 
       if ((error as any).response?.status === 401) {
+        // eslint-disable-next-line no-console
         console.log("🔍 401 Unauthorized, returning unauthenticated");
         return { user: null, isAuthenticated: false };
       }

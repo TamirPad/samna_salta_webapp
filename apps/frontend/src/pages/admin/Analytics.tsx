@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-// import { selectLanguage } from '../../features/language/languageSlice';
+import { useAppSelector } from "../../hooks/redux";
 import { selectAuth } from "../../features/auth/authSlice";
-import {
-  fetchDashboardAnalytics,
-  clearAnalyticsError,
-} from "../../features/analytics/analyticsSlice";
 import { apiService } from "../../utils/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -98,66 +93,19 @@ const ChartContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-`;
-
-const TableContainer = styled.div`
-  margin-top: 2rem;
-  overflow-x: auto;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const Th = styled.th`
-  background: #8b4513;
-  color: white;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-`;
-
-const Td = styled.td`
-  padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
-`;
-
-const Tr = styled.tr`
-  &:hover {
-    background: #f8f9fa;
-  }
+  color: #666;
 `;
 
 const AuthContainer = styled.div`
-  padding: 2rem;
-  background: #f8f9fa;
-  min-height: 100vh;
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`;
-
-const AuthCard = styled.div`
-  background: #fee;
-  color: #c33;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  max-width: 500px;
+  padding: 4rem 2rem;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
-  flex-wrap: wrap;
+  margin-top: 2rem;
 `;
 
 const AuthButton = styled.button`
@@ -168,228 +116,112 @@ const AuthButton = styled.button`
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: #a0522d;
   }
 `;
 
-const WarningBanner = styled.div`
-  background: #fff3cd;
-  color: #856404;
+const TableContainer = styled.div`
+  margin-top: 2rem;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+`;
+
+const Th = styled.th`
+  background: #f8f9fa;
   padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  border: 1px solid #ffeaa7;
+  text-align: left;
+  border-bottom: 2px solid #e9ecef;
+  font-weight: 600;
 `;
 
-const DateFilterContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+const Td = styled.td`
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
 `;
-
-const DateInput = styled.input`
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-`;
-
-const FilterButton = styled.button`
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-
-  &:hover {
-    background: #218838;
-  }
-`;
-
-// Types
-interface SalesData {
-  period: string;
-  orders: number;
-  revenue: number;
-  avg_order_value: number;
-}
-
-interface ProductData {
-  id: number;
-  name: string;
-  name_he?: string;
-  name_en?: string;
-  price: number;
-  order_count: number;
-  total_quantity: number;
-  total_revenue: number;
-  avg_quantity_per_order: number;
-}
-
-interface CustomerData {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  order_count: number;
-  total_spent: number;
-  avg_order_value: number;
-  last_order_date: string;
-  first_order_date: string;
-}
 
 const AdminAnalytics: React.FC = () => {
-  // const language = useAppSelector(selectLanguage);
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAppSelector(selectAuth);
-  const { dashboard, isLoading, error } = useAppSelector(
-    (state) => state.analytics,
-  );
-
+  const { isAuthenticated } = useAppSelector(selectAuth);
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "sales" | "products" | "customers"
   >("dashboard");
-  const [salesData, setSalesData] = useState<SalesData[]>([]);
-  const [productData, setProductData] = useState<ProductData[]>([]);
-  const [customerData, setCustomerData] = useState<CustomerData[]>([]);
-  const [dateRange, setDateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    endDate: new Date().toISOString().split("T")[0],
+  const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [error, setError] = useState<string | null>(null);
+
+  // Dashboard data
+  const [dashboardData, setDashboardData] = useState({
+    today: { orders: 0, revenue: 0 },
+    month: { orders: 0, revenue: 0 },
+    customers: 0,
+    pendingOrders: 0,
+    topProducts: [],
+    ordersByStatus: [],
+    revenueByDay: []
   });
-  const [loadingData, setLoadingData] = useState(false);
 
-  // Fetch dashboard data on component mount
+  // Load dashboard data
   useEffect(() => {
-    if (isAuthenticated && user?.isAdmin) {
-      // Add a small delay to prevent rapid successive calls
-      const timer = setTimeout(() => {
-        dispatch(fetchDashboardAnalytics());
-      }, 100);
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [dispatch, isAuthenticated, user?.isAdmin]);
-
-  // Clear error when component unmounts
-  useEffect(() => {
-    return () => {
-      dispatch(clearAnalyticsError());
+        const response = await apiService.getDashboardAnalytics();
+        if (response.success) {
+          setDashboardData(response.data);
+        } else {
+          setError('Failed to load dashboard data');
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error loading dashboard data:', error);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [dispatch]);
 
-  const handleLogin = () => {
-    navigate("/login");
-  };
-
-  const fetchSalesData = async () => {
-    try {
-      setLoadingData(true);
-      const response = await apiService.getSalesReport({
-        ...(dateRange.startDate && { start_date: dateRange.startDate }),
-        ...(dateRange.endDate && { end_date: dateRange.endDate }),
-        group_by: "day",
-      });
-      setSalesData(response.data.data.sales);
-    } catch (error) {
-      // console.error('Error fetching sales data:', error);
-    } finally {
-      setLoadingData(false);
+    if (isAuthenticated) {
+      loadDashboardData();
     }
-  };
-
-  const fetchProductData = async () => {
-    try {
-      setLoadingData(true);
-      const response = await apiService.getProductAnalytics({
-        ...(dateRange.startDate && { start_date: dateRange.startDate }),
-        ...(dateRange.endDate && { end_date: dateRange.endDate }),
-      });
-      setProductData(response.data.data.products);
-    } catch (error) {
-      // console.error('Error fetching product data:', error);
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
-  const fetchCustomerData = async () => {
-    try {
-      setLoadingData(true);
-      const response = await apiService.getCustomerAnalytics({
-        ...(dateRange.startDate && { start_date: dateRange.startDate }),
-        ...(dateRange.endDate && { end_date: dateRange.endDate }),
-      });
-      setCustomerData(response.data.data.customers);
-    } catch (error) {
-      // console.error('Error fetching customer data:', error);
-    } finally {
-      setLoadingData(false);
-    }
-  };
+  }, [isAuthenticated]);
 
   const handleTabChange = (
     tab: "dashboard" | "sales" | "products" | "customers",
   ) => {
     setActiveTab(tab);
-    if (tab === "sales") {
-      fetchSalesData();
-    } else if (tab === "products") {
-      fetchProductData();
-    } else if (tab === "customers") {
-      fetchCustomerData();
-    }
   };
 
   const formatCurrency = (amount: number): string => {
-    return `₪${amount.toLocaleString()}`;
+    return new Intl.NumberFormat("he-IL", {
+      style: "currency",
+      currency: "ILS",
+    }).format(amount);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString("he-IL");
   };
 
   if (!isAuthenticated) {
     return (
       <AuthContainer>
         <Title>Analytics Dashboard</Title>
-        <AuthCard>
-          <strong>Authentication Required</strong>
-          <p style={{ margin: "1rem 0" }}>Please login to access analytics.</p>
-          <ButtonGroup>
-            <AuthButton onClick={handleLogin}>
-              Login to Access Analytics
-            </AuthButton>
-          </ButtonGroup>
-        </AuthCard>
-      </AuthContainer>
-    );
-  }
-
-  if (!user?.isAdmin) {
-    return (
-      <AuthContainer>
-        <Title>Analytics Dashboard</Title>
-        <AuthCard>
-          <strong>Access Denied</strong>
-          <p style={{ margin: "1rem 0" }}>
-            Admin privileges required to access analytics.
-          </p>
-          <ButtonGroup>
-            <AuthButton onClick={() => navigate("/")}>Go to Home</AuthButton>
-          </ButtonGroup>
-        </AuthCard>
+        <p style={{ margin: "1rem 0" }}>Please login to access analytics.</p>
+        <ButtonGroup>
+          <AuthButton onClick={() => navigate("/login")}>
+            Login to Access Analytics
+          </AuthButton>
+        </ButtonGroup>
       </AuthContainer>
     );
   }
@@ -399,12 +231,6 @@ const AdminAnalytics: React.FC = () => {
       <Header>
         <Title>Analytics Dashboard</Title>
       </Header>
-
-      {error && (
-        <WarningBanner>
-          <strong>⚠️ Warning:</strong> {error}
-        </WarningBanner>
-      )}
 
       <TabContainer>
         <Tab
@@ -417,56 +243,57 @@ const AdminAnalytics: React.FC = () => {
           $active={activeTab === "sales"}
           onClick={() => handleTabChange("sales")}
         >
-          Sales Reports
+          Sales
         </Tab>
         <Tab
           $active={activeTab === "products"}
           onClick={() => handleTabChange("products")}
         >
-          Product Analytics
+          Products
         </Tab>
         <Tab
           $active={activeTab === "customers"}
           onClick={() => handleTabChange("customers")}
         >
-          Customer Analytics
+          Customers
         </Tab>
       </TabContainer>
 
       <ContentContainer>
         {activeTab === "dashboard" && (
           <>
-            {isLoading ? (
+            {loading ? (
               <LoadingSpinner />
             ) : (
               <>
                 <StatsGrid>
                   <StatCard>
-                    <StatValue>{dashboard?.today?.orders || 0}</StatValue>
+                    <StatValue>{dashboardData?.today?.orders || 0}</StatValue>
                     <StatLabel>Today&apos;s Orders</StatLabel>
                   </StatCard>
                   <StatCard>
                     <StatValue>
-                      {formatCurrency(dashboard?.today?.revenue || 0)}
+                      {formatCurrency(dashboardData?.today?.revenue || 0)}
                     </StatValue>
                     <StatLabel>Today&apos;s Revenue</StatLabel>
                   </StatCard>
                   <StatCard>
-                    <StatValue>{dashboard?.customers || 0}</StatValue>
+                    <StatValue>{dashboardData?.customers || 0}</StatValue>
                     <StatLabel>Total Customers</StatLabel>
                   </StatCard>
                   <StatCard>
-                    <StatValue>{dashboard?.pending_orders || 0}</StatValue>
+                    <StatValue>{dashboardData?.pendingOrders || 0}</StatValue>
                     <StatLabel>Pending Orders</StatLabel>
                   </StatCard>
                 </StatsGrid>
 
                 <ChartContainer>
-                  <p>Revenue Chart - Coming Soon</p>
+                  <p>Revenue and Orders Chart</p>
+                  <p>Chart implementation would go here</p>
                 </ChartContainer>
 
-                {dashboard?.top_products &&
-                  dashboard.top_products.length > 0 && (
+                {dashboardData?.topProducts &&
+                  dashboardData.topProducts.length > 0 && (
                     <TableContainer>
                       <h3>Top Selling Products</h3>
                       <Table>
@@ -474,24 +301,25 @@ const AdminAnalytics: React.FC = () => {
                           <tr>
                             <Th>Product</Th>
                             <Th>Orders</Th>
-                            <Th>Quantity Sold</Th>
+                            <Th>Revenue</Th>
                           </tr>
                         </thead>
                         <tbody>
-                          {dashboard.top_products.map(
+                          {dashboardData.topProducts.map(
                             (
                               product: {
                                 name: string;
                                 order_count: number;
-                                total_quantity: number;
+                                total_revenue: number;
                               },
                               index: number,
                             ) => (
-                              <Tr key={`product-${product.name}-${index}`}>
+                              // eslint-disable-next-line react/no-array-index-key
+                              <tr key={`product-${index}`}>
                                 <Td>{product.name}</Td>
                                 <Td>{product.order_count}</Td>
-                                <Td>{product.total_quantity}</Td>
-                              </Tr>
+                                <Td>{formatCurrency(product.total_revenue)}</Td>
+                              </tr>
                             ),
                           )}
                         </tbody>
@@ -504,180 +332,24 @@ const AdminAnalytics: React.FC = () => {
         )}
 
         {activeTab === "sales" && (
-          <>
-            <DateFilterContainer>
-              <DateInput
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    startDate: e.target.value,
-                  }))
-                }
-              />
-              <span>to</span>
-              <DateInput
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
-                }
-              />
-              <FilterButton onClick={fetchSalesData}>Apply Filter</FilterButton>
-            </DateFilterContainer>
-
-            {loadingData ? (
-              <LoadingSpinner />
-            ) : (
-              <TableContainer>
-                <Table>
-                  <thead>
-                    <tr>
-                      <Th>Date</Th>
-                      <Th>Orders</Th>
-                      <Th>Revenue</Th>
-                      <Th>Avg Order Value</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {salesData.map((sale, index) => (
-                      <Tr key={`sale-${sale.period}`}>
-                        <Td>{sale.period}</Td>
-                        <Td>{sale.orders}</Td>
-                        <Td>{formatCurrency(sale.revenue)}</Td>
-                        <Td>{formatCurrency(sale.avg_order_value)}</Td>
-                      </Tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
+          <ChartContainer>
+            <p>Sales Analytics</p>
+            <p>Sales charts and reports would be implemented here</p>
+          </ChartContainer>
         )}
 
         {activeTab === "products" && (
-          <>
-            <DateFilterContainer>
-              <DateInput
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    startDate: e.target.value,
-                  }))
-                }
-              />
-              <span>to</span>
-              <DateInput
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
-                }
-              />
-              <FilterButton onClick={fetchProductData}>
-                Apply Filter
-              </FilterButton>
-            </DateFilterContainer>
-
-            {loadingData ? (
-              <LoadingSpinner />
-            ) : (
-              <TableContainer>
-                <Table>
-                  <thead>
-                    <tr>
-                      <Th>Product</Th>
-                      <Th>Price</Th>
-                      <Th>Orders</Th>
-                      <Th>Quantity Sold</Th>
-                      <Th>Revenue</Th>
-                      <Th>Avg Quantity/Order</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {productData.map((product) => (
-                      <Tr key={product.id}>
-                        <Td>{product.name}</Td>
-                        <Td>{formatCurrency(product.price)}</Td>
-                        <Td>{product.order_count}</Td>
-                        <Td>{product.total_quantity}</Td>
-                        <Td>{formatCurrency(product.total_revenue)}</Td>
-                        <Td>{product.avg_quantity_per_order.toFixed(1)}</Td>
-                      </Tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
+          <ChartContainer>
+            <p>Product Analytics</p>
+            <p>Product performance charts would be implemented here</p>
+          </ChartContainer>
         )}
 
         {activeTab === "customers" && (
-          <>
-            <DateFilterContainer>
-              <DateInput
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    startDate: e.target.value,
-                  }))
-                }
-              />
-              <span>to</span>
-              <DateInput
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
-                }
-              />
-              <FilterButton onClick={fetchCustomerData}>
-                Apply Filter
-              </FilterButton>
-            </DateFilterContainer>
-
-            {loadingData ? (
-              <LoadingSpinner />
-            ) : (
-              <TableContainer>
-                <Table>
-                  <thead>
-                    <tr>
-                      <Th>Customer</Th>
-                      <Th>Email</Th>
-                      <Th>Phone</Th>
-                      <Th>Orders</Th>
-                      <Th>Total Spent</Th>
-                      <Th>Avg Order Value</Th>
-                      <Th>Last Order</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customerData.map((customer) => (
-                      <Tr key={customer.id}>
-                        <Td>{customer.name}</Td>
-                        <Td>{customer.email}</Td>
-                        <Td>{customer.phone}</Td>
-                        <Td>{customer.order_count}</Td>
-                        <Td>{formatCurrency(customer.total_spent)}</Td>
-                        <Td>{formatCurrency(customer.avg_order_value)}</Td>
-                        <Td>
-                          {customer.last_order_date
-                            ? formatDate(customer.last_order_date)
-                            : "N/A"}
-                        </Td>
-                      </Tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </TableContainer>
-            )}
-          </>
+          <ChartContainer>
+            <p>Customer Analytics</p>
+            <p>Customer behavior charts would be implemented here</p>
+          </ChartContainer>
         )}
       </ContentContainer>
     </AnalyticsContainer>

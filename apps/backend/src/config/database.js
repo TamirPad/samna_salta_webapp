@@ -35,16 +35,11 @@ let isDevelopmentMode = false;
 
 const createPool = () => {
   if (!pool) {
-    const config = getDatabaseConfig();
-    pool = new Pool(config);
-
-    pool.on('connect', () => {
-      console.log('✅ Connected to PostgreSQL database');
-      isConnected = true;
-    });
-
+    const dbConfig = getDatabaseConfig();
+    pool = new Pool(dbConfig);
+    
     pool.on('error', (err) => {
-      console.error('❌ Database pool error:', err.message);
+      console.error('Unexpected error on idle client', err);
       isConnected = false;
     });
   }
@@ -77,11 +72,20 @@ const connectDB = async () => {
     console.log('🔧 Testing direct connection...');
     await client.connect();
     console.log('✅ Direct connection successful');
+    
+    // Set the search path to use the new schema
+    await client.query('SET search_path TO samna_salta_webapp, public');
+    console.log('✅ Schema search path set to samna_salta_webapp');
+    
     await client.end();
     
     // Now create the pool
     createPool();
     const poolClient = await pool.connect();
+    
+    // Set search path for the pool as well
+    await poolClient.query('SET search_path TO samna_salta_webapp, public');
+    
     console.log('✅ Pool connection established');
     poolClient.release();
     isConnected = true;
@@ -97,43 +101,36 @@ const connectDB = async () => {
 };
 
 const query = async (text, params) => {
-  if (!pool || !isConnected) {
-    if (isDevelopmentMode) {
-      throw new Error('Database not connected - running in development mode');
-    }
-    throw new Error('Database not connected');
+  if (!isConnected || isDevelopmentMode) {
+    throw new Error('Database not connected - running in development mode');
   }
 
+  const client = await pool.connect();
   try {
-    const res = await pool.query(text, params);
-    return res;
-  } catch (error) {
-    logger.error('Database query error:', error);
-    throw error;
+    // Ensure search path is set for each query
+    await client.query('SET search_path TO samna_salta_webapp, public');
+    const result = await client.query(text, params);
+    return result;
+  } finally {
+    client.release();
   }
 };
 
-const isDBConnected = () => {
-  return isConnected;
-};
-
-const isDevelopmentModeEnabled = () => {
-  return isDevelopmentMode;
-};
-
-const closePool = async () => {
-  if (pool) {
-    await pool.end();
-    pool = null;
-    isConnected = false;
-    console.log('✅ Database pool closed');
+const getClient = () => {
+  if (!isConnected || isDevelopmentMode) {
+    throw new Error('Database not connected - running in development mode');
   }
+  return pool.connect();
 };
+
+const isConnectedToDB = () => isConnected && !isDevelopmentMode;
+
+const isInDevelopmentMode = () => isDevelopmentMode;
 
 module.exports = {
   connectDB,
   query,
-  isDBConnected,
-  isDevelopmentModeEnabled,
-  closePool
+  getClient,
+  isConnectedToDB,
+  isInDevelopmentMode
 };

@@ -3,6 +3,7 @@ import { useAppSelector } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import styled from 'styled-components';
+import { apiService } from '../../utils/api';
 
 const DashboardContainer = styled.div`
   padding: 2rem;
@@ -156,49 +157,55 @@ const Dashboard: React.FC = () => {
     totalProducts: 0
   });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading dashboard data
     const loadDashboardData = async () => {
       try {
-        // Simulate API calls
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        setStats({
-          totalOrders: 156,
-          totalRevenue: 45230,
-          totalCustomers: 89,
-          totalProducts: 24
-        });
-        
-        setRecentActivity([
-          {
-            id: 1,
+        setLoading(true);
+        setError(null);
+
+        // Fetch analytics data
+        const analyticsResponse = await apiService.getDashboardAnalytics();
+        if (analyticsResponse.success) {
+          const data = analyticsResponse.data;
+          setStats({
+            totalOrders: data.month.orders,
+            totalRevenue: data.month.revenue,
+            totalCustomers: data.customers,
+            totalProducts: 0 // Will be fetched separately
+          });
+        }
+
+        // Fetch products count
+        const productsResponse = await apiService.getProducts();
+        if (productsResponse.success) {
+          setStats(prev => ({
+            ...prev,
+            totalProducts: productsResponse.data.length
+          }));
+        }
+
+        // Fetch recent orders for activity feed
+        const ordersResponse = await apiService.getOrders({ limit: 5 });
+        if (ordersResponse.success) {
+          const activities = ordersResponse.data.map((order: any) => ({
+            id: order.id,
             type: 'order',
-            title: 'New Order #1234',
-            description: 'Order placed by John Doe',
-            time: '2 minutes ago',
-            icon: '🛒'
-          },
-          {
-            id: 2,
-            type: 'customer',
-            title: 'New Customer',
-            description: 'Sarah Smith registered',
-            time: '15 minutes ago',
-            icon: '👤'
-          },
-          {
-            id: 3,
-            type: 'product',
-            title: 'Product Updated',
-            description: 'Kubaneh price updated',
-            time: '1 hour ago',
-            icon: '🍞'
-          }
-        ]);
+            title: `Order #${order.order_number}`,
+            description: `Order placed by ${order.customer_name}`,
+            time: new Date(order.created_at).toLocaleString(),
+            icon: '🛒',
+            amount: order.total
+          }));
+          setRecentActivity(activities);
+        }
+
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error loading dashboard data:', error);
+        setError('Failed to load dashboard data');
       } finally {
         setLoading(false);
       }

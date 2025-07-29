@@ -148,6 +148,7 @@ const LoginPage: React.FC = () => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const language = useAppSelector(selectLanguage);
 

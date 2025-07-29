@@ -29,103 +29,10 @@ router.get('/', [
     const {category, search, page = 1, limit = 20} = req.query;
     const offset = (page - 1) * limit;
 
-    // Development mode fallback - provide sample products without database
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔧 Development mode: Using sample products');
-
-      const sampleProducts = [
-        {
-          id: 1,
-          name: 'Shawarma',
-          name_en: 'Shawarma',
-          name_he: 'שווארמה',
-          description: 'Traditional Yemenite shawarma with fresh vegetables',
-          description_en: 'Traditional Yemenite shawarma with fresh vegetables',
-          description_he: 'שווארמה תימנית מסורתית עם ירקות טריים',
-          price: 15.99,
-          category_id: 1,
-          category_name: 'Main Dishes',
-          category_name_en: 'Main Dishes',
-          category_name_he: 'מנות עיקריות',
-          image_url: '/images/shawarma.jpg',
-          is_active: true,
-          display_order: 1
-        },
-        {
-          id: 2,
-          name: 'Falafel',
-          name_en: 'Falafel',
-          name_he: 'פלאפל',
-          description: 'Crispy falafel balls with tahini sauce',
-          description_en: 'Crispy falafel balls with tahini sauce',
-          description_he: 'כדורי פלאפל פריכים עם רוטב טחינה',
-          price: 12.99,
-          category_id: 1,
-          category_name: 'Main Dishes',
-          category_name_en: 'Main Dishes',
-          category_name_he: 'מנות עיקריות',
-          image_url: '/images/falafel.jpg',
-          is_active: true,
-          display_order: 2
-        },
-        {
-          id: 3,
-          name: 'Hummus',
-          name_en: 'Hummus',
-          name_he: 'חומוס',
-          description: 'Creamy hummus with olive oil and za\'atar',
-          description_en: 'Creamy hummus with olive oil and za\'atar',
-          description_he: 'חומוס קרמי עם שמן זית וזעתר',
-          price: 8.99,
-          category_id: 2,
-          category_name: 'Appetizers',
-          category_name_en: 'Appetizers',
-          category_name_he: 'מנות פתיחה',
-          image_url: '/images/hummus.jpg',
-          is_active: true,
-          display_order: 3
-        }
-      ];
-
-      // Filter by category if specified
-      let filteredProducts = sampleProducts;
-      if (category) {
-        filteredProducts = sampleProducts.filter(product =>
-          product.category_name.toLowerCase().includes(category.toLowerCase())
-        );
-      }
-
-      // Filter by search if specified
-      if (search) {
-        filteredProducts = filteredProducts.filter(product =>
-          product.name.toLowerCase().includes(search.toLowerCase()) ||
-          product.description.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-
-      // Apply pagination
-      const startIndex = offset;
-      const endIndex = startIndex + limit;
-      const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
-      console.log('✅ Development products fetched successfully:', {count: paginatedProducts.length, category, search});
-
-      return res.json({
-        success: true,
-        data: paginatedProducts,
-        pagination: {
-          page,
-          limit,
-          total: filteredProducts.length
-        }
-      });
-    }
-
     // Try to get from cache first (optional)
-    let cached = null;
     try {
       const cacheKey = `products:${category || 'all'}:${search || 'none'}:${page}:${limit}`;
-      cached = await getCache(cacheKey);
+      const cached = await getCache(cacheKey);
       if (cached) {
         return res.json({
           success: true,
@@ -138,10 +45,11 @@ router.get('/', [
       logger.debug('Cache not available, proceeding without cache');
     }
 
+    // First try to get products from the products table
     let sql = `
       SELECT p.*, c.name as category_name, c.name_en as category_name_en, c.name_he as category_name_he
-      FROM menu_products p
-      LEFT JOIN menu_categories c ON p.category_id = c.id
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.is_active IS NOT FALSE
     `;
     const params = [];
@@ -165,6 +73,61 @@ router.get('/', [
     let result;
     try {
       result = await dbQuery(sql, params);
+      
+      // If no products found in products table, create products from order items
+      if (result.rows.length === 0) {
+        console.log('🔧 No products found in products table, creating from order items...');
+        
+        // Get unique products from order items
+        const orderItemsResult = await dbQuery(`
+          SELECT DISTINCT 
+            product_name as name,
+            product_name as name_en,
+            product_name as name_he,
+            'Traditional Yemenite dish' as description,
+            'Traditional Yemenite dish' as description_en,
+            'מנה תימנית מסורתית' as description_he,
+            unit_price as price,
+            COUNT(*) as order_count,
+            SUM(quantity) as total_quantity
+          FROM order_items 
+          WHERE product_name IS NOT NULL 
+          GROUP BY product_name, unit_price
+          ORDER BY total_quantity DESC
+          LIMIT 50
+        `);
+        
+        if (orderItemsResult.rows.length > 0) {
+          // Create categories if they don't exist
+          await dbQuery(`
+            INSERT INTO categories (name, name_en, name_he, is_active, display_order)
+            VALUES ('Main Dishes', 'Main Dishes', 'מנות עיקריות', true, 1)
+            ON CONFLICT (name) DO NOTHING
+          `);
+          
+          // Get the main category
+          const categoryResult = await dbQuery('SELECT id FROM categories WHERE name = $1', ['Main Dishes']);
+          const categoryId = categoryResult.rows[0]?.id || 1;
+          
+          // Insert products
+          for (let i = 0; i < orderItemsResult.rows.length; i++) {
+            const item = orderItemsResult.rows[i];
+            await dbQuery(`
+              INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_active, display_order)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9)
+              ON CONFLICT (name) DO NOTHING
+            `, [
+              item.name, item.name_en, item.name_he,
+              item.description, item.description_en, item.description_he,
+              item.price, categoryId, i + 1
+            ]);
+          }
+          
+          // Now fetch the products again
+          result = await dbQuery(sql, params);
+        }
+      }
+      
     } catch (dbError) {
       console.error('❌ Database error fetching products:', dbError.message);
       logger.error('Database error fetching products:', dbError);
@@ -228,6 +191,52 @@ router.get('/', [
   }
 });
 
+// Simple test endpoint
+router.get('/test', async (req, res) => {
+  try {
+    const result = await dbQuery('SELECT 1 as test');
+    res.json({
+      success: true,
+      message: 'Database connection working',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Test endpoint to check database tables
+router.get('/test-db', async (req, res) => {
+  try {
+    // Check if products table exists
+    const productsResult = await dbQuery('SELECT COUNT(*) as count FROM products');
+    const categoriesResult = await dbQuery('SELECT COUNT(*) as count FROM categories');
+    const orderItemsResult = await dbQuery('SELECT DISTINCT product_name FROM order_items LIMIT 10');
+    
+    res.json({
+      success: true,
+      data: {
+        products_count: productsResult.rows[0].count,
+        categories_count: categoriesResult.rows[0].count,
+        sample_products: orderItemsResult.rows
+      }
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message,
+      data: {
+        products_count: 0,
+        categories_count: 0,
+        sample_products: []
+      }
+    });
+  }
+});
+
 // Get all categories (public)
 router.get('/categories', async (req, res) => {
   try {
@@ -247,9 +256,28 @@ router.get('/categories', async (req, res) => {
       logger.debug('Cache not available, proceeding without cache');
     }
 
-    const result = await dbQuery(
-      'SELECT * FROM menu_categories WHERE is_active IS NOT FALSE ORDER BY display_order ASC, name ASC'
+    let result = await dbQuery(
+      'SELECT * FROM categories WHERE is_active IS NOT FALSE ORDER BY display_order ASC, name ASC'
     );
+    
+    // If no categories found, create default categories
+    if (result.rows.length === 0) {
+      console.log('🔧 No categories found, creating default categories...');
+      
+      await dbQuery(`
+        INSERT INTO categories (name, name_en, name_he, is_active, display_order)
+        VALUES 
+          ('Main Dishes', 'Main Dishes', 'מנות עיקריות', true, 1),
+          ('Appetizers', 'Appetizers', 'מנות פתיחה', true, 2),
+          ('Beverages', 'Beverages', 'משקאות', true, 3),
+          ('Desserts', 'Desserts', 'קינוחים', true, 4)
+        ON CONFLICT (name) DO NOTHING
+      `);
+      
+      result = await dbQuery(
+        'SELECT * FROM categories WHERE is_active IS NOT FALSE ORDER BY display_order ASC, name ASC'
+      );
+    }
 
     // Cache the result for 30 minutes (optional)
     try {
@@ -298,8 +326,8 @@ router.get('/:id', async (req, res) => {
 
     const result = await dbQuery(
       `SELECT p.*, c.name as category_name, c.name_en as category_name_en, c.name_he as category_name_he
-       FROM menu_products p
-       LEFT JOIN menu_categories c ON p.category_id = c.id
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
        WHERE p.id = $1 AND p.is_active IS NOT FALSE`,
       [id]
     );
@@ -359,15 +387,15 @@ router.post('/', authenticateToken, requireAdmin, validateProduct, async (req, r
     } = req.body;
 
     const result = await dbQuery(
-      `INSERT INTO menu_products (name, name_en, name_he, description, description_en, description_he,
-       price, category_id, image_url, emoji, preparation_time, is_active, is_new, is_popular, available,
+      `INSERT INTO products (name, name_en, name_he, description, description_en, description_he,
+       price, category_id, image_url, preparation_time_minutes, is_active, is_new, is_popular,
        created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
        RETURNING *`,
       [
         name, name_en, name_he, description, description_en, description_he,
-        price, category_id, image_url, emoji, preparation_time || 0,
-        is_active !== false, is_new || false, is_popular || false, available !== false
+        price, category_id, image_url, preparation_time || 15,
+        is_active !== false, is_new || false, is_popular || false
       ]
     );
 
@@ -411,7 +439,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
     } = req.body;
 
     const result = await dbQuery(
-      `UPDATE menu_products SET 
+      `UPDATE products SET 
        name = $1, name_en = $2, name_he = $3, description = $4, description_en = $5, description_he = $6,
        price = $7, category_id = $8, image_url = $9, emoji = $10, preparation_time = $11,
        is_active = $12, is_new = $13, is_popular = $14, available = $15, updated_at = NOW()
@@ -458,7 +486,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const {id} = req.params;
 
     const result = await dbQuery(
-      'DELETE FROM menu_products WHERE id = $1 RETURNING *',
+      'DELETE FROM products WHERE id = $1 RETURNING *',
       [id]
     );
 
@@ -593,7 +621,7 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
 
     // Check if category has products
     const productsResult = await dbQuery(
-      'SELECT COUNT(*) as count FROM menu_products WHERE category_id = $1',
+      'SELECT COUNT(*) as count FROM products WHERE category_id = $1',
       [id]
     );
 

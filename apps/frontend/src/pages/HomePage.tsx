@@ -280,7 +280,8 @@ const HomePage: React.FC = () => {
           <SectionTitle>{content.features.title}</SectionTitle>
           <FeaturesGrid>
             {content.features.items.map((feature, index) => (
-              <FeatureCard key={index}>
+              // eslint-disable-next-line react/no-array-index-key
+              <FeatureCard key={`feature-${index}`}>
                 <FeatureIcon>{feature.icon}</FeatureIcon>
                 <FeatureTitle>{feature.title}</FeatureTitle>
                 <FeatureDescription>{feature.description}</FeatureDescription>

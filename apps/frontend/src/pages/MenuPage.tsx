@@ -444,6 +444,7 @@ const MenuPage: React.FC = () => {
   }, [displayProducts, selectedCategory, searchQuery]);
 
   // Debounced search handler
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce((query: unknown) => {
       if (typeof query === "string") {

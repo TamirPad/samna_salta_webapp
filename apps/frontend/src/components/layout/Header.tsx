@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { selectAuth, selectUser } from '../../features/auth/authSlice';
+import { selectAuth } from '../../features/auth/authSlice';
 import { selectLanguage } from '../../features/language/languageSlice';
 import { logoutUser } from '../../features/auth/authSlice';
 import styled from 'styled-components';
@@ -181,6 +181,7 @@ const Header: React.FC = () => {
 
   const toggleLanguage = () => {
     // Language toggle logic would go here
+    // eslint-disable-next-line no-console
     console.log('Toggle language');
   };
 

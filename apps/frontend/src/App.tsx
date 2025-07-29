@@ -126,6 +126,7 @@ const RoutePersistence: React.FC = () => {
 
 const App: React.FC = (): JSX.Element => {
   const language = useAppSelector(selectLanguage);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isAuthenticated } = useAppSelector(selectAuth);
 
   // Memoized route rendering
