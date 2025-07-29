@@ -4,18 +4,26 @@ const config = require('./environment');
 
 // Simple database configuration
 const getDatabaseConfig = () => {
-  return {
+  const dbConfig = {
     connectionString: config.DATABASE_URL,
     host: config.DB_HOST,
     port: config.DB_PORT,
     database: config.DB_NAME,
     user: config.DB_USER,
     password: config.DB_PASSWORD,
-    ssl: config.isProduction() ? {rejectUnauthorized: false} : false,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 30000
   };
+
+  // SSL configuration for Supabase
+  if (config.isProduction()) {
+    dbConfig.ssl = {
+      rejectUnauthorized: false
+    };
+  }
+
+  return dbConfig;
 };
 
 let pool = null;
@@ -50,6 +58,15 @@ const connectDB = async () => {
       return;
     }
 
+    console.log('🔧 Attempting to connect to database...');
+    console.log('📊 Database config:', {
+      host: config.DB_HOST || 'from connection string',
+      port: config.DB_PORT || 'from connection string',
+      database: config.DB_NAME || 'from connection string',
+      user: config.DB_USER || 'from connection string',
+      ssl: config.isProduction() ? {rejectUnauthorized: false} : false
+    });
+
     createPool();
     const client = await pool.connect();
     console.log('✅ Database connection established');
@@ -58,6 +75,7 @@ const connectDB = async () => {
     isDevelopmentMode = false;
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
+    console.error('❌ Error details:', error);
     console.log('⚠️ Running in development mode with sample data');
     isConnected = false;
     isDevelopmentMode = true;
