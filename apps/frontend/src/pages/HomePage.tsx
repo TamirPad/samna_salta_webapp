@@ -10,7 +10,7 @@ const HomeContainer = styled.div`
 `;
 
 const Hero = styled.section`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
   color: white;
   padding: 4rem 2rem;
   text-align: center;
@@ -44,7 +44,7 @@ const HeroSubtitle = styled.p`
 const CTAButton = styled(Link)`
   display: inline-block;
   background: white;
-  color: #8B4513;
+  color: #00C2FF;
   padding: 1rem 2rem;
   border-radius: 8px;
   text-decoration: none;
@@ -106,7 +106,7 @@ const FeatureIcon = styled.div`
 `;
 
 const FeatureTitle = styled.h3`
-  color: #8B4513;
+  color: #00C2FF;
   font-size: 1.5rem;
   margin-bottom: 1rem;
   font-weight: 600;
@@ -127,7 +127,7 @@ const MenuPreview = styled.div`
 
 const MenuButton = styled(Link)`
   display: inline-block;
-  background: #8B4513;
+  background: #00C2FF;
   color: white;
   padding: 1rem 2rem;
   border-radius: 8px;
@@ -137,7 +137,7 @@ const MenuButton = styled(Link)`
   transition: background-color 0.3s;
   
   &:hover {
-    background: #A0522D;
+    background: #0077CC;
   }
 `;
 
@@ -169,7 +169,7 @@ const ContactItem = styled.div`
   text-align: center;
   
   h3 {
-    color: #8B4513;
+    color: #00C2FF;
     margin-bottom: 0.5rem;
   }
   

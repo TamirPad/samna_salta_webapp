@@ -44,7 +44,7 @@ const CheckoutContent = styled.div`
 `;
 
 const CheckoutHeader = styled.div`
-  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -163,7 +163,7 @@ const FormInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #8b4513;
+    border-color: #00C2FF;
   }
 
   &.error {
@@ -182,7 +182,7 @@ const FormTextarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #8b4513;
+    border-color: #00C2FF;
   }
 
   &.error {
@@ -201,13 +201,13 @@ const PaymentOption = styled.label<{ selected: boolean }>`
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border: 2px solid ${(props) => (props.selected ? "#8B4513" : "#e0e0e0")};
+  border: 2px solid ${(props) => (props.selected ? "#00C2FF" : "#e0e0e0")};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #8b4513;
+    border-color: #00C2FF;
   }
 `;
 
@@ -281,7 +281,7 @@ const ItemImage = styled.div<{ $imageUrl?: string }>`
   height: 40px;
   border-radius: 6px;
   background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,7 +307,7 @@ const ItemQuantity = styled.div`
 
 const ItemPrice = styled.div`
   font-weight: 600;
-  color: #8b4513;
+  color: #00C2FF;
 `;
 
 const SummaryRow = styled.div`
@@ -332,7 +332,7 @@ const SummaryTotal = styled.div`
 
 const PlaceOrderButton = styled.button`
   width: 100%;
-  background: #8b4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 1rem;
@@ -347,7 +347,7 @@ const PlaceOrderButton = styled.button`
   gap: 0.5rem;
 
   &:hover {
-    background: #d2691e;
+    background: #00A3E0;
   }
 
   &:disabled {

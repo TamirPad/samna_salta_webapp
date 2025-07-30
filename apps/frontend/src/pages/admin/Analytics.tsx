@@ -35,9 +35,9 @@ const TabContainer = styled.div`
 `;
 
 const Tab = styled.button<{ $active: boolean }>`
-  background: ${(props) => (props.$active ? "#8B4513" : "transparent")};
-  color: ${(props) => (props.$active ? "white" : "#8B4513")};
-  border: 2px solid #8b4513;
+  background: ${(props) => (props.$active ? "#00C2FF" : "transparent")};
+  color: ${(props) => (props.$active ? "white" : "#00C2FF")};
+  border: 2px solid #00C2FF;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   cursor: pointer;
@@ -45,7 +45,7 @@ const Tab = styled.button<{ $active: boolean }>`
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${(props) => (props.$active ? "#8B4513" : "#f8f9fa")};
+    background: ${(props) => (props.$active ? "#00C2FF" : "#f8f9fa")};
     transform: translateY(-1px);
   }
 `;
@@ -69,13 +69,13 @@ const StatCard = styled.div`
   padding: 1.5rem;
   border-radius: 8px;
   text-align: center;
-  border-left: 4px solid #8b4513;
+  border-left: 4px solid #00C2FF;
 `;
 
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: bold;
-  color: #8b4513;
+  color: #00C2FF;
   margin-bottom: 0.5rem;
 `;
 
@@ -109,7 +109,7 @@ const ButtonGroup = styled.div`
 `;
 
 const AuthButton = styled.button`
-  background: #8b4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -119,7 +119,7 @@ const AuthButton = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background: #a0522d;
+    background: #0077CC;
   }
 `;
 

@@ -60,7 +60,7 @@ const LoadingText = styled.p<{ $size: string }>`
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'medium',
-  color = '#8B4513',
+  color = '#00C2FF',
   text,
   fullScreen = false
 }) => {

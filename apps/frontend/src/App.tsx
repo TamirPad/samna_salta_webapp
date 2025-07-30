@@ -76,7 +76,7 @@ const ChunkErrorFallback: React.FC = () => (
       onClick={(): void => window.location.reload()}
       style={{
         padding: "0.5rem 1rem",
-        backgroundColor: "#8B4513",
+        backgroundColor: "#00C2FF",
         color: "white",
         border: "none",
         borderRadius: "4px",

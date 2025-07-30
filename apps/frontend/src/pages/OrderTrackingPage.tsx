@@ -39,7 +39,7 @@ const TrackingContent = styled.div`
 `;
 
 const TrackingHeader = styled.div`
-  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -177,7 +177,7 @@ const StepIcon = styled.div<{ completed: boolean; current: boolean }>`
   border-radius: 50%;
   background: ${(props) => {
     if (props.completed) return "#28a745";
-    if (props.current) return "#8B4513";
+    if (props.current) return "#00C2FF";
     return "#e0e0e0";
   }};
   color: white;
@@ -197,7 +197,7 @@ const StepTitle = styled.h3<{ completed: boolean; current: boolean }>`
   font-weight: 600;
   color: ${(props) => {
     if (props.completed) return "#28a745";
-    if (props.current) return "#8B4513";
+    if (props.current) return "#00C2FF";
     return "#666";
   }};
   margin: 0 0 0.25rem 0;
@@ -209,7 +209,7 @@ const StepDescription = styled.p<{
 }>`
   color: ${(props) => {
     if (props.completed) return "#28a745";
-    if (props.current) return "#8B4513";
+    if (props.current) return "#00C2FF";
     return "#999";
   }};
   margin: 0;
@@ -219,7 +219,7 @@ const StepDescription = styled.p<{
 const StepTime = styled.div<{ completed: boolean; current: boolean }>`
   color: ${(props) => {
     if (props.completed) return "#28a745";
-    if (props.current) return "#8B4513";
+    if (props.current) return "#00C2FF";
     return "#999";
   }};
   font-size: 0.8rem;
@@ -316,7 +316,7 @@ const ItemImage = styled.div<{ $imageUrl?: string }>`
   height: 40px;
   border-radius: 6px;
   background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,7 +342,7 @@ const ItemQuantity = styled.div`
 
 const ItemPrice = styled.div`
   font-weight: 600;
-  color: #8b4513;
+  color: #00C2FF;
 `;
 
 const SummaryRow = styled.div`
@@ -733,7 +733,7 @@ const OrderTrackingPage: React.FC = () => {
               style={{
                 marginTop: "1rem",
                 padding: "0.5rem 1rem",
-                background: "#8B4513",
+                background: "#00C2FF",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",

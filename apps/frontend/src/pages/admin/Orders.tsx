@@ -62,8 +62,8 @@ const FiltersContainer = styled.div`
 const FilterButton = styled.button<{ $active: boolean }>`
   padding: 8px 16px;
   margin: 0 4px;
-  border: 2px solid ${({ $active }) => $active ? '#8B4513' : '#ddd'};
-  background: ${({ $active }) => $active ? '#8B4513' : 'white'};
+  border: 2px solid ${({ $active }) => $active ? '#00C2FF' : '#ddd'};
+  background: ${({ $active }) => $active ? '#00C2FF' : 'white'};
   color: ${({ $active }) => $active ? 'white' : '#666'};
   border-radius: 20px;
   cursor: pointer;
@@ -71,8 +71,8 @@ const FilterButton = styled.button<{ $active: boolean }>`
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ $active }) => $active ? '#A0522D' : '#f8f9fa'};
-    border-color: ${({ $active }) => $active ? '#A0522D' : '#8B4513'};
+    background: ${({ $active }) => $active ? '#0077CC' : '#f8f9fa'};
+    border-color: ${({ $active }) => $active ? '#0077CC' : '#00C2FF'};
   }
 `;
 
@@ -222,7 +222,7 @@ const ItemQuantity = styled.span`
 
 const ItemPrice = styled.span`
   font-weight: 600;
-  color: #8B4513;
+  color: #00C2FF;
 `;
 
 const OrderTotal = styled.div`
@@ -240,7 +240,7 @@ const TotalLabel = styled.span`
 `;
 
 const TotalAmount = styled.span`
-  color: #8B4513;
+  color: #00C2FF;
   font-size: 1.2rem;
 `;
 
@@ -264,9 +264,9 @@ const ActionButton = styled.button<{ $variant: 'primary' | 'secondary' | 'danger
     switch ($variant) {
       case 'primary':
         return `
-          background: #8B4513;
+          background: #00C2FF;
           color: white;
-          &:hover { background: #A0522D; }
+          &:hover { background: #0077CC; }
         `;
       case 'secondary':
         return `

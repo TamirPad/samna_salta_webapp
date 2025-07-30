@@ -103,7 +103,7 @@ const SearchField = styled.input`
   transition: border-color 0.3s ease;
 
   &:focus {
-    border-color: #8b4513;
+    border-color: #00C2FF;
   }
 `;
 
@@ -128,7 +128,7 @@ const FilterButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #8b4513;
+    border-color: #00C2FF;
     background: #f8f9fa;
   }
 `;
@@ -156,7 +156,7 @@ const CustomerCard = styled(motion.div)`
 `;
 
 const CustomerHeader = styled.div`
-  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
   color: white;
   padding: 1.5rem;
   text-align: center;
@@ -240,9 +240,9 @@ const ActionButton = styled.button<{
     switch (props.variant) {
       case "primary":
         return `
-          background: #8B4513;
+          background: #00C2FF;
           color: white;
-          &:hover { background: #D2691E; }
+          &:hover { background: #00A3E0; }
         `;
       case "secondary":
         return `
@@ -279,8 +279,8 @@ const PaginationButton = styled.button<{
   disabled?: boolean;
 }>`
   padding: 0.5rem 1rem;
-  border: 2px solid ${(props) => (props.active ? "#8B4513" : "#e0e0e0")};
-  background: ${(props) => (props.active ? "#8B4513" : "white")};
+  border: 2px solid ${(props) => (props.active ? "#00C2FF" : "#e0e0e0")};
+  background: ${(props) => (props.active ? "#00C2FF" : "white")};
   color: ${(props) =>
     props.active ? "white" : props.disabled ? "#ccc" : "#333"};
   border-radius: 8px;
@@ -288,8 +288,8 @@ const PaginationButton = styled.button<{
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    border-color: #8b4513;
-    background: ${(props) => (props.active ? "#8B4513" : "#f8f9fa")};
+    border-color: #00C2FF;
+    background: ${(props) => (props.active ? "#00C2FF" : "#f8f9fa")};
   }
 `;
 
@@ -542,7 +542,7 @@ const AdminCustomers: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <h1 style={{ color: "#8B4513", marginBottom: "1rem" }}>
+        <h1 style={{ color: "#00C2FF", marginBottom: "1rem" }}>
           Customers Management
         </h1>
         <div
@@ -570,7 +570,7 @@ const AdminCustomers: React.FC = () => {
             <button
               onClick={handleLogin}
               style={{
-                background: "#8B4513",
+                background: "#00C2FF",
                 color: "white",
                 border: "none",
                 padding: "0.75rem 1.5rem",

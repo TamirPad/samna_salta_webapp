@@ -20,7 +20,7 @@ export const GlobalStyles = createGlobalStyle`
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #FFF8DC;
+    background-color: #F8F9FA;
     color: #2F2F2F;
     line-height: 1.6;
     direction: ltr;
@@ -100,12 +100,12 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   a {
-    color: #8B4513;
+    color: #00C2FF;
     text-decoration: none;
     transition: color 0.3s ease;
 
     &:hover {
-      color: #D2691E;
+      color: #0077CC;
     }
   }
 
@@ -190,34 +190,34 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   .btn-primary {
-    background-color: #8B4513;
+    background-color: #00C2FF;
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: #D2691E;
+      background-color: #0077CC;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
     }
   }
 
   .btn-secondary {
-    background-color: #D2691E;
+    background-color: #00A3E0;
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: #CD853F;
+      background-color: #005A8B;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(210, 105, 30, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 163, 224, 0.3);
     }
   }
 
   .btn-outline {
     background-color: transparent;
-    color: #8B4513;
-    border: 2px solid #8B4513;
+    color: #00C2FF;
+    border: 2px solid #00C2FF;
 
     &:hover:not(:disabled) {
-      background-color: #8B4513;
+      background-color: #00C2FF;
       color: white;
       transform: translateY(-2px);
     }
@@ -275,8 +275,8 @@ export const GlobalStyles = createGlobalStyle`
 
     &:focus {
       outline: none;
-      border-color: #8B4513;
-      box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+      border-color: #00C2FF;
+      box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.1);
     }
 
     &::placeholder {
@@ -454,7 +454,7 @@ export const GlobalStyles = createGlobalStyle`
 
   /* Focus Styles for Accessibility */
   *:focus {
-    outline: 2px solid #8B4513;
+    outline: 2px solid #00C2FF;
     outline-offset: 2px;
   }
 
@@ -463,7 +463,7 @@ export const GlobalStyles = createGlobalStyle`
     position: absolute;
     top: -40px;
     left: 6px;
-    background: #8B4513;
+    background: #00C2FF;
     color: white;
     padding: 8px;
     text-decoration: none;

@@ -58,7 +58,7 @@ const StatIcon = styled.div`
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: 700;
-  color: #8B4513;
+  color: #00C2FF;
   margin-bottom: 0.5rem;
 `;
 
@@ -96,7 +96,7 @@ const ActivityItem = styled.div`
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid #8B4513;
+  border-left: 4px solid #00C2FF;
 `;
 
 const ActivityIcon = styled.div`
@@ -130,7 +130,7 @@ const QuickActions = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: #8B4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 1rem;
@@ -145,7 +145,7 @@ const ActionButton = styled.button`
   gap: 0.5rem;
   
   &:hover {
-    background: #A0522D;
+    background: #0077CC;
     transform: translateY(-2px);
   }
 `;

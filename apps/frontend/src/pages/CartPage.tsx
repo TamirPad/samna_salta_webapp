@@ -53,7 +53,7 @@ const CartContent = styled.div`
 `;
 
 const CartHeader = styled.div`
-  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -150,7 +150,7 @@ const ItemImage = styled.div<{ $imageUrl?: string }>`
   height: 80px;
   border-radius: 8px;
   background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +190,7 @@ const ItemCategory = styled.p`
 const ItemPrice = styled.div`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #8b4513;
+  color: #00C2FF;
 `;
 
 const ItemControls = styled.div`
@@ -231,7 +231,7 @@ const QuantityButton = styled.button`
   }
 
   &:focus {
-    outline: 2px solid #8b4513;
+    outline: 2px solid #00C2FF;
     outline-offset: 2px;
   }
 
@@ -311,7 +311,7 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   gap: 0.75rem;
   padding: 1rem;
   border: 2px solid
-    ${(props): string => (props.selected ? "#8B4513" : "#e0e0e0")};
+    ${(props): string => (props.selected ? "#00C2FF" : "#e0e0e0")};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -319,12 +319,12 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   min-height: 44px;
 
   &:hover {
-    border-color: #8b4513;
+    border-color: #00C2FF;
     transform: translateY(-1px);
   }
 
   &:focus-within {
-    outline: 2px solid #8b4513;
+    outline: 2px solid #00C2FF;
     outline-offset: 2px;
   }
 `;
@@ -375,12 +375,12 @@ const SummaryTotal = styled.div`
   border-top: 2px solid #e0e0e0;
   font-size: 1.25rem;
   font-weight: bold;
-  color: #8b4513;
+  color: #00C2FF;
 `;
 
 const CheckoutButton = styled.button`
   width: 100%;
-  background: #8b4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 1rem;
@@ -396,9 +396,9 @@ const CheckoutButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #d2691e;
+    background: #00A3E0;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
   }
 
   &:focus {
@@ -427,7 +427,7 @@ const EmptyCartIcon = styled.div`
 `;
 
 const ContinueShoppingButton = styled.button`
-  background: #8b4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -439,7 +439,7 @@ const ContinueShoppingButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #d2691e;
+    background: #00A3E0;
     transform: translateY(-1px);
   }
 

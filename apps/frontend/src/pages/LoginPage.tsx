@@ -11,7 +11,7 @@ const LoginContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
   padding: 1rem;
 `;
 
@@ -31,7 +31,7 @@ const Logo = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #8B4513;
+  color: #00C2FF;
   margin-bottom: 0.5rem;
   font-size: 1.8rem;
   font-weight: 600;
@@ -72,7 +72,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #8B4513;
+    border-color: #00C2FF;
   }
 
   &:invalid {
@@ -81,7 +81,7 @@ const Input = styled.input`
 `;
 
 const LoginButton = styled.button`
-  background: #8B4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 0.875rem;
@@ -93,7 +93,7 @@ const LoginButton = styled.button`
   margin-top: 1rem;
 
   &:hover:not(:disabled) {
-    background: #A0522D;
+    background: #0077CC;
   }
 
   &:disabled {
@@ -104,8 +104,8 @@ const LoginButton = styled.button`
 
 const DemoButton = styled.button`
   background: transparent;
-  color: #8B4513;
-  border: 2px solid #8B4513;
+  color: #00C2FF;
+  border: 2px solid #00C2FF;
   padding: 0.75rem;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -114,7 +114,7 @@ const DemoButton = styled.button`
   margin-top: 1rem;
 
   &:hover {
-    background: #8B4513;
+    background: #00C2FF;
     color: white;
   }
 `;

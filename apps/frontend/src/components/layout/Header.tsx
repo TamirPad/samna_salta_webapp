@@ -7,10 +7,10 @@ import { logoutUser } from '../../features/auth/authSlice';
 import styled from 'styled-components';
 
 const HeaderContainer = styled.header`
-  background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
   color: white;
   padding: 0.75rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 194, 255, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -211,7 +211,7 @@ const MobileMenu = styled.div<{ $isOpen: boolean }>`
     top: 100%;
     left: 0;
     right: 0;
-    background: #8B4513;
+    background: #00C2FF;
     padding: 1rem;
     gap: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);

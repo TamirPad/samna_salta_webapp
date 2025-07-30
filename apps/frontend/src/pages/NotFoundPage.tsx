@@ -67,22 +67,22 @@ const Button = styled(Link)`
   transition: all 0.3s;
   
   &.primary {
-    background: #8B4513;
+    background: #00C2FF;
     color: white;
     
     &:hover {
-      background: #A0522D;
+      background: #0077CC;
       transform: translateY(-2px);
     }
   }
   
   &.secondary {
     background: transparent;
-    color: #8B4513;
-    border: 2px solid #8B4513;
+    color: #00C2FF;
+    border: 2px solid #00C2FF;
     
     &:hover {
-      background: #8B4513;
+      background: #00C2FF;
       color: white;
     }
   }

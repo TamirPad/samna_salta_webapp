@@ -27,7 +27,7 @@ const MenuContainer = styled.div`
 `;
 
 const MenuHeader = styled.div`
-  background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
+  background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
   color: white;
   padding: 3rem 0;
   text-align: center;
@@ -113,8 +113,8 @@ const SearchInput = styled.input`
   font-size: 1rem;
 
   &:focus {
-    border-color: #8b4513;
-    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    border-color: #00C2FF;
+    box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.1);
   }
 
   &::placeholder {
@@ -145,8 +145,8 @@ const CategoryFilter = styled.div`
 const CategoryButton = styled.button<{ $active: boolean }>`
   padding: 0.75rem 1.25rem;
   border: 2px solid
-    ${(props): string => (props.$active ? "#8B4513" : "#e0e0e0")};
-  background: ${(props): string => (props.$active ? "#8B4513" : "white")};
+    ${(props): string => (props.$active ? "#00C2FF" : "#e0e0e0")};
+  background: ${(props): string => (props.$active ? "#00C2FF" : "white")};
   color: ${(props): string => (props.$active ? "white" : "#333")};
   border-radius: 25px;
   cursor: pointer;
@@ -158,13 +158,13 @@ const CategoryButton = styled.button<{ $active: boolean }>`
   justify-content: center;
 
   &:hover {
-    border-color: #8b4513;
-    background: ${(props): string => (props.$active ? "#8B4513" : "#f8f9fa")};
+    border-color: #00C2FF;
+    background: ${(props): string => (props.$active ? "#00C2FF" : "#f8f9fa")};
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #8b4513;
+    outline: 2px solid #00C2FF;
     outline-offset: 2px;
   }
 `;
@@ -194,7 +194,7 @@ const ProductCard = styled(motion.div)`
   }
 
   &:focus-within {
-    outline: 2px solid #8b4513;
+    outline: 2px solid #00C2FF;
     outline-offset: 2px;
   }
 `;
@@ -205,7 +205,7 @@ const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   height: 200px;
   border-radius: 12px 12px 0 0;
   background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,7 +254,7 @@ const ProductName = styled.h3`
 const ProductPrice = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #8b4513;
+  color: #00C2FF;
   margin-left: 1rem;
 `;
 
@@ -281,7 +281,7 @@ const MetaItem = styled.div`
 
 const AddToCartButton = styled.button`
   width: 100%;
-  background: #8b4513;
+  background: #00C2FF;
   color: white;
   border: none;
   padding: 0.875rem;
@@ -296,7 +296,7 @@ const AddToCartButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #d2691e;
+    background: #0077CC;
     transform: translateY(-1px);
   }
 

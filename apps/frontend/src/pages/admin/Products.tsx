@@ -119,8 +119,8 @@ const SearchField = styled.input`
   font-size: 1rem;
 
   &:focus {
-    border-color: #8b4513;
-    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    border-color: #00C2FF;
+    box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.1);
   }
 
   &::placeholder {
@@ -152,7 +152,7 @@ const FilterButton = styled.button`
 
   &:hover {
     background: #f8f9fa;
-    border-color: #8B4513;
+    border-color: #00C2FF;
   }
 `;
 
@@ -161,7 +161,7 @@ const AddButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #8b4513;
+  background: #00C2FF;
   color: white;
   border: none;
   border-radius: 8px;
@@ -171,9 +171,9 @@ const AddButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #d2691e;
+    background: #00A3E0;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
   }
 
   &:focus {
@@ -206,7 +206,7 @@ const ProductCard = styled.div`
   }
 
   &:focus-within {
-    outline: 2px solid #8b4513;
+    outline: 2px solid #00C2FF;
     outline-offset: 2px;
   }
 `;
@@ -217,7 +217,7 @@ const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   height: 200px;
   border-radius: 12px 12px 0 0;
   background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,7 +266,7 @@ const ProductName = styled.h3`
 const ProductPrice = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #8b4513;
+  color: #00C2FF;
   margin-left: 1rem;
 `;
 
@@ -303,10 +303,10 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' | 'danger' }>`
     switch ($variant) {
       case 'primary':
         return `
-          background-color: #8B4513;
+          background-color: #00C2FF;
           color: white;
           &:hover {
-            background-color: #A0522D;
+            background-color: #0077CC;
           }
         `;
       case 'secondary':
@@ -327,10 +327,10 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' | 'danger' }>`
         `;
       default:
         return `
-          background-color: #8B4513;
+          background-color: #00C2FF;
           color: white;
           &:hover {
-            background-color: #A0522D;
+            background-color: #0077CC;
           }
         `;
     }
