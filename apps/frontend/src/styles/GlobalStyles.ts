@@ -529,6 +529,35 @@ export const GlobalStyles = createGlobalStyle`
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    
+    /* Smooth scrolling for iPhone */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Prevent zoom on input focus */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* iPhone Touch Optimizations */
+  @media (max-width: 428px) {
+    /* Larger touch targets for iPhone */
+    button, a, input, select, textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Prevent text selection on buttons */
+    button {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
     
     /* Smooth scrolling for iPhone */
@@ -605,6 +634,13 @@ export const GlobalStyles = createGlobalStyle`
     header {
       min-height: 60px !important;
       max-height: 80px !important;
+    }
+    
+    /* Fix for mobile menu overlay */
+    body.menu-open {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100% !important;
     }
   }
 

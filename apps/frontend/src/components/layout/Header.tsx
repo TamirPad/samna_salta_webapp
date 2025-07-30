@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { selectAuth } from '../../features/auth/authSlice';
@@ -15,6 +15,8 @@ const HeaderContainer = styled.header`
   top: 0;
   z-index: 1000;
   min-height: 60px;
+  width: 100%;
+  overflow: hidden;
 `;
 
 const HeaderContent = styled.div`
@@ -25,10 +27,15 @@ const HeaderContent = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  position: relative;
   
   @media (max-width: 768px) {
     padding: 0 0.5rem;
     gap: 0.5rem;
+  }
+  
+  @media (max-width: 428px) {
+    padding: 0 0.75rem;
   }
 `;
 
@@ -53,6 +60,10 @@ const Logo = styled(Link)`
   
   @media (max-width: 480px) {
     font-size: 0.9rem;
+  }
+  
+  @media (max-width: 375px) {
+    font-size: 0.85rem;
   }
 `;
 
@@ -144,6 +155,11 @@ const Button = styled.button`
   transition: all 0.2s;
   font-size: 0.8rem;
   white-space: nowrap;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -166,6 +182,11 @@ const LanguageButton = styled.button`
   font-size: 0.75rem;
   transition: all 0.2s;
   white-space: nowrap;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -184,20 +205,41 @@ const MobileMenuButton = styled.button`
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
   border-radius: 4px;
   transition: all 0.2s;
   min-width: 44px;
   min-height: 44px;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1001;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
   }
   
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
   @media (max-width: 768px) {
     display: flex;
+  }
+  
+  @media (max-width: 428px) {
+    font-size: 1.1rem;
+    padding: 0.4rem;
+  }
+  
+  /* iPhone specific optimizations */
+  @media (max-width: 428px) {
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 1.2rem;
   }
 `;
 
@@ -207,16 +249,16 @@ const MobileMenu = styled.div<{ $isOpen: boolean }>`
   @media (max-width: 768px) {
     display: ${({ $isOpen }) => $isOpen ? 'flex' : 'none'};
     flex-direction: column;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 60px;
     left: 0;
     right: 0;
-    background: #00C2FF;
+    background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
     padding: 1rem;
     gap: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: 80vh;
+    max-height: calc(100vh - 60px);
     overflow-y: auto;
     z-index: 9999;
     width: 100%;
@@ -224,6 +266,19 @@ const MobileMenu = styled.div<{ $isOpen: boolean }>`
     visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
     transform: ${({ $isOpen }) => $isOpen ? 'translateY(0)' : 'translateY(-10px)'};
     transition: all 0.3s ease;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    
+    /* iPhone safe area support */
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  @media (max-width: 428px) {
+    top: 60px;
+    padding: 0.75rem;
+    gap: 0.5rem;
   }
 `;
 
@@ -238,9 +293,25 @@ const MobileNavLink = styled(Link)<{ $active: boolean }>`
   font-size: 0.9rem;
   display: block;
   width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
+  }
+  
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  @media (max-width: 428px) {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.85rem;
+    min-height: 48px;
   }
 `;
 
@@ -277,10 +348,44 @@ const MobileButton = styled.button`
   font-size: 0.9rem;
   width: 100%;
   text-align: left;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  @media (max-width: 428px) {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.85rem;
+    min-height: 48px;
+  }
+`;
+
+const Overlay = styled.div<{ $isOpen: boolean }>`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: ${({ $isOpen }) => $isOpen ? 'block' : 'none'};
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    opacity: ${({ $isOpen }) => $isOpen ? '1' : '0'};
+    visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
+    transition: all 0.3s ease;
   }
 `;
 
@@ -291,6 +396,45 @@ const Header: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const language = useAppSelector(selectLanguage);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    if (mobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleTouchStart);
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('menu-open');
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('menu-open');
+    };
+  }, [mobileMenuOpen]);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -384,12 +528,18 @@ const Header: React.FC = () => {
           )}
         </UserSection>
 
-        <MobileMenuButton onClick={toggleMobileMenu}>
+        <MobileMenuButton 
+          onClick={toggleMobileMenu}
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          data-testid="mobile-menu-button"
+        >
           {mobileMenuOpen ? '✕' : '☰'}
         </MobileMenuButton>
       </HeaderContent>
 
-      <MobileMenu $isOpen={mobileMenuOpen}>
+      <Overlay $isOpen={mobileMenuOpen} />
+      
+      <MobileMenu ref={mobileMenuRef} $isOpen={mobileMenuOpen} data-testid="mobile-menu">
         {navItems.map((item) => (
           <MobileNavLink
             key={item.path}
