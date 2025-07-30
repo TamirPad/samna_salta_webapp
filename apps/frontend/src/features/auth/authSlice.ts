@@ -12,6 +12,7 @@ interface User {
   createdAt?: string;
   lastLogin?: string;
   updatedAt?: string;
+  role?: string; // Added for role check
 }
 
 interface AuthState {
@@ -33,7 +34,7 @@ const initialState: AuthState = {
 // Async thunk to initialize authentication
 export const initializeAuth = createAsyncThunk(
   "auth/initialize",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
       const token = localStorage.getItem("token");
       const userData = localStorage.getItem("user");
@@ -44,6 +45,19 @@ export const initializeAuth = createAsyncThunk(
           "🔍 No token or user data found, returning unauthenticated",
         );
         return { user: null, isAuthenticated: false };
+      }
+
+      // Check if we already have valid user data in localStorage
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser && parsedUser.isAdmin) {
+          // eslint-disable-next-line no-console
+          console.log("🔍 Using cached admin user data:", parsedUser);
+          return { user: parsedUser, isAuthenticated: true };
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log("🔍 Failed to parse cached user data, validating with backend");
       }
 
       // eslint-disable-next-line no-console
@@ -78,6 +92,14 @@ export const initializeAuth = createAsyncThunk(
         console.error("❌ Invalid response structure:", response);
         throw new Error("Invalid response structure");
       }
+
+      // Ensure user data is properly structured
+      if (!user.isAdmin && user.role === 'admin') {
+        user.isAdmin = true;
+      }
+
+      // Update localStorage with the validated user data
+      localStorage.setItem('user', JSON.stringify(user));
 
       // eslint-disable-next-line no-console
       console.log("✅ User authenticated successfully:", user);

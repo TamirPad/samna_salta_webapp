@@ -11,6 +11,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Initialize authentication on app startup
+    // This will check localStorage and validate with backend
     dispatch(initializeAuth());
   }, [dispatch]);
 
