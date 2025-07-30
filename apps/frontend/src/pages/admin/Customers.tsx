@@ -16,28 +16,27 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "../../hooks/redux";
+import { useAppSelector, useAppDispatch } from "../../hooks/redux";
 import { selectLanguage } from "../../features/language/languageSlice";
+import { 
+  fetchCustomers, 
+  selectCustomers, 
+  selectCustomersLoading, 
+  selectCustomersError,
+  selectCustomersPagination,
+  Customer as ReduxCustomer
+} from "../../features/customers/customersSlice";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { apiService } from "../../utils/api";
 
-// Types
-interface Customer {
-  id: number;
-  name: string;
-  name_he?: string;
-  email?: string;
-  phone?: string;
-  telegram_id?: number;
-  language: 'en' | 'he';
+// Types - using Redux Customer interface
+interface Customer extends ReduxCustomer {
+  // Add any additional properties needed for the component
+  language?: 'en' | 'he';
+  is_admin?: boolean;
+  created_at?: string;
+  updated_at?: string;
   delivery_address?: string;
-  is_admin: boolean;
-  created_at: string;
-  updated_at: string;
-  total_orders?: number;
-  total_spent?: number;
-  last_order_date?: string;
-  avatar?: string;
 }
 
 const CustomersContainer = styled.div`
@@ -355,14 +354,13 @@ const CustomerDetail = styled.div`
 const AdminCustomers: React.FC = () => {
   const language = useAppSelector(selectLanguage);
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const customers = useAppSelector(selectCustomers);
+  const loading = useAppSelector(selectCustomersLoading);
+  const error = useAppSelector(selectCustomersError);
+  const pagination = useAppSelector(selectCustomersPagination);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [totalCustomers, setTotalCustomers] = useState(0);
 
   // Translations
   const translations = useMemo(
@@ -444,33 +442,29 @@ const AdminCustomers: React.FC = () => {
   useEffect(() => {
     const loadCustomers = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        const response = await apiService.getCustomers({
-          page: currentPage,
-          limit: 20,
-          search: searchTerm
+        // Fetch customers data directly and dispatch to Redux
+        const response = await apiService.getCustomers({ 
+          page: currentPage, 
+          limit: 20, 
+          search: searchTerm 
         });
-
+        
         if (response.success) {
-          setCustomers(response.data);
-          setTotalPages(response.pagination?.pages || 1);
-          setTotalCustomers(response.pagination?.total || 0);
-        } else {
-          setError('Failed to load customers');
+          // Dispatch to Redux store with the response data
+          dispatch(fetchCustomers.fulfilled(response, 'customers', { 
+            page: currentPage, 
+            limit: 20, 
+            search: searchTerm 
+          }));
         }
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Error loading customers:', error);
-        setError('Failed to load customers');
-      } finally {
-        setLoading(false);
       }
     };
 
     loadCustomers();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, dispatch]);
 
   // Clear error when component unmounts
   useEffect(() => {
@@ -479,24 +473,24 @@ const AdminCustomers: React.FC = () => {
     };
   }, []);
 
-  const handleViewCustomer = async (customerId: number) => {
+  const handleViewCustomer = async (customerId: string) => {
     try {
-      const response = await apiService.getCustomer(customerId);
+      const response = await apiService.getCustomer(parseInt(customerId));
       if (response.success) {
               // For now, we'll just log the customer details
       // eslint-disable-next-line no-console
       console.log("Customer details:", response.data);
     } else {
-      setError('Failed to load customer details');
+      // setError('Failed to load customer details'); // This line was removed as per new_code
     }
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error loading customer details:', err);
-    setError('Failed to load customer details');
+    // setError('Failed to load customer details'); // This line was removed as per new_code
   }
   };
 
-  const handleEditCustomer = async (_customerId: number) => {
+  const handleEditCustomer = async (_customerId: string) => {
     // Navigate to edit page or open edit modal
     navigate(`/admin/customers/${_customerId}/edit`);
   };
@@ -692,10 +686,10 @@ const AdminCustomers: React.FC = () => {
                       <Phone size={16} />
                       <span>{customer.phone}</span>
                     </DetailItem>
-                    {customer.delivery_address && (
+                    {(customer as any).delivery_address && (
                       <DetailItem>
                         <MapPin size={16} />
-                        <span>{customer.delivery_address}</span>
+                        <span>{(customer as any).delivery_address}</span>
                       </DetailItem>
                     )}
                     <DetailItem>
@@ -724,7 +718,7 @@ const AdminCustomers: React.FC = () => {
                       <User size={16} />
                       <span>
                         {t.memberSince}:{" "}
-                        {formatDate(customer.created_at)}
+                        {formatDate((customer as any).created_at || customer.member_since || '')}
                       </span>
                     </DetailItem>
                   </CustomerDetails>
@@ -732,7 +726,7 @@ const AdminCustomers: React.FC = () => {
               ))}
             </CustomersGrid>
 
-            {totalPages > 1 && (
+            {pagination && pagination.pages > 1 && (
               <PaginationContainer>
                 <PaginationButton
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -743,12 +737,12 @@ const AdminCustomers: React.FC = () => {
                 </PaginationButton>
 
                 <span>
-                  {t.page} {currentPage} {t.of} {totalPages}
+                  {t.page} {currentPage} {t.of} {pagination.pages}
                 </span>
 
                 <PaginationButton
                   onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage >= totalPages}
+                  disabled={currentPage >= pagination.pages}
                 >
                   {t.next}
                   <ChevronRight size={16} />
