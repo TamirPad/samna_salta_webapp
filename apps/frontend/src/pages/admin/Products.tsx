@@ -253,11 +253,11 @@ const ProductImage = styled.div<{ emoji?: string }>`
   position: relative;
 `;
 
-const ProductStatus = styled.span<{ active: boolean }>`
+const ProductStatus = styled.span<{ $active: boolean }>`
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: ${(props) => (props.active ? "#28a745" : "#dc3545")};
+  background: ${(props) => (props.$active ? "#28a745" : "#dc3545")};
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -690,7 +690,7 @@ const AdminProducts: React.FC = () => {
                     <span role="img" aria-label={getProductName(product)}>
                       {product.image_url ? "🍽️" : product.emoji}
                     </span>
-                    <ProductStatus active={product.is_active}>
+                    <ProductStatus $active={product.is_active}>
                       {product.is_active ? t.active : t.inactive}
                     </ProductStatus>
                   </ProductImage>

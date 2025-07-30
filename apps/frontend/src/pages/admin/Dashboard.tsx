@@ -166,8 +166,13 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         setError(null);
 
+        console.log('🔄 Loading dashboard data...');
+
         // Fetch analytics data
+        console.log('📊 Fetching analytics data...');
         const analyticsResponse = await apiService.getDashboardAnalytics();
+        console.log('📊 Analytics response:', analyticsResponse);
+        
         if (analyticsResponse.success) {
           const data = analyticsResponse.data;
           setStats({
@@ -179,7 +184,10 @@ const Dashboard: React.FC = () => {
         }
 
         // Fetch products count
+        console.log('📦 Fetching products data...');
         const productsResponse = await apiService.getProducts();
+        console.log('📦 Products response:', productsResponse);
+        
         if (productsResponse.success) {
           setStats(prev => ({
             ...prev,
@@ -188,7 +196,10 @@ const Dashboard: React.FC = () => {
         }
 
         // Fetch recent orders for activity feed
+        console.log('📋 Fetching orders data...');
         const ordersResponse = await apiService.getOrders({ limit: 5 });
+        console.log('📋 Orders response:', ordersResponse);
+        
         if (ordersResponse.success) {
           const activities = ordersResponse.data.map((order: any) => ({
             id: order.id,
@@ -202,9 +213,18 @@ const Dashboard: React.FC = () => {
           setRecentActivity(activities);
         }
 
-      } catch (error) {
+        console.log('✅ Dashboard data loaded successfully');
+
+      } catch (error: any) {
         // eslint-disable-next-line no-console
-        console.error('Error loading dashboard data:', error);
+        console.error('❌ Error loading dashboard data:', error);
+        
+        // More detailed error logging
+        if (error.response) {
+          console.error('Response status:', error.response.status);
+          console.error('Response data:', error.response.data);
+        }
+        
         setError('Failed to load dashboard data');
       } finally {
         setLoading(false);

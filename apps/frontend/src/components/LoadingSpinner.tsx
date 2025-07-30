@@ -13,12 +13,12 @@ const spin = keyframes`
   100% { transform: rotate(360deg); }
 `;
 
-const SpinnerContainer = styled.div<{ fullScreen: boolean }>`
+const SpinnerContainer = styled.div<{ $fullScreen: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  ${({ fullScreen }) => fullScreen && `
+  ${({ $fullScreen }) => $fullScreen && `
     position: fixed;
     top: 0;
     left: 0;
@@ -29,32 +29,32 @@ const SpinnerContainer = styled.div<{ fullScreen: boolean }>`
   `}
 `;
 
-const Spinner = styled.div<{ size: string; color: string }>`
-  width: ${({ size }) => {
-    switch (size) {
+const Spinner = styled.div<{ $size: string; $color: string }>`
+  width: ${({ $size }) => {
+    switch ($size) {
       case 'small': return '20px';
       case 'large': return '60px';
       default: return '40px';
     }
   }};
-  height: ${({ size }) => {
-    switch (size) {
+  height: ${({ $size }) => {
+    switch ($size) {
       case 'small': return '20px';
       case 'large': return '60px';
       default: return '40px';
     }
   }};
   border: 3px solid #f3f3f3;
-  border-top: 3px solid ${({ color }) => color};
+  border-top: 3px solid ${({ $color }) => $color};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
-  margin-bottom: ${({ size }) => size === 'small' ? '8px' : '16px'};
+  margin-bottom: ${({ $size }) => $size === 'small' ? '8px' : '16px'};
 `;
 
-const LoadingText = styled.p<{ size: string }>`
+const LoadingText = styled.p<{ $size: string }>`
   margin: 0;
   color: #666;
-  font-size: ${({ size }) => size === 'small' ? '12px' : '14px'};
+  font-size: ${({ $size }) => $size === 'small' ? '12px' : '14px'};
   text-align: center;
 `;
 
@@ -65,9 +65,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   fullScreen = false
 }) => {
   return (
-    <SpinnerContainer fullScreen={fullScreen}>
-      <Spinner size={size} color={color} />
-      {text && <LoadingText size={size}>{text}</LoadingText>}
+    <SpinnerContainer $fullScreen={fullScreen}>
+      <Spinner $size={size} $color={color} />
+      {text && <LoadingText $size={size}>{text}</LoadingText>}
     </SpinnerContainer>
   );
 };

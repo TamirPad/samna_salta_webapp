@@ -58,19 +58,20 @@ const FiltersContainer = styled.div`
   flex-wrap: wrap;
 `;
 
-const FilterButton = styled.button<{ active: boolean }>`
-  padding: 0.5rem 1rem;
-  border: 2px solid ${({ active }) => active ? '#8B4513' : '#ddd'};
-  background: ${({ active }) => active ? '#8B4513' : 'white'};
-  color: ${({ active }) => active ? 'white' : '#666'};
-  border-radius: 6px;
+const FilterButton = styled.button<{ $active: boolean }>`
+  padding: 8px 16px;
+  margin: 0 4px;
+  border: 2px solid ${({ $active }) => $active ? '#8B4513' : '#ddd'};
+  background: ${({ $active }) => $active ? '#8B4513' : 'white'};
+  color: ${({ $active }) => $active ? 'white' : '#666'};
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-weight: 500;
-  
+  font-size: 14px;
+  transition: all 0.2s ease;
+
   &:hover {
-    border-color: #8B4513;
-    background: ${({ active }) => active ? '#A0522D' : '#f8f9fa'};
+    background: ${({ $active }) => $active ? '#A0522D' : '#f8f9fa'};
+    border-color: ${({ $active }) => $active ? '#A0522D' : '#8B4513'};
   }
 `;
 
@@ -403,7 +404,7 @@ const Orders: React.FC = () => {
         {Object.entries(content.filters).map(([key, label]) => (
           <FilterButton
             key={key}
-            active={statusFilter === key}
+            $active={statusFilter === key}
             onClick={() => setStatusFilter(key)}
           >
             {label}
@@ -435,16 +436,24 @@ const Orders: React.FC = () => {
 
               <OrderBody>
                 <OrderItems>
-                  {order.order_items.map((item, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <OrderItem key={`item-${index}`}>
+                  {order.order_items && order.order_items.length > 0 ? (
+                    order.order_items.map((item, index) => (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <OrderItem key={`item-${index}`}>
+                        <ItemInfo>
+                          <ItemName>{item.product_name}</ItemName>
+                          <ItemQuantity>× {item.quantity}</ItemQuantity>
+                        </ItemInfo>
+                        <ItemPrice>₪{item.unit_price}</ItemPrice>
+                      </OrderItem>
+                    ))
+                  ) : (
+                    <OrderItem>
                       <ItemInfo>
-                        <ItemName>{item.product_name}</ItemName>
-                        <ItemQuantity>× {item.quantity}</ItemQuantity>
+                        <ItemName>No items available</ItemName>
                       </ItemInfo>
-                      <ItemPrice>₪{item.unit_price}</ItemPrice>
                     </OrderItem>
-                  ))}
+                  )}
                 </OrderItems>
 
                 <OrderTotal>

@@ -294,6 +294,31 @@ router.get('/', authenticateToken, requireAdmin, [
 
     const result = await dbQuery(sql, params);
 
+    // Get order items for each order
+    const ordersWithItems = await Promise.all(
+      result.rows.map(async (order) => {
+        const itemsResult = await dbQuery(
+          `SELECT oi.*, p.name as product_name, p.name_en as product_name_en, p.name_he as product_name_he
+           FROM order_items oi
+           LEFT JOIN products p ON oi.product_id = p.id
+           WHERE oi.order_id = $1
+           ORDER BY oi.id`,
+          [order.id]
+        );
+        
+        return {
+          ...order,
+          order_items: itemsResult.rows.map(item => ({
+            id: item.id,
+            product_name: item.product_name || item.product_name_en || item.product_name_he || 'Unknown Product',
+            quantity: item.quantity,
+            unit_price: parseFloat(item.unit_price),
+            total_price: parseFloat(item.total_price)
+          }))
+        };
+      })
+    );
+
     // Get total count
     let countSql = 'SELECT COUNT(*) as total FROM orders';
     if (status && status !== 'all') {
@@ -304,7 +329,7 @@ router.get('/', authenticateToken, requireAdmin, [
 
     res.json({
       success: true,
-      data: result.rows,
+      data: ordersWithItems,
       pagination: {
         page,
         limit,

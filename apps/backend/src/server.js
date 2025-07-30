@@ -60,13 +60,33 @@ app.use(express.json({limit: '10mb'}));
 // Serve static files from public directory
 app.use(express.static('public'));
 
-// Simple rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api/', limiter);
+// Rate limiting - disabled in development
+if (process.env.NODE_ENV === 'production') {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+      // Skip rate limiting for health checks and static files
+      return req.path === '/health' || req.path.startsWith('/static/') || req.path.includes('.');
+    },
+    handler: (req, res) => {
+      console.log(`🚫 Rate limit exceeded for: ${req.path}`);
+      res.status(429).json({
+        error: 'Too many requests',
+        message: 'Rate limit exceeded. Please try again later.',
+        retryAfter: Math.ceil(15 * 60 / 60) // 15 minutes in minutes
+      });
+    }
+  });
+  
+  // Apply rate limiting only to API routes in production
+  app.use('/api/', limiter);
+} else {
+  console.log('🔓 Rate limiting disabled in development mode');
+}
 
 // Health check
 app.get('/health', (req, res) => {

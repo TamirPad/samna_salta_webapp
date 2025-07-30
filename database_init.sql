@@ -338,6 +338,68 @@ INSERT INTO customers (name, email, phone, language)
 SELECT 'John Doe', 'john@example.com', '+972501234567', 'en'
 WHERE NOT EXISTS (SELECT 1 FROM customers WHERE email = 'john@example.com');
 
+-- Insert sample orders
+INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_email, status, payment_status, payment_method, order_type, total, delivery_address, notes, created_at) 
+SELECT 'ORD-001', 1, 'John Doe', '+972501234567', 'john@example.com', 'delivered', 'paid', 'cash', 'pickup', 47.00, NULL, 'Extra tahini please', NOW() - INTERVAL '2 days'
+WHERE NOT EXISTS (SELECT 1 FROM orders WHERE order_number = 'ORD-001');
+
+INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_email, status, payment_status, payment_method, order_type, total, delivery_address, notes, created_at) 
+SELECT 'ORD-002', 1, 'John Doe', '+972501234567', 'john@example.com', 'delivered', 'paid', 'card', 'delivery', 35.00, '123 Main St, Tel Aviv', 'No onions', NOW() - INTERVAL '1 day'
+WHERE NOT EXISTS (SELECT 1 FROM orders WHERE order_number = 'ORD-002');
+
+INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_email, status, payment_status, payment_method, order_type, total, delivery_address, notes, created_at) 
+SELECT 'ORD-003', 1, 'John Doe', '+972501234567', 'john@example.com', 'preparing', 'paid', 'cash', 'pickup', 28.00, NULL, 'Extra spicy', NOW() - INTERVAL '2 hours'
+WHERE NOT EXISTS (SELECT 1 FROM orders WHERE order_number = 'ORD-003');
+
+INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_email, status, payment_status, payment_method, order_type, total, delivery_address, notes, created_at) 
+SELECT 'ORD-004', 1, 'John Doe', '+972501234567', 'john@example.com', 'pending', 'pending', 'cash', 'pickup', 42.00, NULL, 'Extra hummus', NOW() - INTERVAL '30 minutes'
+WHERE NOT EXISTS (SELECT 1 FROM orders WHERE order_number = 'ORD-004');
+
+-- Insert sample order items
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 1, 1, 1, 25.00, 25.00, 'Extra tahini'
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 1 AND product_id = 1);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 1, 3, 1, 15.00, 15.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 1 AND product_id = 3);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 1, 5, 1, 7.00, 7.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 1 AND product_id = 5);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 2, 2, 1, 22.00, 22.00, 'No onions'
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 2 AND product_id = 2);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 2, 4, 1, 12.00, 12.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 2 AND product_id = 4);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 2, 6, 1, 1.00, 1.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 2 AND product_id = 6);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 3, 1, 1, 25.00, 25.00, 'Extra spicy'
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 3 AND product_id = 1);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 3, 5, 1, 3.00, 3.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 3 AND product_id = 5);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 4, 2, 1, 22.00, 22.00, 'Extra hummus'
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 4 AND product_id = 2);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 4, 3, 1, 15.00, 15.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 4 AND product_id = 3);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, notes) 
+SELECT 4, 5, 1, 5.00, 5.00, NULL
+WHERE NOT EXISTS (SELECT 1 FROM order_items WHERE order_id = 4 AND product_id = 5);
+
 -- =====================================================
 -- GRANTS AND PERMISSIONS
 -- =====================================================
@@ -366,7 +428,11 @@ SELECT 'Categories', COUNT(*) FROM categories
 UNION ALL
 SELECT 'Products', COUNT(*) FROM products
 UNION ALL
-SELECT 'Customers', COUNT(*) FROM customers;
+SELECT 'Customers', COUNT(*) FROM customers
+UNION ALL
+SELECT 'Orders', COUNT(*) FROM orders
+UNION ALL
+SELECT 'Order Items', COUNT(*) FROM order_items;
 
 -- =====================================================
 -- END OF DATABASE INITIALIZATION

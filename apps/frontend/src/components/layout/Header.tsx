@@ -80,14 +80,14 @@ const Nav = styled.nav`
   }
 `;
 
-const NavLink = styled(Link)<{ active: boolean }>`
+const NavLink = styled(Link)<{ $active: boolean }>`
   color: white;
   text-decoration: none;
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
   transition: all 0.2s;
-  font-weight: ${({ active }) => active ? '600' : '400'};
-  background: ${({ active }) => active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
+  font-weight: ${({ $active }) => $active ? '600' : '400'};
+  background: ${({ $active }) => $active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
   font-size: 0.9rem;
   white-space: nowrap;
   
@@ -187,21 +187,25 @@ const MobileMenuButton = styled.button`
   padding: 0.25rem;
   border-radius: 4px;
   transition: all 0.2s;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
   }
   
   @media (max-width: 768px) {
-    display: block;
+    display: flex;
   }
 `;
 
-const MobileMenu = styled.div<{ isOpen: boolean }>`
+const MobileMenu = styled.div<{ $isOpen: boolean }>`
   display: none;
   
   @media (max-width: 768px) {
-    display: ${({ isOpen }) => isOpen ? 'flex' : 'none'};
+    display: ${({ $isOpen }) => $isOpen ? 'flex' : 'none'};
     flex-direction: column;
     position: absolute;
     top: 100%;
@@ -210,22 +214,30 @@ const MobileMenu = styled.div<{ isOpen: boolean }>`
     background: #8B4513;
     padding: 1rem;
     gap: 0.75rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     max-height: 80vh;
     overflow-y: auto;
+    z-index: 9999;
+    width: 100%;
+    opacity: ${({ $isOpen }) => $isOpen ? '1' : '0'};
+    visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
+    transform: ${({ $isOpen }) => $isOpen ? 'translateY(0)' : 'translateY(-10px)'};
+    transition: all 0.3s ease;
   }
 `;
 
-const MobileNavLink = styled(Link)<{ active: boolean }>`
+const MobileNavLink = styled(Link)<{ $active: boolean }>`
   color: white;
   text-decoration: none;
   padding: 0.75rem 1rem;
   border-radius: 4px;
   transition: all 0.2s;
-  font-weight: ${({ active }) => active ? '600' : '400'};
-  background: ${({ active }) => active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
+  font-weight: ${({ $active }) => $active ? '600' : '400'};
+  background: ${({ $active }) => $active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
   font-size: 0.9rem;
+  display: block;
+  width: 100%;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -292,6 +304,12 @@ const Header: React.FC = () => {
     console.log('Toggle language');
   };
 
+  const toggleMobileMenu = () => {
+    // eslint-disable-next-line no-console
+    console.log('Mobile menu toggle clicked, current state:', mobileMenuOpen);
+    setMobileMenuOpen(prev => !prev);
+  };
+
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
@@ -321,7 +339,7 @@ const Header: React.FC = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              active={isActive(item.path)}
+              $active={isActive(item.path)}
             >
               {item.label}
             </NavLink>
@@ -333,7 +351,7 @@ const Header: React.FC = () => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  active={isActive(item.path)}
+                  $active={isActive(item.path)}
                 >
                   {item.label}
                 </NavLink>
@@ -366,17 +384,17 @@ const Header: React.FC = () => {
           )}
         </UserSection>
 
-        <MobileMenuButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <MobileMenuButton onClick={toggleMobileMenu}>
           {mobileMenuOpen ? '✕' : '☰'}
         </MobileMenuButton>
       </HeaderContent>
 
-      <MobileMenu isOpen={mobileMenuOpen}>
+      <MobileMenu $isOpen={mobileMenuOpen}>
         {navItems.map((item) => (
           <MobileNavLink
             key={item.path}
             to={item.path}
-            active={isActive(item.path)}
+            $active={isActive(item.path)}
             onClick={() => setMobileMenuOpen(false)}
           >
             {item.label}
@@ -389,7 +407,7 @@ const Header: React.FC = () => {
               <MobileNavLink
                 key={item.path}
                 to={item.path}
-                active={isActive(item.path)}
+                $active={isActive(item.path)}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}

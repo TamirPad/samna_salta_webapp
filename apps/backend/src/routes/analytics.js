@@ -10,10 +10,13 @@ const router = express.Router();
 // Get dashboard analytics (admin only)
 router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('🔍 Dashboard analytics requested');
+    
     // Try to get from cache first
     const cacheKey = 'analytics:dashboard';
     const cached = await getCache(cacheKey);
     if (cached) {
+      console.log('📦 Returning cached analytics data');
       return res.json({
         success: true,
         data: cached
@@ -29,6 +32,13 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
+    console.log('📅 Date ranges:', {
+      startOfDay,
+      endOfDay,
+      startOfMonth,
+      endOfMonth
+    });
+
     // Today's orders
     const todayOrdersResult = await dbQuery(
       `SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as revenue
@@ -36,6 +46,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
        WHERE created_at >= $1 AND created_at < $2`,
       [startOfDay, endOfDay]
     );
+    console.log('📊 Today orders result:', todayOrdersResult.rows[0]);
 
     // This month's orders
     const monthOrdersResult = await dbQuery(
@@ -44,16 +55,19 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
        WHERE created_at >= $1 AND created_at < $2`,
       [startOfMonth, endOfMonth]
     );
+    console.log('📊 Month orders result:', monthOrdersResult.rows[0]);
 
     // Total customers
     const customersResult = await dbQuery(
       'SELECT COUNT(*) as count FROM customers'
     );
+    console.log('👥 Customers result:', customersResult.rows[0]);
 
     // Pending orders
     const pendingOrdersResult = await dbQuery(
       'SELECT COUNT(*) as count FROM orders WHERE status IN (\'pending\', \'confirmed\', \'preparing\')'
     );
+    console.log('⏳ Pending orders result:', pendingOrdersResult.rows[0]);
 
     // Top selling products
     const topProductsResult = await dbQuery(
@@ -67,6 +81,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
        LIMIT 5`,
       [startOfMonth]
     );
+    console.log('🏆 Top products result:', topProductsResult.rows);
 
     // Orders by status
     const ordersByStatusResult = await dbQuery(
@@ -77,6 +92,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
        ORDER BY count DESC`,
       [startOfMonth]
     );
+    console.log('📈 Orders by status result:', ordersByStatusResult.rows);
 
     // Revenue by day (last 30 days)
     const revenueByDayResult = await dbQuery(
@@ -88,6 +104,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
        LIMIT 30`,
       [new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)]
     );
+    console.log('💰 Revenue by day result:', revenueByDayResult.rows);
 
     const analytics = {
       today: {
@@ -105,6 +122,8 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
       revenueByDay: revenueByDayResult.rows.reverse() // Reverse to show oldest first
     };
 
+    console.log('📊 Final analytics object:', analytics);
+
     // Cache for 5 minutes
     await setCache(cacheKey, analytics, 300);
 
@@ -114,6 +133,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
     });
 
   } catch (error) {
+    console.error('❌ Analytics error:', error);
     logger.error('Get dashboard analytics error:', error);
     res.status(500).json({
       success: false,
