@@ -28,6 +28,9 @@ export const GlobalStyles = createGlobalStyle`
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
     position: relative;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    width: 100%;
   }
 
   /* RTL Support */
@@ -111,6 +114,9 @@ export const GlobalStyles = createGlobalStyle`
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    /* Ensure proper mobile layout */
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .main-content {
@@ -573,6 +579,43 @@ export const GlobalStyles = createGlobalStyle`
     .form-input {
       padding: 0.625rem;
       font-size: 16px;
+    }
+  }
+
+  /* Additional Mobile Header Fixes */
+  @media (max-width: 768px) {
+    /* Ensure header is always visible */
+    header {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 1000 !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+      overflow: hidden !important;
+    }
+    
+    /* Prevent horizontal scroll */
+    body, html {
+      overflow-x: hidden !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+    }
+    
+    /* Ensure proper header height */
+    header {
+      min-height: 60px !important;
+      max-height: 80px !important;
+    }
+  }
+
+  /* Extra small mobile devices */
+  @media (max-width: 360px) {
+    header {
+      padding: 0.5rem 0 !important;
+    }
+    
+    .container {
+      padding: 0 0.25rem !important;
     }
   }
 `;

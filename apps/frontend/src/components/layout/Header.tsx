@@ -9,11 +9,12 @@ import styled from 'styled-components';
 const HeaderContainer = styled.header`
   background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
   color: white;
-  padding: 1rem 0;
+  padding: 0.75rem 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
+  min-height: 60px;
 `;
 
 const HeaderContent = styled.div`
@@ -23,44 +24,72 @@ const HeaderContent = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    padding: 0 0.5rem;
+    gap: 0.5rem;
+  }
 `;
 
 const Logo = styled(Link)`
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
   color: white;
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
   
   &:hover {
     color: #f0f0f0;
   }
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    gap: 0.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+  }
 `;
 
 const LogoIcon = styled.span`
-  font-size: 2rem;
+  font-size: 1.5rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 const Nav = styled.nav`
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
   
   @media (max-width: 768px) {
-    gap: 1rem;
+    display: none;
   }
 `;
 
 const NavLink = styled(Link)<{ active: boolean }>`
   color: white;
   text-decoration: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 4px;
   transition: all 0.2s;
   font-weight: ${({ active }) => active ? '600' : '400'};
   background: ${({ active }) => active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
+  font-size: 0.9rem;
+  white-space: nowrap;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -70,40 +99,60 @@ const NavLink = styled(Link)<{ active: boolean }>`
 const UserSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 0.25rem;
+  }
 `;
 
 const UserInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const UserAvatar = styled.div`
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  font-size: 0.8rem;
 `;
 
 const Button = styled.button`
   background: transparent;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
   }
 `;
 
@@ -111,14 +160,20 @@ const LanguageButton = styled.button`
   background: transparent;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   transition: all 0.2s;
+  white-space: nowrap;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
   }
 `;
 
@@ -127,8 +182,15 @@ const MobileMenuButton = styled.button`
   background: transparent;
   color: white;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
   
   @media (max-width: 768px) {
     display: block;
@@ -147,8 +209,11 @@ const MobileMenu = styled.div<{ isOpen: boolean }>`
     right: 0;
     background: #8B4513;
     padding: 1rem;
-    gap: 1rem;
+    gap: 0.75rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
   }
 `;
 
@@ -160,9 +225,50 @@ const MobileNavLink = styled(Link)<{ active: boolean }>`
   transition: all 0.2s;
   font-weight: ${({ active }) => active ? '600' : '400'};
   background: ${({ active }) => active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
+  font-size: 0.9rem;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
+  }
+`;
+
+const MobileUserSection = styled.div`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.75rem;
+  }
+`;
+
+const MobileUserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+`;
+
+const MobileButton = styled.button`
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  width: 100%;
+  text-align: left;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
   }
 `;
 
@@ -177,6 +283,7 @@ const Header: React.FC = () => {
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate('/login');
+    setMobileMenuOpen(false);
   };
 
   const toggleLanguage = () => {
@@ -260,7 +367,7 @@ const Header: React.FC = () => {
         </UserSection>
 
         <MobileMenuButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          ☰
+          {mobileMenuOpen ? '✕' : '☰'}
         </MobileMenuButton>
       </HeaderContent>
 
@@ -290,6 +397,29 @@ const Header: React.FC = () => {
             ))}
           </>
         )}
+        
+        <MobileUserSection>
+          {isAuthenticated ? (
+            <>
+              <MobileUserInfo>
+                <UserAvatar>
+                  {user?.name?.charAt(0) || 'U'}
+                </UserAvatar>
+                <span>{user?.name || 'User'}</span>
+              </MobileUserInfo>
+              <MobileButton onClick={handleLogout}>
+                {language === 'he' ? 'התנתק' : 'Logout'}
+              </MobileButton>
+            </>
+          ) : (
+            <MobileButton onClick={() => {
+              navigate('/login');
+              setMobileMenuOpen(false);
+            }}>
+              {language === 'he' ? 'התחבר' : 'Login'}
+            </MobileButton>
+          )}
+        </MobileUserSection>
       </MobileMenu>
     </HeaderContainer>
   );
