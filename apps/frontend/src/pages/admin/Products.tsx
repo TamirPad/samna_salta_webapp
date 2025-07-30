@@ -211,12 +211,13 @@ const ProductCard = styled.div`
   }
 `;
 
-const ProductImage = styled.div<{ $emoji?: string }>`
+const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   position: relative;
   width: 100%;
   height: 200px;
   border-radius: 12px 12px 0 0;
-  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  background: ${({ $imageUrl }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -630,10 +631,12 @@ const AdminProducts: React.FC = () => {
                     }
                   }}
                 >
-                  <ProductImage $emoji={product.image_url ? "" : product.emoji}>
-                    <span role="img" aria-label={getProductName(product)}>
-                      {product.image_url ? "🍽️" : product.emoji}
-                    </span>
+                  <ProductImage $imageUrl={product.image_url} $emoji={product.emoji}>
+                    {!product.image_url && product.emoji && (
+                      <span role="img" aria-label={getProductName(product)}>
+                        {product.emoji}
+                      </span>
+                    )}
                     <ProductStatus $active={product.is_active}>
                       {product.is_active ? t.active : t.inactive}
                     </ProductStatus>
