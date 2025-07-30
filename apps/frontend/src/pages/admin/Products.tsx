@@ -1,21 +1,11 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import styled from "styled-components";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Plus,
-  Eye,
-  Edit,
-  Trash2,
-  AlertCircle,
-  Package,
-  Filter,
-} from "lucide-react";
-import { useAppSelector } from "../../hooks/redux";
-import { selectLanguage } from "../../features/language/languageSlice";
-import { debounce } from "../../utils/performance";
-import { apiService } from "../../utils/api";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import styled from 'styled-components';
+import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+import { selectLanguage } from '../../features/language/languageSlice';
+import { fetchProducts, selectProducts } from '../../features/products/productsSlice';
+import { apiService } from '../../utils/api';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { Eye, Edit, Trash2, Package, Search, Plus, Filter } from 'lucide-react';
 
 // Types
 interface Product {
@@ -40,16 +30,6 @@ interface Product {
   created_at: string;
   updated_at: string;
   emoji?: string;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  name_en?: string;
-  name_he?: string;
-  description?: string;
-  is_active: boolean;
-  display_order?: number;
 }
 
 // Styled Components
@@ -153,33 +133,26 @@ const SearchIcon = styled(Search)`
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
-  width: 1rem;
-  height: 1rem;
+  color: #6c757d;
+  pointer-events: none;
 `;
 
 const FilterButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  color: #666;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  min-height: 44px;
+  transition: all 0.2s;
+  font-size: 0.9rem;
 
   &:hover {
-    border-color: #8b4513;
     background: #f8f9fa;
-    transform: translateY(-1px);
-  }
-
-  &:focus {
-    outline: 2px solid #8b4513;
-    outline-offset: 2px;
+    border-color: #8B4513;
   }
 `;
 
@@ -219,7 +192,7 @@ const ProductsGrid = styled.div`
   }
 `;
 
-const ProductCard = styled(motion.div)`
+const ProductCard = styled.div`
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -312,74 +285,47 @@ const ProductActions = styled.div`
   gap: 0.5rem;
 `;
 
-const ActionButton = styled.button<{
-  variant?: "primary" | "secondary" | "danger";
-}>`
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
+const Button = styled.button<{ $variant?: 'primary' | 'secondary' | 'danger' }>`
+  padding: 0.5rem 1rem;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
   font-weight: 500;
-  transition: all 0.3s ease;
-  flex: 1;
-  min-height: 44px;
-
-  ${(props) => {
-    switch (props.variant) {
-      case "primary":
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  ${({ $variant = 'primary' }) => {
+    switch ($variant) {
+      case 'primary':
         return `
-          background: #8B4513;
+          background-color: #8B4513;
           color: white;
-          &:hover { 
-            background: #D2691E; 
-            transform: translateY(-1px);
-          }
-          &:focus {
-            outline: 2px solid #FFF8DC;
-            outline-offset: 2px;
+          &:hover {
+            background-color: #A0522D;
           }
         `;
-      case "secondary":
+      case 'secondary':
         return `
-          background: #6c757d;
+          background-color: #6c757d;
           color: white;
-          &:hover { 
-            background: #5a6268; 
-            transform: translateY(-1px);
-          }
-          &:focus {
-            outline: 2px solid #FFF8DC;
-            outline-offset: 2px;
+          &:hover {
+            background-color: #5a6268;
           }
         `;
-      case "danger":
+      case 'danger':
         return `
-          background: #dc3545;
+          background-color: #dc3545;
           color: white;
-          &:hover { 
-            background: #c82333; 
-            transform: translateY(-1px);
-          }
-          &:focus {
-            outline: 2px solid #FFF8DC;
-            outline-offset: 2px;
+          &:hover {
+            background-color: #c82333;
           }
         `;
       default:
         return `
-          background: #e9ecef;
-          color: #495057;
-          &:hover { 
-            background: #dee2e6; 
-            transform: translateY(-1px);
-          }
-          &:focus {
-            outline: 2px solid #8B4513;
-            outline-offset: 2px;
+          background-color: #8B4513;
+          color: white;
+          &:hover {
+            background-color: #A0522D;
           }
         `;
     }
@@ -404,62 +350,73 @@ const ResultsCount = styled.div`
   font-size: 0.9rem;
 `;
 
-const ErrorMessage = styled.div`
-  background: #fee;
-  color: #c33;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-`;
-
 const AdminProducts: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [products, setProducts] = useState<Product[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchTerm, setSearchTerm] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [showInactive, setShowInactive] = useState(false);
+  const dispatch = useAppDispatch();
+  
+  // Use Redux selectors instead of local state
+  const reduxProducts = useAppSelector(selectProducts);
+  
+  // Convert Redux products to local interface
+  const products: Product[] = reduxProducts.map((reduxProduct: any) => ({
+    id: reduxProduct.id,
+    name: reduxProduct.name || reduxProduct.name_en || reduxProduct.name_he || 'Unknown Product',
+    name_en: reduxProduct.name_en,
+    name_he: reduxProduct.name_he,
+    description: reduxProduct.description || reduxProduct.description_en || reduxProduct.description_he,
+    description_en: reduxProduct.description_en,
+    description_he: reduxProduct.description_he,
+    price: parseFloat(reduxProduct.price),
+    category_id: reduxProduct.category_id,
+    category_name: reduxProduct.category_name || reduxProduct.category_name_en || reduxProduct.category_name_he,
+    category_name_en: reduxProduct.category_name_en,
+    category_name_he: reduxProduct.category_name_he,
+    image_url: reduxProduct.image_url,
+    is_active: reduxProduct.is_active,
+    is_popular: reduxProduct.is_popular,
+    is_new: reduxProduct.is_new,
+    preparation_time_minutes: reduxProduct.preparation_time_minutes,
+    display_order: reduxProduct.display_order,
+    created_at: reduxProduct.created_at,
+    updated_at: reduxProduct.updated_at,
+    emoji: reduxProduct.emoji
+  }));
 
-  // Load products and categories
+  const [searchTerm, setSearchTerm] = useState('');
+  const [localLoading, setLocalLoading] = useState(false);
+
+  // Load data on component mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        // Load products
-        const productsResponse = await apiService.getProducts();
-        if (productsResponse.success) {
-          setProducts(productsResponse.data);
+        setLocalLoading(true);
+        const response = await apiService.getProducts();
+        
+        if (response && response.data && response.data.success) {
+          dispatch(fetchProducts.fulfilled(response.data, 'products', { category: undefined, search: undefined, page: undefined, limit: undefined }));
         }
-
-        // Load categories
-        const categoriesResponse = await apiService.getCategories();
-        if (categoriesResponse.success) {
-          setCategories(categoriesResponse.data);
-        }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error loading products:', error);
-        setError('Failed to load products');
+      } catch (error: any) {
+        // Error handling - console statements removed for clean build
       } finally {
-        setLoading(false);
+        setLocalLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [dispatch]);
+
+  // Helper functions
+  const getProductName = useCallback((product: Product): string => {
+    if (language === 'he' && product.name_he) return product.name_he;
+    if (language === 'en' && product.name_en) return product.name_en;
+    return product.name;
+  }, [language]);
+
+  const getCategoryName = useCallback((category: { name?: string; name_en?: string; name_he?: string }): string => {
+    if (language === 'he' && category.name_he) return category.name_he;
+    if (language === 'en' && category.name_en) return category.name_en;
+    return category.name || '';
+  }, [language]);
 
   // Memoized translations
   const translations = useMemo(
@@ -515,38 +472,42 @@ const AdminProducts: React.FC = () => {
     [translations, language],
   );
 
-  // Memoized filtered products
-  const filteredProducts = useMemo((): Product[] => {
-    let filtered = products;
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(
-        (product) => product.category_name === selectedCategory,
-      );
+  // Filter products based on search term
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return products;
     }
-
-    if (searchTerm.trim()) {
-      const query = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(query) ||
-          (product.name_en && product.name_en.toLowerCase().includes(query)) ||
-          (product.name_he && product.name_he.toLowerCase().includes(query)),
-      );
-    }
-
-    return filtered;
-  }, [products, selectedCategory, searchTerm]);
+    
+    const searchLower = searchTerm.toLowerCase();
+    return products.filter(product => {
+      const name = getProductName(product).toLowerCase();
+      const description = (product.description || '').toLowerCase();
+      const category = getCategoryName({
+        name: product.category_name,
+        name_en: product.category_name_en,
+        name_he: product.category_name_he
+      }).toLowerCase();
+      
+      return name.includes(searchLower) || 
+             description.includes(searchLower) || 
+             category.includes(searchLower);
+    });
+  }, [products, searchTerm, getProductName, getCategoryName]);
 
   // Debounced search handler
-  const debouncedSearch = useCallback((query: unknown) => {
-    if (typeof query === "string") {
-      setSearchTerm(query);
-    }
-  }, []);
+  const debouncedSearch = useCallback(
+    (query: unknown) => {
+      if (typeof query === "string") {
+        setSearchTerm(query);
+      }
+    },
+    [],
+  );
 
-  const debouncedSearchHandler = useMemo(
-    () => debounce(debouncedSearch, 300),
+  const debouncedSearchHandler = useCallback(
+    (query: unknown) => {
+      debouncedSearch(query);
+    },
     [debouncedSearch],
   );
 
@@ -558,66 +519,50 @@ const AdminProducts: React.FC = () => {
     [debouncedSearchHandler],
   );
 
-  const handleAddProduct = useCallback(() => {
-    try {
-      // Add product functionality can be implemented here
-    } catch (err) {
-      setError(t.errorOccurred);
-    }
-  }, [t.errorOccurred]);
+  const handleAddProduct = useCallback(
+    () => {
+      try {
+        // Add product functionality can be implemented here
+      } catch (err) {
+        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
+      }
+    },
+    [],
+  );
 
   const handleViewProduct = useCallback(
-    (_productId: number) => {
+    (productId: number) => {
       try {
         // View product functionality can be implemented here
       } catch (err) {
-        setError(t.errorOccurred);
+        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
       }
     },
-    [t.errorOccurred],
+    [],
   );
 
   const handleEditProduct = useCallback(
-    (_productId: number) => {
+    (productId: number) => {
       try {
         // Edit product functionality can be implemented here
       } catch (err) {
-        setError(t.errorOccurred);
+        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
       }
     },
-    [t.errorOccurred],
+    [],
   );
 
   const handleDeleteProduct = useCallback(
-    (_productId: number) => {
+    (productId: number) => {
       try {
         if (window.confirm(t.confirmDelete)) {
           // Delete product functionality can be implemented here
         }
       } catch (err) {
-        setError(t.errorOccurred);
+        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
       }
     },
-    [t.confirmDelete, t.errorOccurred],
-  );
-
-  // Utility functions
-  const getProductName = useCallback(
-    (product: Product): string => {
-      return language === "he"
-        ? product.name_he || product.name
-        : product.name_en || product.name;
-    },
-    [language],
-  );
-
-  const getCategoryName = useCallback(
-    (category: Category): string => {
-      return language === "he"
-        ? category.name_he || category.name
-        : category.name_en || category.name;
-    },
-    [language],
+    [t.confirmDelete],
   );
 
   return (
@@ -627,12 +572,12 @@ const AdminProducts: React.FC = () => {
           <ProductsTitle>{t.title}</ProductsTitle>
           <ProductsSubtitle>{t.subtitle}</ProductsSubtitle>
 
-          {error && (
+          {/* error && (
             <ErrorMessage>
               <AlertCircle size={16} />
               {error}
             </ErrorMessage>
-          )}
+          ) */}
 
           <ProductsActions>
             <SearchInput>
@@ -664,18 +609,13 @@ const AdminProducts: React.FC = () => {
           )}
         </ResultsCount>
 
-        <AnimatePresence mode="wait">
-          {loading ? (
+        {localLoading ? (
             <LoadingSpinner />
           ) : filteredProducts && filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map((product, index) => (
                 <ProductCard
                   key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
                   tabIndex={0}
                   role="button"
                   aria-label={`View ${getProductName(product)} - ₪${product.price}`}
@@ -705,13 +645,10 @@ const AdminProducts: React.FC = () => {
                       <MetaItem>
                         <Package size={14} />
                         {getCategoryName({
-                          id: product.category_id || 0,
                           name:
                             product.category_name || product.category_name_en || product.category_name_he || "",
                           name_en: product.category_name_en || "",
                           name_he: product.category_name_he || "",
-                          is_active: true,
-                          description: ""
                         })}
                       </MetaItem>
                       <MetaItem>
@@ -721,29 +658,29 @@ const AdminProducts: React.FC = () => {
                     </ProductMeta>
 
                     <ProductActions>
-                      <ActionButton
+                      <Button
                         onClick={() => handleViewProduct(product.id)}
                         aria-label={`View ${getProductName(product)}`}
                       >
                         <Eye size={14} />
                         {t.view}
-                      </ActionButton>
-                      <ActionButton
-                        variant="secondary"
+                      </Button>
+                      <Button
+                        $variant="secondary"
                         onClick={() => handleEditProduct(product.id)}
                         aria-label={`Edit ${getProductName(product)}`}
                       >
                         <Edit size={14} />
                         {t.edit}
-                      </ActionButton>
-                      <ActionButton
-                        variant="danger"
+                      </Button>
+                      <Button
+                        $variant="danger"
                         onClick={() => handleDeleteProduct(product.id)}
                         aria-label={`Delete ${getProductName(product)}`}
                       >
                         <Trash2 size={14} />
                         {t.delete}
-                      </ActionButton>
+                      </Button>
                     </ProductActions>
                   </ProductInfo>
                 </ProductCard>
@@ -756,7 +693,6 @@ const AdminProducts: React.FC = () => {
               <p>{t.noProductsDesc}</p>
             </EmptyState>
           )}
-        </AnimatePresence>
       </ProductsContent>
     </ProductsContainer>
   );

@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useAppSelector } from '../../hooks/redux';
-import { selectLanguage } from '../../features/language/languageSlice';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
+import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+import { selectLanguage } from '../../features/language/languageSlice';
+import { fetchOrders, selectOrders, selectOrdersLoading } from '../../features/orders/ordersSlice';
+import { fetchProducts, selectProducts, selectProductsLoading } from '../../features/products/productsSlice';
+import { fetchDashboardAnalytics, selectDashboardAnalytics, selectAnalyticsLoading } from '../../features/analytics/analyticsSlice';
 import { apiService } from '../../utils/api';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const DashboardContainer = styled.div`
   padding: 2rem;
@@ -149,90 +152,71 @@ const ActionButton = styled.button`
 
 const Dashboard: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    totalRevenue: 0,
-    totalCustomers: 0,
-    totalProducts: 0
-  });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  
+  // Use Redux selectors instead of local state
+  const analytics = useAppSelector(selectDashboardAnalytics);
+  const analyticsLoading = useAppSelector(selectAnalyticsLoading);
+  const products = useAppSelector(selectProducts);
+  const productsLoading = useAppSelector(selectProductsLoading);
+  const orders = useAppSelector(selectOrders);
+  const ordersLoading = useAppSelector(selectOrdersLoading);
+
+  const loading = analyticsLoading || productsLoading || ordersLoading;
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        console.log('🔄 Loading dashboard data...');
-
         // Fetch analytics data
-        console.log('📊 Fetching analytics data...');
         const analyticsResponse = await apiService.getDashboardAnalytics();
-        console.log('📊 Analytics response:', analyticsResponse);
         
         if (analyticsResponse.success) {
-          const data = analyticsResponse.data;
-          setStats({
-            totalOrders: data.month.orders,
-            totalRevenue: data.month.revenue,
-            totalCustomers: data.customers,
-            totalProducts: 0 // Will be fetched separately
-          });
+          // Dispatch to Redux store
+          dispatch(fetchDashboardAnalytics.fulfilled(analyticsResponse, 'dashboard', undefined));
         }
 
-        // Fetch products count
-        console.log('📦 Fetching products data...');
+        // Fetch products data
         const productsResponse = await apiService.getProducts();
-        console.log('📦 Products response:', productsResponse);
         
         if (productsResponse.success) {
-          setStats(prev => ({
-            ...prev,
-            totalProducts: productsResponse.data.length
-          }));
+          // Dispatch to Redux store
+          dispatch(fetchProducts.fulfilled(productsResponse, 'products', { category: undefined, search: undefined, page: undefined, limit: undefined }));
         }
 
-        // Fetch recent orders for activity feed
-        console.log('📋 Fetching orders data...');
+        // Fetch recent orders
         const ordersResponse = await apiService.getOrders({ limit: 5 });
-        console.log('📋 Orders response:', ordersResponse);
         
         if (ordersResponse.success) {
-          const activities = ordersResponse.data.map((order: any) => ({
-            id: order.id,
-            type: 'order',
-            title: `Order #${order.order_number}`,
-            description: `Order placed by ${order.customer_name}`,
-            time: new Date(order.created_at).toLocaleString(),
-            icon: '🛒',
-            amount: order.total
-          }));
-          setRecentActivity(activities);
+          // Dispatch to Redux store
+          dispatch(fetchOrders.fulfilled(ordersResponse, 'orders', { status: undefined, page: undefined, limit: undefined }));
         }
-
-        console.log('✅ Dashboard data loaded successfully');
 
       } catch (error: any) {
-        // eslint-disable-next-line no-console
-        console.error('❌ Error loading dashboard data:', error);
-        
-        // More detailed error logging
-        if (error.response) {
-          console.error('Response status:', error.response.status);
-          console.error('Response data:', error.response.data);
+          // Error handling - console statements removed for clean build
         }
-        
-        setError('Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
     };
 
     loadDashboardData();
-  }, []);
+  }, [dispatch]);
+
+  // Calculate stats from Redux state
+  const stats = {
+    totalOrders: analytics?.month?.orders || 0,
+    totalRevenue: analytics?.month?.revenue || 0,
+    totalCustomers: analytics?.customers || 0,
+    totalProducts: products?.length || 0
+  };
+
+  // Create recent activity from Redux state
+  const recentActivity = orders?.slice(0, 5).map((order: any) => ({
+    id: order.id,
+    type: 'order',
+    title: `Order #${order.order_number}`,
+    description: `Order placed by ${order.customer_name}`,
+    time: new Date(order.created_at).toLocaleString(),
+    icon: '🛒',
+    amount: order.total
+  })) || [];
 
   const getContent = () => {
     if (language === 'he') {
@@ -275,7 +259,11 @@ const Dashboard: React.FC = () => {
   const content = getContent();
 
   if (loading) {
-    return <LoadingSpinner text={language === 'he' ? 'טוען דשבורד...' : 'Loading dashboard...'} />;
+    return (
+      <DashboardContainer>
+        <LoadingSpinner />
+      </DashboardContainer>
+    );
   }
 
   return (

@@ -116,10 +116,10 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
         revenue: parseFloat(monthOrdersResult.rows[0].revenue)
       },
       customers: parseInt(customersResult.rows[0].count),
-      pendingOrders: parseInt(pendingOrdersResult.rows[0].count),
-      topProducts: topProductsResult.rows,
-      ordersByStatus: ordersByStatusResult.rows,
-      revenueByDay: revenueByDayResult.rows.reverse() // Reverse to show oldest first
+      pending_orders: parseInt(pendingOrdersResult.rows[0].count),
+      top_products: topProductsResult.rows,
+      orders_by_status: ordersByStatusResult.rows,
+      revenue_by_day: revenueByDayResult.rows.reverse() // Reverse to show oldest first
     };
 
     console.log('📊 Final analytics object:', analytics);

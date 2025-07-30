@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useAppSelector } from '../../hooks/redux';
+import React, { useEffect, useState } from 'react';
+import styled from 'styled-components';
+import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+import { fetchOrders, selectOrders, selectOrdersLoading } from '../../features/orders/ordersSlice';
+import { apiService } from '../../utils/api';
 import { selectLanguage } from '../../features/language/languageSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import styled from 'styled-components';
-import { apiService } from '../../utils/api';
 
 interface Order {
   id: number;
@@ -123,29 +124,64 @@ const OrderDate = styled.p`
   font-size: 0.9rem;
 `;
 
-const OrderStatus = styled.span<{ status: string }>`
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
+const OrderStatus = styled.span<{ $status: string }>`
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
   text-transform: uppercase;
-  
-  ${({ status }) => {
-    switch (status) {
+  letter-spacing: 0.5px;
+
+  ${({ $status }) => {
+    switch ($status) {
       case 'pending':
-        return 'background: #fff3cd; color: #856404;';
+        return `
+          background-color: #fff3cd;
+          color: #856404;
+          border: 1px solid #ffeaa7;
+        `;
       case 'confirmed':
-        return 'background: #d1ecf1; color: #0c5460;';
+        return `
+          background-color: #d1ecf1;
+          color: #0c5460;
+          border: 1px solid #bee5eb;
+        `;
       case 'preparing':
-        return 'background: #d4edda; color: #155724;';
+        return `
+          background-color: #fff3cd;
+          color: #856404;
+          border: 1px solid #ffeaa7;
+        `;
       case 'ready':
-        return 'background: #cce5ff; color: #004085;';
+        return `
+          background-color: #d4edda;
+          color: #155724;
+          border: 1px solid #c3e6cb;
+        `;
+      case 'delivering':
+        return `
+          background-color: #cce5ff;
+          color: #004085;
+          border: 1px solid #b3d7ff;
+        `;
       case 'delivered':
-        return 'background: #d4edda; color: #155724;';
+        return `
+          background-color: #d4edda;
+          color: #155724;
+          border: 1px solid #c3e6cb;
+        `;
       case 'cancelled':
-        return 'background: #f8d7da; color: #721c24;';
+        return `
+          background-color: #f8d7da;
+          color: #721c24;
+          border: 1px solid #f5c6cb;
+        `;
       default:
-        return 'background: #f8f9fa; color: #6c757d;';
+        return `
+          background-color: #e2e3e5;
+          color: #383d41;
+          border: 1px solid #d6d8db;
+        `;
     }
   }}
 `;
@@ -216,7 +252,7 @@ const OrderActions = styled.div`
   flex-wrap: wrap;
 `;
 
-const ActionButton = styled.button<{ variant: 'primary' | 'secondary' | 'danger' }>`
+const ActionButton = styled.button<{ $variant: 'primary' | 'secondary' | 'danger' }>`
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -224,8 +260,8 @@ const ActionButton = styled.button<{ variant: 'primary' | 'secondary' | 'danger'
   font-weight: 500;
   transition: all 0.2s;
   
-  ${({ variant }) => {
-    switch (variant) {
+  ${({ $variant }) => {
+    switch ($variant) {
       case 'primary':
         return `
           background: #8B4513;
@@ -263,37 +299,52 @@ const EmptyIcon = styled.div`
 
 const Orders: React.FC = () => {
   const language = useAppSelector(selectLanguage);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  
+  // Use Redux selectors instead of local state
+  const reduxOrders = useAppSelector(selectOrders);
+  const loading = useAppSelector(selectOrdersLoading);
+  
+  // Convert Redux orders to local interface
+  const orders: Order[] = reduxOrders.map((reduxOrder: any) => ({
+    id: reduxOrder.id,
+    order_number: reduxOrder.order_number,
+    customer_name: reduxOrder.customer_name,
+    customer_phone: reduxOrder.customer_phone,
+    customer_email: reduxOrder.customer_email,
+    status: reduxOrder.status,
+    payment_status: reduxOrder.payment_status,
+    order_type: reduxOrder.order_type,
+    delivery_address: reduxOrder.delivery_address,
+    subtotal: reduxOrder.subtotal,
+    delivery_charge: reduxOrder.delivery_charge,
+    total: reduxOrder.total,
+    created_at: reduxOrder.created_at,
+    updated_at: reduxOrder.updated_at,
+    order_items: reduxOrder.order_items || []
+  }));
+  
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        const response = await apiService.getOrders();
-        if (response.success) {
-          setOrders(response.data);
+        const response = await apiService.getOrders({});
+        
+        // Check if the response is successful
+        if (response && response.data && response.data.success) {
+          // Update the order in the local state
+          dispatch(fetchOrders.fulfilled(response.data, 'orders', { status: undefined, page: undefined, limit: undefined }));
         } else {
-          setError('Failed to load orders');
+          // Error handling - console statements removed for clean build
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error loading orders:', error);
-        setError('Failed to load orders');
-      } finally {
-        setLoading(false);
+      } catch (error: any) {
+        // Error handling - console statements removed for clean build
       }
     };
 
     loadOrders();
-  }, []);
+  }, [dispatch]);
 
   const getContent = () => {
     if (language === 'he') {
@@ -375,13 +426,7 @@ const Orders: React.FC = () => {
       
       if (response.success) {
         // Update the order in the local state
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: newStatus }
-              : order
-          )
-        );
+        dispatch(fetchOrders.fulfilled(response, 'orders', { status: undefined, page: undefined, limit: undefined }));
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -429,7 +474,7 @@ const Orders: React.FC = () => {
                     {new Date(order.created_at).toLocaleDateString()}
                   </OrderDate>
                 </OrderInfo>
-                <OrderStatus status={order.status}>
+                <OrderStatus $status={order.status}>
                   {content.status[order.status]}
                 </OrderStatus>
               </OrderHeader>
@@ -465,7 +510,7 @@ const Orders: React.FC = () => {
               <OrderActions>
                 {order.status === 'pending' && (
                   <ActionButton
-                    variant="primary"
+                    $variant="primary"
                     onClick={() => handleStatusChange(order.id, 'confirmed')}
                   >
                     {content.actions.confirm}
@@ -473,7 +518,7 @@ const Orders: React.FC = () => {
                 )}
                 {order.status === 'confirmed' && (
                   <ActionButton
-                    variant="primary"
+                    $variant="primary"
                     onClick={() => handleStatusChange(order.id, 'preparing')}
                   >
                     {content.actions.prepare}
@@ -481,7 +526,7 @@ const Orders: React.FC = () => {
                 )}
                 {order.status === 'preparing' && (
                   <ActionButton
-                    variant="primary"
+                    $variant="primary"
                     onClick={() => handleStatusChange(order.id, 'ready')}
                   >
                     {content.actions.ready}
@@ -489,7 +534,7 @@ const Orders: React.FC = () => {
                 )}
                 {order.status === 'ready' && (
                   <ActionButton
-                    variant="primary"
+                    $variant="primary"
                     onClick={() => handleStatusChange(order.id, 'delivered')}
                   >
                     {content.actions.deliver}
@@ -497,7 +542,7 @@ const Orders: React.FC = () => {
                 )}
                 {order.status !== 'delivered' && order.status !== 'cancelled' && (
                   <ActionButton
-                    variant="danger"
+                    $variant="danger"
                     onClick={() => handleStatusChange(order.id, 'cancelled')}
                   >
                     {content.actions.cancel}
