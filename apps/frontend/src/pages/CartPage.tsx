@@ -145,14 +145,17 @@ const CartItemContainer = styled(motion.div)`
   }
 `;
 
-const ItemImage = styled.div<{ imageUrl?: string }>`
+const ItemImage = styled.div<{ $imageUrl?: string }>`
   width: 80px;
   height: 80px;
   border-radius: 8px;
-  background: ${(props): string =>
-    props.imageUrl
-      ? `url(${props.imageUrl}) center/cover`
-      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
+  background: ${({ $imageUrl }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
   flex-shrink: 0;
 
   @media (max-width: 768px) {
@@ -667,7 +670,7 @@ const CartPage: React.FC = () => {
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
-                    <ItemImage imageUrl={item.image} />
+                    <ItemImage $imageUrl={item.image} />
 
                     <ItemDetails>
                       <ItemName>{item.name}</ItemName>

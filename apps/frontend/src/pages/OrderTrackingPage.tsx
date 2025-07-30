@@ -311,14 +311,17 @@ const ItemInfo = styled.div`
   flex: 1;
 `;
 
-const ItemImage = styled.div<{ imageUrl?: string }>`
+const ItemImage = styled.div<{ $imageUrl?: string }>`
   width: 40px;
   height: 40px;
   border-radius: 6px;
-  background: ${(props) =>
-    props.imageUrl
-      ? `url(${props.imageUrl}) center/cover`
-      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
+  background: ${({ $imageUrl }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
   flex-shrink: 0;
 `;
 
@@ -878,7 +881,7 @@ const OrderTrackingPage: React.FC = () => {
                 {order.order_items.map((item: any) => (
                   <OrderItem key={item.id}>
                     <ItemInfo>
-                      <ItemImage imageUrl={item.image} />
+                      <ItemImage $imageUrl={item.image} />
                       <ItemDetails>
                         <ItemName>{item.product_name}</ItemName>
                         <ItemQuantity>Qty: {item.quantity}</ItemQuantity>

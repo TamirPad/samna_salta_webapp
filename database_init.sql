@@ -305,32 +305,32 @@ SELECT 'Desserts', 'Desserts', 'קינוחים', 'Sweet treats and desserts', 4
 WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = 'Desserts');
 
 -- Insert sample products
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Shawarma', 'Shawarma', 'שווארמה', 'Traditional Yemenite shawarma with fresh vegetables', 'Traditional Yemenite shawarma with fresh vegetables', 'שווארמה תימנית מסורתית עם ירקות טריים', 25.00, 1, true, 15
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Shawarma', 'Shawarma', 'שווארמה', 'Traditional Yemenite shawarma with fresh vegetables', 'Traditional Yemenite shawarma with fresh vegetables', 'שווארמה תימנית מסורתית עם ירקות טריים', 25.00, 1, true, 15, 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop', '🥙'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Shawarma');
 
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Falafel Plate', 'Falafel Plate', 'פלאפל צלחת', 'Fresh falafel with hummus, tahini, and mixed salad', 'Fresh falafel with hummus, tahini, and mixed salad', 'פלאפל טרי עם חומוס, טחינה וסלט מעורב', 22.00, 1, true, 12
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Falafel Plate', 'Falafel Plate', 'פלאפל צלחת', 'Fresh falafel with hummus, tahini, and mixed salad', 'Fresh falafel with hummus, tahini, and mixed salad', 'פלאפל טרי עם חומוס, טחינה וסלט מעורב', 22.00, 1, true, 12, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop', '🧆'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Falafel Plate');
 
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Hummus', 'Hummus', 'חומוס', 'Creamy hummus with olive oil and zaatar', 'Creamy hummus with olive oil and zaatar', 'חומוס קרמי עם שמן זית וזעתר', 15.00, 2, false, 5
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Hummus', 'Hummus', 'חומוס', 'Creamy hummus with olive oil and zaatar', 'Creamy hummus with olive oil and zaatar', 'חומוס קרמי עם שמן זית וזעתר', 15.00, 2, false, 5, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop', '🥣'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Hummus');
 
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Fresh Salad', 'Fresh Salad', 'סלט טרי', 'Mixed vegetables with lemon dressing', 'Mixed vegetables with lemon dressing', 'ירקות מעורבים עם רוטב לימון', 12.00, 2, false, 3
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Fresh Salad', 'Fresh Salad', 'סלט טרי', 'Mixed vegetables with lemon dressing', 'Mixed vegetables with lemon dressing', 'ירקות מעורבים עם רוטב לימון', 12.00, 2, false, 3, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop', '🥗'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Fresh Salad');
 
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Tea', 'Tea', 'תה', 'Traditional Yemenite tea', 'Traditional Yemenite tea', 'תה תימני מסורתי', 8.00, 3, false, 2
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Tea', 'Tea', 'תה', 'Traditional Yemenite tea', 'Traditional Yemenite tea', 'תה תימני מסורתי', 8.00, 3, false, 2, 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&h=300&fit=crop', '☕'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Tea');
 
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Coffee', 'Coffee', 'קפה', 'Strong Arabic coffee', 'Strong Arabic coffee', 'קפה ערבי חזק', 10.00, 3, false, 3
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Coffee', 'Coffee', 'קפה', 'Strong Arabic coffee', 'Strong Arabic coffee', 'קפה ערבי חזק', 10.00, 3, false, 3, 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=300&fit=crop', '☕'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Coffee');
 
-INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes) 
-SELECT 'Baklava', 'Baklava', 'בקלווה', 'Sweet pastry with nuts and honey', 'Sweet pastry with nuts and honey', 'מאפה מתוק עם אגוזים ודבש', 18.00, 4, false, 5
+INSERT INTO products (name, name_en, name_he, description, description_en, description_he, price, category_id, is_popular, preparation_time_minutes, image_url, emoji) 
+SELECT 'Baklava', 'Baklava', 'בקלווה', 'Sweet pastry with nuts and honey', 'Sweet pastry with nuts and honey', 'מאפה מתוק עם אגוזים ודבש', 18.00, 4, false, 5, 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=300&fit=crop', '🍰'
 WHERE NOT EXISTS (SELECT 1 FROM products WHERE name = 'Baklava');
 
 -- Insert sample customer

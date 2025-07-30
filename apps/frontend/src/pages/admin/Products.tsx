@@ -211,19 +211,23 @@ const ProductCard = styled.div`
   }
 `;
 
-const ProductImage = styled.div<{ emoji?: string }>`
+const ProductImage = styled.div<{ $emoji?: string }>`
+  position: relative;
   width: 100%;
   height: 200px;
-  background: ${(props) =>
-    props.emoji
-      ? "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"
-      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
   color: white;
-  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 `;
 
 const ProductStatus = styled.span<{ $active: boolean }>`
@@ -626,7 +630,7 @@ const AdminProducts: React.FC = () => {
                     }
                   }}
                 >
-                  <ProductImage emoji={product.image_url ? "" : product.emoji}>
+                  <ProductImage $emoji={product.image_url ? "" : product.emoji}>
                     <span role="img" aria-label={getProductName(product)}>
                       {product.image_url ? "🍽️" : product.emoji}
                     </span>

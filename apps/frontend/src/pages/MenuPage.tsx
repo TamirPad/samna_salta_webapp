@@ -199,19 +199,24 @@ const ProductCard = styled(motion.div)`
   }
 `;
 
-const ProductImage = styled.div<{ imageUrl?: string; emoji?: string }>`
+const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
+  position: relative;
   width: 100%;
   height: 200px;
-  background: ${(props): string =>
-    props.imageUrl
-      ? `url(${props.imageUrl}) center/cover`
-      : "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)"};
+  border-radius: 12px 12px 0 0;
+  background: ${({ $imageUrl }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: ${(props): string => (props.emoji ? "4rem" : "3rem")};
+  font-size: 4rem;
   color: white;
-  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 `;
 
 const ProductBadge = styled.span`
@@ -581,10 +586,10 @@ const MenuPage: React.FC = () => {
                     }}
                   >
                     <ProductImage
-                      imageUrl={product.image_url || product.image || ""}
-                      emoji={product.emoji || ""}
+                      $imageUrl={product.image_url || product.image || ""}
+                      $emoji={product.emoji || ""}
                     >
-                      {product.emoji && (
+                      {!product.image_url && !product.image && product.emoji && (
                         <span role="img" aria-label={getProductName(product)}>
                           {product.emoji}
                         </span>
