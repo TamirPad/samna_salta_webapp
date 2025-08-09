@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { apiService } from '../utils/api';
+import BottomSheet from './BottomSheet';
 
 type OptionValue = { id: number; name: string; name_en?: string; name_he?: string; price_adjustment?: number; is_available?: boolean };
 type ProductOption = { id: number; name: string; name_en?: string; name_he?: string; is_required?: boolean; max_selections?: number; values?: OptionValue[] };
@@ -201,10 +202,15 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
 
   // Autofocus first chip when options are loaded
   useEffect(() => {
+    let timeoutId: number | undefined;
     if (!loading && options && options.length > 0) {
-      const t = setTimeout(() => firstChipRef.current?.focus(), 50);
-      return () => clearTimeout(t);
+      timeoutId = window.setTimeout(() => firstChipRef.current?.focus(), 50);
     }
+    return () => {
+      if (timeoutId != null) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [loading, options]);
 
   if (!options || loading) {
@@ -215,15 +221,9 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
       return null;
     }
     return (
-      <Backdrop onClick={onClose}>
-        <Modal onClick={(e) => e.stopPropagation()}>
-          <Header>{language === 'he' ? 'טוען אפשרויות...' : 'Loading options...'}</Header>
-          <Body />
-          <Footer>
-            <Button onClick={onClose}>{language === 'he' ? 'סגור' : 'Close'}</Button>
-          </Footer>
-        </Modal>
-      </Backdrop>
+      <BottomSheet open title={language === 'he' ? 'טוען אפשרויות...' : 'Loading options...'} onClose={onClose}>
+        <div />
+      </BottomSheet>
     );
   }
 
@@ -250,19 +250,19 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
   };
 
   return (
-    <Backdrop onClick={onClose}>
-      <Modal
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        style={isMobile ? { transform: dragY ? `translateY(${dragY}px)` : undefined, transition: dragging ? 'none' : 'transform 0.2s ease' } as React.CSSProperties : undefined}
-      >
-        <Header>
-          <DragHandle />
-          {language === 'he' ? 'התאם את המנה' : 'Customize Item'} — {language === 'he' ? (product.name_he || product.name) : (product.name_en || product.name)}
-        </Header>
-        <Body>
+    <BottomSheet
+      open
+      title={<>{language === 'he' ? 'התאם את המנה' : 'Customize Item'} — {language === 'he' ? (product.name_he || product.name) : (product.name_en || product.name)}</>}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>{language === 'he' ? 'ביטול' : 'Cancel'}</Button>
+          <Button $variant="primary" onClick={() => { if (valid) { onConfirm({ selections, description, totalAdjustment }); onClose(); }}} disabled={!valid}>
+            {language === 'he' ? 'הוסף לעגלה' : 'Add to Cart'}
+          </Button>
+        </>
+      }
+    >
           {options.map((o) => (
             <OptionGroup key={o.id}>
               <OptionTitle>
@@ -298,15 +298,7 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
           <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
             {(language === 'he' ? 'מחיר בסיס' : 'Base price')}: ₪{product.price}
           </div>
-        </Body>
-        <Footer>
-          <Button onClick={onClose}>{language === 'he' ? 'ביטול' : 'Cancel'}</Button>
-          <Button $variant="primary" onClick={() => { if (valid) { onConfirm({ selections, description, totalAdjustment }); onClose(); }}} disabled={!valid}>
-            {language === 'he' ? 'הוסף לעגלה' : 'Add to Cart'}
-          </Button>
-        </Footer>
-      </Modal>
-    </Backdrop>
+    </BottomSheet>
   );
 };
 

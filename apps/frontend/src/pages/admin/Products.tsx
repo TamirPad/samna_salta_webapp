@@ -736,10 +736,15 @@ const AdminProducts: React.FC = () => {
 
   // Autofocus the name field when modal opens
   useEffect(() => {
+    let timeoutId: number | undefined;
     if (isModalOpen) {
-      const t = setTimeout(() => nameInputRef.current?.focus(), 50);
-      return () => clearTimeout(t);
+      timeoutId = window.setTimeout(() => nameInputRef.current?.focus(), 50);
     }
+    return () => {
+      if (timeoutId != null) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [isModalOpen]);
 
   // Keyboard avoidance: scroll focused input into view within the modal

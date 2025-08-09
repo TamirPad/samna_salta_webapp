@@ -364,7 +364,6 @@ const LoginPage: React.FC = () => {
                 inputMode="email"
                 autoComplete="username"
                 enterKeyHint="next"
-                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -383,7 +382,6 @@ const LoginPage: React.FC = () => {
                   inputMode="text"
                   autoComplete="current-password"
                   enterKeyHint="done"
-                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
