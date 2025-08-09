@@ -38,6 +38,77 @@ const generateOrderNumber = () => {
   return `SS${timestamp}${random}`;
 };
 
+// Build simple printable invoice HTML
+const buildInvoiceHtml = (order, items, options = {}) => {
+  const receipt = options.receipt === true;
+  const createdAt = order.created_at ? new Date(order.created_at).toLocaleString() : new Date().toLocaleString();
+  const deliveryMethod = (order.order_type || order.delivery_method || 'pickup').toString();
+  const deliveryCharge = Number(order.delivery_charge || 0);
+  const subtotal = items.reduce((sum, it) => sum + Number(it.total_price || 0), 0);
+  const total = subtotal + deliveryCharge;
+  const widthCss = receipt ? "@page { size: 58mm auto; margin: 6mm; } body { width: 58mm; }" : "@page { size: A4; margin: 15mm; }";
+  const rows = items.map((it, idx) => {
+    const name = it.product_name || `Item ${idx+1}`;
+    const qty = Number(it.quantity || 1);
+    const unit = Number(it.unit_price || 0).toFixed(2);
+    const line = Number(it.total_price || qty * Number(unit)).toFixed(2);
+    return `<tr><td>${idx+1}. ${name}</td><td class='c'>${qty}</td><td class='r'>₪${unit}</td><td class='r'>₪${line}</td></tr>`;
+  }).join('');
+  const addressBlock = deliveryMethod === 'delivery' && order.delivery_address ? `<div><strong>Address:</strong> ${order.delivery_address}</div>` : '';
+  const instrBlock = order.delivery_instructions ? `<div><strong>Instructions:</strong> ${order.delivery_instructions}</div>` : '';
+  return `<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <title>Invoice #${order.order_number || order.id}</title>
+  <style>
+    ${widthCss}
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    h1, h2, h3 { margin: 0 0 8px; }
+    .header { border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 12px; }
+    .meta { font-size: 12px; color: #555; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 6px 4px; border-bottom: 1px solid #eee; }
+    tfoot td { border-top: 1px solid #ccc; font-weight: bold; }
+    .r { text-align: right; }
+    .c { text-align: center; }
+    @media print { .no-print { display:none !important } }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="supported-color-schemes" content="light dark" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:;" />
+  </head>
+<body>
+  <div class="header">
+    <h1>Samna Salta</h1>
+    <div class="meta">Invoice • ${createdAt}</div>
+    <div class="meta">Order #${order.order_number || order.id}</div>
+  </div>
+  <div class="meta">
+    <div><strong>Customer:</strong> ${order.customer_name || ''}</div>
+    <div><strong>Phone:</strong> ${order.customer_phone || ''}</div>
+    <div><strong>Method:</strong> ${deliveryMethod}</div>
+    ${addressBlock}
+    ${instrBlock}
+  </div>
+  <table>
+    <thead><tr><th>Item</th><th class='c'>Qty</th><th class='r'>Unit</th><th class='r'>Total</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr><td colspan="3">Subtotal</td><td class='r'>₪${subtotal.toFixed(2)}</td></tr>
+      <tr><td colspan="3">Delivery</td><td class='r'>₪${deliveryCharge.toFixed(2)}</td></tr>
+      <tr><td colspan="3">Grand Total</td><td class='r'>₪${total.toFixed(2)}</td></tr>
+    </tfoot>
+  </table>
+  <div class="meta no-print" style="margin-top:12px">
+    <button onclick="window.print()">Print</button>
+  </div>
+</body></html>`;
+};
+
 // Create order (public)
 router.post('/', optionalAuth, validateOrder, async (req, res) => {
   try {
@@ -343,6 +414,42 @@ router.get('/:id', async (req, res) => {
       error: 'Failed to fetch order',
       message: 'Internal server error'
     });
+  }
+});
+
+// Get printable invoice (HTML)
+router.get('/:id/invoice', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const orderResult = await dbQuery('SELECT * FROM orders WHERE id = $1', [id]);
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+    const itemsResult = await dbQuery('SELECT * FROM order_items WHERE order_id = $1 ORDER BY id', [id]);
+    const html = buildInvoiceHtml(orderResult.rows[0], itemsResult.rows, { receipt: false });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    logger.error('Get invoice error:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate invoice' });
+  }
+});
+
+// Get printable receipt (narrow)
+router.get('/:id/receipt', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const orderResult = await dbQuery('SELECT * FROM orders WHERE id = $1', [id]);
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+    const itemsResult = await dbQuery('SELECT * FROM order_items WHERE order_id = $1 ORDER BY id', [id]);
+    const html = buildInvoiceHtml(orderResult.rows[0], itemsResult.rows, { receipt: true });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    logger.error('Get receipt error:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate receipt' });
   }
 });
 

@@ -5,6 +5,7 @@ import { fetchOrders, selectOrders, selectOrdersLoading } from '../../features/o
 import { apiService } from '../../utils/api';
 import { selectLanguage } from '../../features/language/languageSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 interface Order {
   id: number;
@@ -415,9 +416,10 @@ const Orders: React.FC = () => {
       if (response?.data) {
         // Re-fetch orders after status change
         dispatch(fetchOrders({}));
+        toast.success(language === 'he' ? 'סטטוס עודכן' : 'Status updated');
       }
     } catch (error) {
-      // no-op
+      toast.error(language === 'he' ? 'עדכון סטטוס נכשל' : 'Failed to update status');
     }
   };
 
