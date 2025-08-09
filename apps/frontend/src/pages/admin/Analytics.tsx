@@ -11,6 +11,7 @@ const AnalyticsContainer = styled.div`
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
+  @media (max-width: 768px) { padding: 1rem; }
 `;
 
 const Header = styled.div`
@@ -18,6 +19,8 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 `;
 
 const Title = styled.h1`
@@ -28,21 +31,23 @@ const Title = styled.h1`
 
 const TabContainer = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   border-bottom: 2px solid #e9ecef;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  flex-wrap: wrap;
 `;
 
 const Tab = styled.button<{ $active: boolean }>`
   background: ${(props) => (props.$active ? "#00C2FF" : "transparent")};
   color: ${(props) => (props.$active ? "white" : "#00C2FF")};
   border: 2px solid #00C2FF;
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
+  min-height: 44px;
 
   &:hover {
     background: ${(props) => (props.$active ? "#00C2FF" : "#f8f9fa")};
@@ -55,6 +60,7 @@ const ContentContainer = styled.div`
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  @media (max-width: 768px) { padding: 1rem; }
 `;
 
 const StatsGrid = styled.div`
@@ -67,9 +73,9 @@ const StatsGrid = styled.div`
 const StatCard = styled.div`
   background: #f8f9fa;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   text-align: center;
-  border-left: 4px solid #00C2FF;
+  border-inline-start: 4px solid #00C2FF;
 `;
 
 const StatValue = styled.div`
@@ -94,6 +100,7 @@ const ChartContainer = styled.div`
   align-items: center;
   justify-content: center;
   color: #666;
+  @media (max-width: 768px) { padding: 0.75rem; }
 `;
 
 const AuthContainer = styled.div`
@@ -103,20 +110,22 @@ const AuthContainer = styled.div`
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: center;
   margin-top: 2rem;
+  flex-wrap: wrap;
 `;
 
 const AuthButton = styled.button`
   background: #00C2FF;
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: background-color 0.3s ease;
+  min-height: 44px;
 
   &:hover {
     background: #0077CC;
@@ -157,7 +166,7 @@ const AdminAnalytics: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Dashboard data
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState<any>({
     today: { orders: 0, revenue: 0 },
     month: { orders: 0, revenue: 0 },
     customers: 0,
@@ -175,8 +184,9 @@ const AdminAnalytics: React.FC = () => {
         setError(null);
 
         const response = await apiService.getDashboardAnalytics();
-        if (response.success) {
-          setDashboardData(response.data);
+        const data = (response as any)?.data?.data || (response as any)?.data;
+        if (data) {
+          setDashboardData(data);
         } else {
           setError('Failed to load dashboard data');
         }
@@ -268,7 +278,7 @@ const AdminAnalytics: React.FC = () => {
               <>
                 <StatsGrid>
                   <StatCard>
-                    <StatValue>{dashboardData?.today?.orders || 0}</StatValue>
+                    <StatValue>{dashboardData?.today?.orders || dashboardData?.today?.count || 0}</StatValue>
                     <StatLabel>Today&apos;s Orders</StatLabel>
                   </StatCard>
                   <StatCard>
@@ -278,11 +288,11 @@ const AdminAnalytics: React.FC = () => {
                     <StatLabel>Today&apos;s Revenue</StatLabel>
                   </StatCard>
                   <StatCard>
-                    <StatValue>{dashboardData?.customers || 0}</StatValue>
+                    <StatValue>{dashboardData?.customers || dashboardData?.total_customers || 0}</StatValue>
                     <StatLabel>Total Customers</StatLabel>
                   </StatCard>
                   <StatCard>
-                    <StatValue>{dashboardData?.pendingOrders || 0}</StatValue>
+                    <StatValue>{dashboardData?.pendingOrders || dashboardData?.pending_orders || 0}</StatValue>
                     <StatLabel>Pending Orders</StatLabel>
                   </StatCard>
                 </StatsGrid>
@@ -292,8 +302,8 @@ const AdminAnalytics: React.FC = () => {
                   <p>Chart implementation would go here</p>
                 </ChartContainer>
 
-                {dashboardData?.topProducts &&
-                  dashboardData.topProducts.length > 0 && (
+                {dashboardData?.top_products &&
+                  dashboardData.top_products.length > 0 && (
                     <TableContainer>
                       <h3>Top Selling Products</h3>
                       <Table>
@@ -305,7 +315,7 @@ const AdminAnalytics: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {dashboardData.topProducts.map(
+                          {dashboardData.top_products.map(
                             (
                               product: {
                                 name: string;

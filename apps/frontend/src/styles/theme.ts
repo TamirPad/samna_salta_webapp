@@ -1,58 +1,58 @@
 import 'styled-components';
 
-// Wolt-inspired color theme
+// Material 3 inspired, mainstream blue palette
 export const theme = {
   colors: {
-    // Primary colors (Wolt blue)
-    primary: '#00C2FF',
-    primaryDark: '#0077CC',
-    primaryLight: '#00A3E0',
+    // Primary (Indigo/Blue blend)
+    primary: '#3B82F6',       // Tailwind blue-500
+    primaryDark: '#2563EB',   // blue-600
+    primaryLight: '#60A5FA',  // blue-400
     
     // Secondary colors
-    secondary: '#00A3E0',
-    secondaryDark: '#005A8B',
-    secondaryLight: '#33D1FF',
+    secondary: '#6366F1',       // indigo-500
+    secondaryDark: '#4F46E5',   // indigo-600
+    secondaryLight: '#818CF8',  // indigo-400
     
     // Background colors
-    background: '#F8F9FA',
+    background: '#F9FAFB',   // gray-50
     surface: '#FFFFFF',
     
     // Text colors
-    textPrimary: '#2F2F2F',
-    textSecondary: '#666666',
-    textLight: '#888888',
+    textPrimary: '#111827',   // gray-900
+    textSecondary: '#4B5563', // gray-600
+    textLight: '#6B7280',     // gray-500
     
     // Status colors
-    success: '#28A745',
-    warning: '#FFC107',
-    error: '#DC3545',
-    info: '#17A2B8',
+    success: '#10B981',  // emerald-500
+    warning: '#F59E0B',  // amber-500
+    error:   '#EF4444',  // red-500
+    info:    '#0EA5E9',  // sky-500
     
     // Border colors
-    border: '#E1E5E9',
-    borderLight: '#F0F0F0',
+    border: '#E5E7EB',       // gray-200
+    borderLight: '#F3F4F6',  // gray-100
     
     // Gradient colors
-    gradientStart: '#00C2FF',
-    gradientEnd: '#0077CC',
+    gradientStart: '#3B82F6',
+    gradientEnd: '#6366F1',
     
     // Hover states
-    hover: '#00A3E0',
-    hoverDark: '#005A8B',
+    hover: '#2563EB',
+    hoverDark: '#1D4ED8',
   },
   
   // Gradients
   gradients: {
-    primary: 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)',
-    secondary: 'linear-gradient(135deg, #00A3E0 0%, #005A8B 100%)',
-    background: 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)',
+    primary: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
+    secondary: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)',
+    background: 'linear-gradient(135deg, #EFF6FF 0%, #EEF2FF 100%)',
   },
   
   // Shadows
   shadows: {
-    small: '0 2px 8px rgba(0, 194, 255, 0.1)',
-    medium: '0 4px 12px rgba(0, 194, 255, 0.15)',
-    large: '0 8px 32px rgba(0, 194, 255, 0.2)',
+    small: '0 2px 8px rgba(17, 24, 39, 0.06)',
+    medium: '0 4px 12px rgba(17, 24, 39, 0.08)',
+    large: '0 8px 32px rgba(17, 24, 39, 0.10)',
   },
   
   // Border radius
