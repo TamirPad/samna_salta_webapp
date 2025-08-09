@@ -435,7 +435,7 @@ router.post('/', authenticateToken, requireAdmin, validateProduct, async (req, r
       `INSERT INTO products (name, name_en, name_he, description, description_en, description_he,
        price, category_id, image_url, emoji, preparation_time_minutes, is_active, is_new, is_popular,
        created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
        RETURNING *`,
       [
         name, name_en, name_he, description, description_en, description_he,
@@ -722,14 +722,15 @@ router.post('/upload', authenticateToken, requireAdmin, upload.single('image'), 
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'No image provided' });
     }
-    const result = await cloudinary.uploader.upload_stream({ folder: 'products' }, (err, data) => {
-      if (err) {
-        return res.status(500).json({ success: false, error: 'Upload failed' });
-      }
-      return res.json({ success: true, data: { url: data.secure_url } });
+    const streamUpload = (buffer) => new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream({ folder: 'products' }, (err, data) => {
+        if (err) return reject(err);
+        resolve(data);
+      });
+      stream.end(buffer);
     });
-    // Write file buffer to stream
-    result.end(req.file.buffer);
+    const data = await streamUpload(req.file.buffer);
+    return res.json({ success: true, data: { url: data.secure_url } });
   } catch (error) {
     logger.error('Image upload error:', error);
     return res.status(500).json({ success: false, error: 'Upload failed' });

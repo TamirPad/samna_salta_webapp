@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
   const recentActivity = orders?.slice(0, 5).map((order: any) => ({
     id: order.id,
     type: 'order',
-    title: `Order ${order.id || order.order_number}`,
+    title: `Order #${order.id || order.order_number}`,
     description: `₪${order.total?.toFixed ? order.total.toFixed(2) : order.total}`,
     time: new Date(order.created_at || Date.now()).toLocaleString(),
     icon: '🛒',

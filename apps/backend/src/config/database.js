@@ -127,10 +127,25 @@ const isConnectedToDB = () => isConnected && !isDevelopmentMode;
 
 const isInDevelopmentMode = () => isDevelopmentMode;
 
+// Gracefully close the pool
+const closePool = async () => {
+  try {
+    if (pool) {
+      await pool.end();
+      pool = null;
+    }
+  } catch (_) {
+    // ignore
+  } finally {
+    isConnected = false;
+  }
+};
+
 module.exports = {
   connectDB,
   query,
   getClient,
   isConnectedToDB,
-  isInDevelopmentMode
+  isInDevelopmentMode,
+  closePool
 };

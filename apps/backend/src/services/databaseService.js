@@ -1,11 +1,11 @@
-const {query, isDBConnected, isDevelopmentModeEnabled} = require('../config/database');
+const { query, isConnectedToDB, isInDevelopmentMode } = require('../config/database');
 const logger = require('../utils/logger');
 
 class DatabaseService {
   static async executeQuery(sql, params = []) {
     try {
-      if (!isDBConnected()) {
-        if (isDevelopmentModeEnabled()) {
+      if (!isConnectedToDB()) {
+        if (isInDevelopmentMode()) {
           throw new Error('Database not connected - running in development mode');
         }
         throw new Error('Database connection not available');

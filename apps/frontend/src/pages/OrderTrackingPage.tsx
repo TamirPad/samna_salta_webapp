@@ -781,7 +781,7 @@ const OrderTrackingPage: React.FC = () => {
             <ArrowLeft size={16} />
             {t.backToHome}
           </BackButton>
-          <OrderNumber>{order.id || order.order_number}</OrderNumber>
+          <OrderNumber>#{order.id || order.order_number}</OrderNumber>
           <OrderStatus>
             {getStatusSteps().find((step) => step.current)?.title ||
               t.orderPlaced}
