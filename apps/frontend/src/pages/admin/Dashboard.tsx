@@ -157,6 +157,7 @@ const QuickActions = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
+  margin-bottom: 2rem;
 
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
@@ -307,6 +308,21 @@ const Dashboard: React.FC = () => {
         </StatCard>
       </StatsGrid>
 
+      <QuickActions>
+        <ActionButton onClick={() => navigate('/admin/orders')}>
+          🛒 {content.viewOrders}
+        </ActionButton>
+        <ActionButton onClick={() => navigate('/admin/products')}>
+          ➕ {content.addProduct}
+        </ActionButton>
+        <ActionButton onClick={() => navigate('/admin/customers')}>
+          👥 {content.viewCustomers}
+        </ActionButton>
+        <ActionButton onClick={() => navigate('/admin/analytics')}>
+          📊 {content.viewAnalytics}
+        </ActionButton>
+      </QuickActions>
+
       <RecentActivity>
         <ActivityTitle>{content.recentActivity}</ActivityTitle>
         <ActivityList>
@@ -322,21 +338,6 @@ const Dashboard: React.FC = () => {
           ))}
         </ActivityList>
       </RecentActivity>
-
-      <QuickActions>
-        <ActionButton onClick={() => navigate('/admin/orders')}>
-          🛒 {content.viewOrders}
-        </ActionButton>
-        <ActionButton onClick={() => navigate('/admin/products')}>
-          ➕ {content.addProduct}
-        </ActionButton>
-        <ActionButton onClick={() => navigate('/admin/customers')}>
-          👥 {content.viewCustomers}
-        </ActionButton>
-        <ActionButton onClick={() => navigate('/admin/analytics')}>
-          📊 {content.viewAnalytics}
-        </ActionButton>
-      </QuickActions>
     </DashboardContainer>
   );
 };
