@@ -387,6 +387,47 @@ router.get('/', authenticateToken, requireAdmin, [
   }
 });
 
+// Get current user's orders (requires auth)
+router.get('/my', authenticateToken, async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const result = await dbQuery(
+      `SELECT o.*
+       FROM orders o
+       WHERE o.customer_id = $1 OR o.customer_email = (SELECT email FROM users WHERE id = $1)
+       ORDER BY o.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [req.user.id, limit, offset]
+    );
+
+    const countResult = await dbQuery(
+      `SELECT COUNT(*) as total FROM orders
+       WHERE customer_id = $1 OR customer_email = (SELECT email FROM users WHERE id = $1)`,
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      data: result.rows,
+      pagination: {
+        page,
+        limit,
+        total: parseInt(countResult.rows[0].total),
+        pages: Math.ceil(parseInt(countResult.rows[0].total) / limit)
+      }
+    });
+  } catch (error) {
+    logger.error('Get my orders error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch orders',
+      message: 'Internal server error'
+    });
+  }
+});
+
 // Update order status (admin only)
 router.patch('/:id/status', authenticateToken, requireAdmin, [
   body('status').isIn(['pending', 'confirmed', 'preparing', 'ready', 'delivering', 'delivered', 'cancelled']).withMessage('Invalid status'),

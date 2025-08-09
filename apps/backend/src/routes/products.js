@@ -171,13 +171,27 @@ router.get('/', [
     console.log('✅ Products fetched successfully:', {count: result.rows.length, category, search});
     logger.info('Products fetched successfully:', {count: result.rows.length, category, search});
 
+    // total count for pagination
+    const totalCountResult = await dbQuery(
+      `SELECT COUNT(*) as total
+       FROM products p LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.is_active IS NOT FALSE` +
+       (category ? ` AND c.name ILIKE $1` : '') +
+       (search ? (category ? ` AND (p.name ILIKE $2 OR p.description ILIKE $2 OR p.name_en ILIKE $2 OR p.name_he ILIKE $2)`
+                               : ` AND (p.name ILIKE $1 OR p.description ILIKE $1 OR p.name_en ILIKE $1 OR p.name_he ILIKE $1)`) : ''),
+      category && search ? [`%${category}%`, `%${search}%`] : (category ? [`%${category}%`] : (search ? [`%${search}%`] : []))
+    );
+
+    const total = parseInt(totalCountResult.rows?.[0]?.total || 0);
+
     res.json({
       success: true,
       data: result.rows,
       pagination: {
         page,
         limit,
-        total: result.rows.length
+        total,
+        pages: Math.ceil(total / limit)
       }
     });
 
@@ -389,13 +403,13 @@ router.post('/', authenticateToken, requireAdmin, validateProduct, async (req, r
 
     const result = await dbQuery(
       `INSERT INTO products (name, name_en, name_he, description, description_en, description_he,
-       price, category_id, image_url, preparation_time_minutes, is_active, is_new, is_popular,
+       price, category_id, image_url, emoji, preparation_time_minutes, is_active, is_new, is_popular,
        created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
        RETURNING *`,
       [
         name, name_en, name_he, description, description_en, description_he,
-        price, category_id, image_url, preparation_time || 15,
+        price, category_id, image_url, emoji || null, preparation_time || 15,
         is_active !== false, is_new || false, is_popular || false
       ]
     );
@@ -442,14 +456,14 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
     const result = await dbQuery(
       `UPDATE products SET 
        name = $1, name_en = $2, name_he = $3, description = $4, description_en = $5, description_he = $6,
-       price = $7, category_id = $8, image_url = $9, emoji = $10, preparation_time = $11,
-       is_active = $12, is_new = $13, is_popular = $14, available = $15, updated_at = NOW()
-       WHERE id = $16
+       price = $7, category_id = $8, image_url = $9, emoji = $10, preparation_time_minutes = $11,
+       is_active = $12, is_new = $13, is_popular = $14, updated_at = NOW()
+       WHERE id = $15
        RETURNING *`,
       [
         name, name_en, name_he, description, description_en, description_he,
-        price, category_id, image_url, emoji, preparation_time || 0,
-        is_active !== false, is_new || false, is_popular || false, available !== false, id
+        price, category_id, image_url, emoji || null, preparation_time || 0,
+        is_active !== false, is_new || false, is_popular || false, id
       ]
     );
 
@@ -536,9 +550,9 @@ router.post('/categories', authenticateToken, requireAdmin, validateCategory, as
     const {name, name_en, name_he, description, description_en, description_he, image_url, sort_order} = req.body;
 
     const result = await dbQuery(
-      `INSERT INTO menu_categories (name, name_en, name_he, description, description_en, description_he,
-       image_url, sort_order, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      `INSERT INTO categories (name, name_en, name_he, description, description_en, description_he,
+       image_url, display_order, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW(), NOW())
        RETURNING *`,
       [name, name_en, name_he, description, description_en, description_he, image_url, sort_order || 0]
     );
@@ -579,9 +593,9 @@ router.put('/categories/:id', authenticateToken, requireAdmin, validateCategory,
     const {name, name_en, name_he, description, description_en, description_he, image_url, sort_order, is_active} = req.body;
 
     const result = await dbQuery(
-      `UPDATE menu_categories SET 
+      `UPDATE categories SET 
        name = $1, name_en = $2, name_he = $3, description = $4, description_en = $5, description_he = $6,
-       image_url = $7, sort_order = $8, is_active = $9, updated_at = NOW()
+       image_url = $7, display_order = $8, is_active = $9, updated_at = NOW()
        WHERE id = $10
        RETURNING *`,
       [name, name_en, name_he, description, description_en, description_he, image_url, sort_order || 0, is_active !== false, id]
@@ -635,7 +649,7 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
     }
 
     const result = await dbQuery(
-      'DELETE FROM menu_categories WHERE id = $1 RETURNING *',
+      'DELETE FROM categories WHERE id = $1 RETURNING *',
       [id]
     );
 

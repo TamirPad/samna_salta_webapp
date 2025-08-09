@@ -39,7 +39,7 @@ export interface RootState {
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage,
-  whitelist: ["cart", "auth", "language", "ui", "orders", "products", "customers", "analytics"],
+  whitelist: ["cart", "auth", "language", "ui"],
   blacklist: [],
   transforms: [],
   migrate: async (state: any): Promise<PersistedState> => {

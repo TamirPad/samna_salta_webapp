@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS products (
     preparation_time_minutes INTEGER DEFAULT 15,
     allergens TEXT[],
     nutritional_info JSONB,
+    emoji VARCHAR(16),
     display_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS orders (
     order_type VARCHAR(20) DEFAULT 'pickup' CHECK (order_type IN ('pickup', 'delivery')),
     delivery_address TEXT,
     delivery_instructions TEXT,
+    notes TEXT,
     subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
     delivery_charge DECIMAL(10,2) DEFAULT 0,
     total DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -121,6 +123,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
     special_instructions TEXT,
+    notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

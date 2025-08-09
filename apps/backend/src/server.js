@@ -35,10 +35,11 @@ const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+    useDefaults: true,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
@@ -47,7 +48,9 @@ app.use(helmet({
       objectSrc: ["'none'"],
       upgradeInsecureRequests: []
     }
-  }
+  } : false,
+  referrerPolicy: { policy: 'no-referrer' },
+  crossOriginEmbedderPolicy: false
 }));
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -112,7 +115,8 @@ if (process.env.NODE_ENV === 'production') {
   const frontendBuildPath = path.join(__dirname, '../../frontend/build');
   
   // Serve static files with explicit MIME type handling
-  app.use('/static', (req, res, next) => {
+  // Support both /static and /admin/static to be resilient to older builds that used relative public paths
+  app.use(['/static', '/admin/static'], (req, res, next) => {
     const filePath = path.join(frontendBuildPath, 'static', req.path);
     
     // Check if file exists
@@ -124,10 +128,19 @@ if (process.env.NODE_ENV === 'production') {
         res.setHeader('Content-Type', 'application/javascript');
       } else if (ext === '.css') {
         res.setHeader('Content-Type', 'text/css');
+      } else if (ext === '.svg') {
+        res.setHeader('Content-Type', 'image/svg+xml');
       }
       
+      // Cache hashed assets aggressively
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       res.sendFile(filePath);
     } else {
+      const ext = path.extname(filePath);
+      if (ext === '.js' || ext === '.css') {
+        // Avoid serving index.html for missing chunk files to prevent MIME errors
+        return res.status(404).type('text/plain').send('Not Found');
+      }
       next();
     }
   });
@@ -142,9 +155,12 @@ if (process.env.NODE_ENV === 'production') {
         if (ext === '.json') {
           res.setHeader('Content-Type', 'application/json');
         } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif' || ext === '.svg') {
-          res.setHeader('Content-Type', `image/${ext.slice(1)}`);
+          const type = ext === '.svg' ? 'image/svg+xml' : `image/${ext.slice(1)}`;
+          res.setHeader('Content-Type', type);
         }
         
+        // Reasonable caching for static assets from root
+        res.setHeader('Cache-Control', ext === '.json' ? 'no-cache' : 'public, max-age=86400');
         res.sendFile(filePath);
       } else {
         next();
@@ -156,6 +172,8 @@ if (process.env.NODE_ENV === 'production') {
   
   // Serve index.html for all other routes (React Router will handle routing)
   app.get('*', (req, res) => {
+    // Ensure correct content type for HTML
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.sendFile(path.join(__dirname, '../../frontend/build/index.html'));
   });
 } else {

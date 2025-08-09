@@ -140,14 +140,14 @@ router.put('/:id', authenticateToken, requireAdmin, validateCustomer, async (req
     }
 
     const {id} = req.params;
-    const {name, name_en, name_he, email, phone, address, language} = req.body;
+    const {name, email, phone, delivery_address, language} = req.body;
 
     const result = await dbQuery(
       `UPDATE customers SET 
-       name = $1, name_en = $2, name_he = $3, email = $4, phone = $5, address = $6, language = $7, updated_at = NOW()
-       WHERE id = $8
+       name = $1, email = $2, phone = $3, delivery_address = $4, language = $5, updated_at = NOW()
+       WHERE id = $6
        RETURNING *`,
-      [name, name_en, name_he, email, phone, address, language, id]
+      [name, email, phone, delivery_address, language, id]
     );
 
     if (result.rows.length === 0) {

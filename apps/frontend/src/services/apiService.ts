@@ -48,40 +48,9 @@ export interface ApiServiceInterface {
 
 // Enhanced API Service with caching and error handling
 export class EnhancedApiService implements ApiServiceInterface {
-  private cache = new Map<
-    string,
-    { data: any; timestamp: number; ttl: number }
-  >();
-  private readonly DEFAULT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  // Delegate caching to axios layer in utils/api.ts to avoid double caching
 
-  private getCacheKey(method: string, url: string, params?: any): string {
-    return `${method}:${url}:${JSON.stringify(params || {})}`;
-  }
-
-  private getCachedData(key: string): any | null {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < cached.ttl) {
-      return cached.data;
-    }
-    this.cache.delete(key);
-    return null;
-  }
-
-  private setCachedData(
-    key: string,
-    data: any,
-    ttl: number = this.DEFAULT_CACHE_TTL,
-  ): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl,
-    });
-  }
-
-  private clearCache(): void {
-    this.cache.clear();
-  }
+  private clearCache(): void {}
 
   // Auth methods
   async login(credentials: { email: string; password: string }) {
@@ -103,29 +72,11 @@ export class EnhancedApiService implements ApiServiceInterface {
 
   // Product methods with caching
   async getProducts(params?: any) {
-    const cacheKey = this.getCacheKey("GET", "/products", params);
-    const cached = this.getCachedData(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
-
-    const result = await apiService.getProducts(params);
-    this.setCachedData(cacheKey, result, 2 * 60 * 1000); // 2 minutes for products
-    return result;
+    return apiService.getProducts(params);
   }
 
   async getProduct(id: number) {
-    const cacheKey = this.getCacheKey("GET", `/products/${id}`);
-    const cached = this.getCachedData(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
-
-    const result = await apiService.getProduct(id);
-    this.setCachedData(cacheKey, result, 10 * 60 * 1000); // 10 minutes for single product
-    return result;
+    return apiService.getProduct(id);
   }
 
   async createProduct(productData: any) {
@@ -145,16 +96,7 @@ export class EnhancedApiService implements ApiServiceInterface {
 
   // Category methods
   async getCategories() {
-    const cacheKey = this.getCacheKey("GET", "/products/categories");
-    const cached = this.getCachedData(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
-
-    const result = await apiService.getCategories();
-    this.setCachedData(cacheKey, result, 30 * 60 * 1000); // 30 minutes for categories
-    return result;
+    return apiService.getCategories();
   }
 
   async createCategory(categoryData: any) {

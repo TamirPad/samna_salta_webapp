@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { loginStart, loginSuccess, loginFailure, selectAuth } from '../features/auth/authSlice';
+import { apiService } from '../utils/api';
 import { selectLanguage } from '../features/language/languageSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
 import styled from 'styled-components';
@@ -161,19 +162,12 @@ const LoginPage: React.FC = () => {
     try {
       dispatch(loginStart());
 
-      // Simulate API call (replace with actual API call)
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Use shared API service with retries and caching
+      const response = await apiService.login({ email, password });
+      const payload = (response as any)?.data?.data || (response as any)?.data;
 
-      const data = await response.json();
-
-      if (response.ok) {
-        const { user, token } = data.data;
+      if (payload && payload.user && payload.token) {
+        const { user, token } = payload;
         
         // Store token and user data
         localStorage.setItem('token', token);
@@ -191,7 +185,7 @@ const LoginPage: React.FC = () => {
           }
         }, 1000);
       } else {
-        throw new Error(data.message || 'Login failed');
+        throw new Error((response as any)?.data?.message || 'Login failed');
       }
     } catch (err: any) {
       const errorMessage = err.message || (language === 'he' ? 'שגיאה בהתחברות' : 'Login failed');

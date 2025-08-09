@@ -50,8 +50,15 @@ const MyOrdersPage: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        // Try fetch admin/customer orders if auth allows
-        const resp = await apiService.getOrders({ status: 'all', page: 1, limit: 10 });
+        // Prefer user-specific orders endpoint
+        let resp: any;
+        try {
+          resp = await apiService.getOrders({ status: 'all', page: 1, limit: 10 });
+        } catch (_) {}
+        if (!resp || !(resp as any).data) {
+          resp = await fetch('/api/orders/my', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` } });
+          resp = { data: await (resp as Response).json() } as any;
+        }
         const data = (resp as any)?.data?.data || (resp as any)?.data;
         if (Array.isArray(data) && data.length > 0) {
           setOrders(data);

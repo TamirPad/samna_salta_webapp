@@ -105,9 +105,8 @@ const getApiBaseUrl = (): string => {
     return process.env["REACT_APP_API_URL"];
   }
   if (process.env["NODE_ENV"] === "production") {
-    const currentDomain = window.location.origin;
-    const apiUrl = `${currentDomain}/api`;
-    return apiUrl;
+    const currentDomain = window.location.origin.replace(/\/$/, "");
+    return `${currentDomain}/api`;
   }
   return "http://localhost:3001/api";
 };

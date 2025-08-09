@@ -293,7 +293,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     const user = result.rows[0];
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: {
@@ -309,8 +309,22 @@ router.get('/me', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    logger.error('Get user error:', error);
-    res.status(500).json({
+    // Fallback using JWT claims if DB is unavailable
+    logger.warn('Get /me falling back to token claims:', error.message);
+    if (req.user) {
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            id: req.user.id,
+            name: req.user.email?.split('@')[0] || 'User',
+            email: req.user.email,
+            isAdmin: !!req.user.isAdmin,
+          }
+        }
+      });
+    }
+    return res.status(500).json({
       success: false,
       error: 'Failed to get user',
       message: 'Internal server error'
