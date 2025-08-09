@@ -474,8 +474,8 @@ router.get('/my', authenticateToken, async (req, res) => {
   }
 });
 
-// Update order status (admin only)
-router.patch('/:id/status', authenticateToken, requireAdmin, [
+  // Update order status (admin only)
+  router.patch('/:id/status', authenticateToken, requireAdmin, [
   body('status').isIn(['pending', 'confirmed', 'preparing', 'ready', 'delivering', 'delivered', 'cancelled']).withMessage('Invalid status'),
   body('description').optional().isString()
 ], async (req, res) => {
@@ -539,6 +539,17 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
         status,
         message: description || `Order status updated to ${status}`
       });
+    }
+
+    // If delivered: add summary update and close out
+    if (status === 'delivered') {
+      try {
+        await dbQuery(
+          `INSERT INTO order_status_updates (order_id, status, description)
+           VALUES ($1, $2, $3)`,
+          [id, 'delivered', 'Order marked as delivered']
+        );
+      } catch {}
     }
 
     logger.info('Order status updated:', {orderId: id, status, updatedBy: req.user.id});

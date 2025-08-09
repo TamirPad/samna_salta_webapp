@@ -342,6 +342,7 @@ const Orders: React.FC = () => {
           confirmed: 'אושר',
           preparing: 'בהכנה',
           ready: 'מוכן',
+          delivering: 'במסירה',
           delivered: 'נמסר',
           cancelled: 'בוטל'
         },
@@ -358,7 +359,8 @@ const Orders: React.FC = () => {
           confirm: 'אשר',
           prepare: 'הכן',
           ready: 'מוכן',
-          deliver: 'מסור',
+          outForDelivery: 'יצא למסירה',
+          deliver: 'סומן כנמסר',
           cancel: 'בטל'
         },
         empty: 'אין הזמנות להצגה',
@@ -374,6 +376,7 @@ const Orders: React.FC = () => {
           confirmed: 'Confirmed',
           preparing: 'Preparing',
           ready: 'Ready',
+          delivering: 'Delivering',
           delivered: 'Delivered',
           cancelled: 'Cancelled'
         },
@@ -390,7 +393,8 @@ const Orders: React.FC = () => {
           confirm: 'Confirm',
           prepare: 'Prepare',
           ready: 'Ready',
-          deliver: 'Deliver',
+          outForDelivery: 'Out for delivery',
+          deliver: 'Mark delivered',
           cancel: 'Cancel'
         },
         empty: 'No orders to display',
@@ -516,6 +520,14 @@ const Orders: React.FC = () => {
                   </ActionButton>
                 )}
                 {order.status === 'ready' && (
+                  <ActionButton
+                    $variant="primary"
+                    onClick={() => handleStatusChange(order.id, 'delivering')}
+                  >
+                    {content.actions.outForDelivery}
+                  </ActionButton>
+                )}
+                {order.status === 'delivering' && (
                   <ActionButton
                     $variant="primary"
                     onClick={() => handleStatusChange(order.id, 'delivered')}
