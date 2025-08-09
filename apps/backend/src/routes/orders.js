@@ -380,8 +380,8 @@ router.post('/', optionalAuthSafe, validateOrder, async (req, res) => {
   }
 });
 
-// Get order by ID (public for order tracking)
-router.get('/:id', async (req, res) => {
+// Get order by ID (public for order tracking) - numeric IDs only to avoid catching '/my'
+router.get('/:id(\\d+)', async (req, res) => {
   try {
     const {id} = req.params;
 
