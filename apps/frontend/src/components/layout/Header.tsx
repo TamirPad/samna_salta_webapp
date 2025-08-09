@@ -232,6 +232,35 @@ const MobileMenuButton = styled.button`
   }
 `;
 
+const MobileCartButton = styled(Link)`
+  display: flex;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 12px;
+  transition: all 0.2s;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1001;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
 const MobileMenu = styled.div<{ $isOpen: boolean }>`
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   flex-direction: column;
@@ -543,6 +572,11 @@ const Header: React.FC = () => {
             </Button>
           )}
         </UserSection>
+
+        <MobileCartButton to="/cart" aria-label={language === 'he' ? 'עגלה' : 'Cart'}>
+          🛒
+          {cartCount > 0 && <CartBadge style={{ right: -6, top: -6 }}>{cartCount}</CartBadge>}
+        </MobileCartButton>
 
         <MobileMenuButton 
           onClick={toggleMobileMenu}
