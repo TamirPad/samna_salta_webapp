@@ -484,7 +484,7 @@ const Orders: React.FC = () => {
             <OrderCard key={order.id}>
               <OrderHeader>
                 <OrderInfo>
-                  <OrderId>#{String(order.id).padStart(6, '0')}</OrderId>
+                  <OrderId>{order.order_number || order.id}</OrderId>
                   <OrderCustomer>{order.customer_name}</OrderCustomer>
                   <OrderDate>
                     {new Date(order.created_at).toLocaleDateString()}

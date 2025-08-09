@@ -513,7 +513,7 @@ const OrderTrackingPage: React.FC = () => {
   const mockOrder = useMemo(
     () => ({
       id: orderId,
-      order_number: `#${orderId?.padStart(6, "0")}`,
+      order_number: orderId || "",
       status: "preparing",
       customer_name: "ישראל ישראלי",
       customer_phone: "+972-50-123-4567",
@@ -593,7 +593,7 @@ const OrderTrackingPage: React.FC = () => {
           if (data) {
             setOrder({
               id: data.id || data.order?.id || orderId,
-              order_number: `#${String(data.id || data.order?.id || orderId).padStart(6, "0")}`,
+              order_number: data.order_number || String(data.id || data.order?.id || orderId),
               status: data.status || "placed",
               customer_name: data.customer_name,
               customer_phone: data.customer_phone,
@@ -781,7 +781,7 @@ const OrderTrackingPage: React.FC = () => {
             <ArrowLeft size={16} />
             {t.backToHome}
           </BackButton>
-          <OrderNumber>#{String(order.id ?? orderId).padStart(6, '0')}</OrderNumber>
+          <OrderNumber>{order.order_number || order.id}</OrderNumber>
           <OrderStatus>
             {getStatusSteps().find((step) => step.current)?.title ||
               t.orderPlaced}

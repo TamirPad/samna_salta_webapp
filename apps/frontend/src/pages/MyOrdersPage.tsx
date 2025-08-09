@@ -90,7 +90,7 @@ const MyOrdersPage: React.FC = () => {
           <OrderList>
             {orders.map((o) => (
               <OrderItem key={o.id}>
-                <span>#{String(o.id).padStart(6, '0')}</span>
+                <span>{o.order_number || o.id}</span>
                 <Link to={`/order/${o.id}`}>View</Link>
               </OrderItem>
             ))}
