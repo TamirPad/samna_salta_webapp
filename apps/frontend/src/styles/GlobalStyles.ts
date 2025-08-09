@@ -190,34 +190,34 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   .btn-primary {
-    background-color: #00C2FF;
+    background-color: #3B82F6;
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: #0077CC;
+      background-color: #2563EB;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
   }
 
   .btn-secondary {
-    background-color: #00A3E0;
+    background-color: #6366F1;
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: #005A8B;
+      background-color: #4F46E5;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 163, 224, 0.3);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
   }
 
   .btn-outline {
     background-color: transparent;
-    color: #00C2FF;
-    border: 2px solid #00C2FF;
+    color: #3B82F6;
+    border: 2px solid #3B82F6;
 
     &:hover:not(:disabled) {
-      background-color: #00C2FF;
+      background-color: #3B82F6;
       color: white;
       transform: translateY(-2px);
     }
@@ -258,13 +258,13 @@ export const GlobalStyles = createGlobalStyle`
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #2F2F2F;
+    color: #111827;
   }
 
   .form-input {
     width: 100%;
     padding: 0.75rem;
-    border: 2px solid #E5E5E5;
+    border: 2px solid #E5E7EB;
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
@@ -275,8 +275,8 @@ export const GlobalStyles = createGlobalStyle`
 
     &:focus {
       outline: none;
-      border-color: #00C2FF;
-      box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.1);
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
     }
 
     &::placeholder {

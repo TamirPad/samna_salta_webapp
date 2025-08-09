@@ -102,7 +102,7 @@ const CartBadge = styled.span`
   position: absolute;
   top: -6px;
   right: -10px;
-  background: ${({ theme }) => theme.colors.error || '#DC3545'};
+  background: ${({ theme }) => theme.colors.error};
   color: white;
   border-radius: 999px;
   padding: 0 6px;

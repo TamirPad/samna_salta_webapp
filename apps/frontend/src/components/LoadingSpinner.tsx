@@ -44,7 +44,7 @@ const Spinner = styled.div<{ $size: string; $color: string }>`
       default: return '40px';
     }
   }};
-  border: 3px solid #f3f3f3;
+  border: 3px solid rgba(59, 130, 246, 0.15);
   border-top: 3px solid ${({ $color }) => $color};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
@@ -60,7 +60,7 @@ const LoadingText = styled.p<{ $size: string }>`
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'medium',
-  color = '#00C2FF',
+  color = '#3B82F6',
   text,
   fullScreen = false
 }) => {
