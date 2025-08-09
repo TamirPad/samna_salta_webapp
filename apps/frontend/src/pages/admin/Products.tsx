@@ -425,6 +425,10 @@ const ModalHeader = styled.div`
   top: 0;
   background: white;
   z-index: 1;
+
+  @media (max-width: 360px) {
+    padding: 0.75rem 1rem;
+  }
 `;
 
 const ModalTitle = styled.h3`
@@ -440,6 +444,10 @@ const ModalBody = styled.div`
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   flex: 1;
+
+  @media (max-width: 360px) {
+    padding: 0.75rem 1rem;
+  }
 `;
 
 const FormRow = styled.label`
@@ -480,6 +488,10 @@ const ModalFooter = styled.div`
   position: sticky;
   bottom: 0;
   background: white;
+
+  @media (max-width: 360px) {
+    padding: 0.5rem 1rem;
+  }
 `;
 
 const SecondaryBtn = styled.button`
@@ -548,6 +560,12 @@ const AdminProducts: React.FC = () => {
     display_order: 0,
   });
   const [uploading, setUploading] = useState<boolean>(false);
+  const nameInputRef = React.useRef<HTMLInputElement | null>(null);
+  const modalContentRef = React.useRef<HTMLDivElement | null>(null);
+  const isMobile = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false;
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startYRef = React.useRef<number | null>(null);
 
   // Load data on component mount
   useEffect(() => {
@@ -715,6 +733,61 @@ const AdminProducts: React.FC = () => {
     },
     [products],
   );
+
+  // Autofocus the name field when modal opens
+  useEffect(() => {
+    if (isModalOpen) {
+      const t = setTimeout(() => nameInputRef.current?.focus(), 50);
+      return () => clearTimeout(t);
+    }
+  }, [isModalOpen]);
+
+  // Keyboard avoidance: scroll focused input into view within the modal
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handler = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (target && modalContentRef.current) {
+        // Find closest scrollable (ModalBody) and ensure the input is visible
+        const body = modalContentRef.current.querySelector('[data-modal-body="1"]') as HTMLElement | null;
+        if (body && target.scrollIntoView) {
+          setTimeout(() => {
+            target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }, 50);
+        }
+      }
+    };
+    document.addEventListener('focusin', handler);
+    return () => document.removeEventListener('focusin', handler);
+  }, [isModalOpen]);
+
+  // Swipe-to-close on mobile
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    startYRef.current = e.touches[0].clientY;
+    setDragging(true);
+    setDragY(0);
+  }, [isMobile]);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    if (startYRef.current == null) return;
+    const dy = e.touches[0].clientY - startYRef.current;
+    if (dy > 0) {
+      setDragY(Math.min(dy, 200));
+    }
+  }, [isMobile]);
+
+  const onTouchEnd = useCallback(() => {
+    if (!isMobile) return;
+    const threshold = 100;
+    if (dragY > threshold) {
+      setIsModalOpen(false);
+    }
+    setDragging(false);
+    setDragY(0);
+    startYRef.current = null;
+  }, [dragY, isMobile]);
 
   const handleDeleteProduct = useCallback(
     async (productId: number) => {
@@ -913,15 +986,22 @@ const AdminProducts: React.FC = () => {
       </ProductsContent>
       {isModalOpen && (
         <ModalOverlay onClick={() => setIsModalOpen(false)}>
-          <ModalContent onClick={e => e.stopPropagation()}>
+          <ModalContent
+            ref={modalContentRef}
+            onClick={e => e.stopPropagation()}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            style={isMobile ? { transform: dragY ? `translateY(${dragY}px)` : undefined, transition: dragging ? 'none' : 'transform 0.2s ease' } : undefined}
+          >
             <ModalHeader>
               <ModalTitle>{editingProduct ? (language === 'he' ? 'עריכת מוצר' : 'Edit Product') : (language === 'he' ? 'מוצר חדש' : 'New Product')}</ModalTitle>
               <SecondaryBtn onClick={() => setIsModalOpen(false)}>{language === 'he' ? 'סגור' : 'Close'}</SecondaryBtn>
             </ModalHeader>
-            <ModalBody>
+            <ModalBody data-modal-body="1">
               <FormRow>
                 {language === 'he' ? 'שם' : 'Name'}
-                <TextInput name="name" value={form.name as any} onChange={handleFormChange} />
+                <TextInput ref={nameInputRef as any} name="name" value={form.name as any} onChange={handleFormChange} />
               </FormRow>
               <FormRow>
                 {language === 'he' ? 'מחיר (₪)' : 'Price (₪)'}

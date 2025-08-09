@@ -35,6 +35,8 @@ const Modal = styled.div.attrs({ role: 'dialog', 'aria-modal': true })`
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   max-height: 85vh;
   @media (max-width: 768px) {
@@ -48,7 +50,10 @@ const Header = styled.div`
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #eee;
   font-weight: 600;
-  position: relative;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
 `;
 
 const DragHandle = styled.div`
@@ -67,12 +72,9 @@ const DragHandle = styled.div`
 
 const Body = styled.div`
   padding: 1rem 1.25rem;
-  max-height: 70vh;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  @media (max-width: 768px) {
-    max-height: 65vh;
-  }
+  flex: 1;
 `;
 
 const Footer = styled.div`
@@ -81,6 +83,10 @@ const Footer = styled.div`
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 `;
 
 const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
@@ -126,6 +132,11 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
   const [options, setOptions] = useState<ProductOption[] | null>(null);
   const [selected, setSelected] = useState<Record<number, number[]>>({});
   const [loading, setLoading] = useState(true);
+  const firstChipRef = React.useRef<HTMLButtonElement | null>(null);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startYRef = React.useRef<number | null>(null);
+  const isMobile = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false;
 
   useEffect(() => {
     const load = async () => {
@@ -208,9 +219,45 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
     );
   }
 
+  // Autofocus first chip when options are loaded
+  useEffect(() => {
+    if (!loading && options && options.length > 0) {
+      const t = setTimeout(() => firstChipRef.current?.focus(), 50);
+      return () => clearTimeout(t);
+    }
+  }, [loading, options]);
+
+  // Swipe-to-close handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    startYRef.current = e.touches[0].clientY;
+    setDragging(true);
+    setDragY(0);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    if (startYRef.current == null) return;
+    const dy = e.touches[0].clientY - startYRef.current;
+    if (dy > 0) setDragY(Math.min(dy, 200));
+  };
+  const onTouchEnd = () => {
+    if (!isMobile) return;
+    const threshold = 100;
+    if (dragY > threshold) onClose();
+    setDragging(false);
+    setDragY(0);
+    startYRef.current = null;
+  };
+
   return (
     <Backdrop onClick={onClose}>
-      <Modal onClick={(e) => e.stopPropagation()}>
+      <Modal
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={isMobile ? { transform: dragY ? `translateY(${dragY}px)` : undefined, transition: dragging ? 'none' : 'transform 0.2s ease' } as React.CSSProperties : undefined}
+      >
         <Header>
           <DragHandle />
           {language === 'he' ? 'התאם את המנה' : 'Customize Item'} — {language === 'he' ? (product.name_he || product.name) : (product.name_en || product.name)}
@@ -227,11 +274,17 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
                 </Note>
               </OptionTitle>
               <ValuesGrid>
-                {(o.values || []).filter(v => v.is_available !== false).map((v) => {
+                {(o.values || []).filter(v => v.is_available !== false).map((v, idx) => {
                   const selectedIds = new Set(selected[o.id] || []);
                   const label = `${v.name}${v.price_adjustment ? ` (+₪${Number(v.price_adjustment)})` : ''}`;
+                  const isFirst = idx === 0;
                   return (
-                    <ValueChip key={v.id} $selected={selectedIds.has(v.id)} onClick={() => toggleValue(o, v)}>
+                    <ValueChip
+                      key={v.id}
+                      ref={isFirst ? firstChipRef : undefined}
+                      $selected={selectedIds.has(v.id)}
+                      onClick={() => toggleValue(o, v)}
+                    >
                       {label}
                     </ValueChip>
                   );
