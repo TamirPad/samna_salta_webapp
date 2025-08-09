@@ -19,13 +19,14 @@ const HeaderContainer = styled.header`
   z-index: 1000;
   min-height: 56px;
   width: 100%;
-  overflow: hidden;
+  overflow: visible !important; /* avoid clipping edge buttons on mobile/RTL */
 `;
 
 const HeaderContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 0.75rem;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
   display: grid;
   grid-template-columns: auto 1fr auto; /* burger | center | cart */
   align-items: center;
@@ -35,7 +36,8 @@ const HeaderContent = styled.div`
   @media (min-width: 768px) {
     display: flex;
     justify-content: space-between;
-    padding: 0 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
     gap: 1rem;
   }
 `;

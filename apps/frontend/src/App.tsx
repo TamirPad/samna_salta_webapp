@@ -21,6 +21,7 @@ import {
 
 // Lazy load pages with explicit chunk names for better webpack handling
 const HomePage = lazy(() => import("./pages/HomePage"));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const MenuPage = lazy(() => import("./pages/MenuPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
@@ -137,7 +138,7 @@ const App: React.FC = (): JSX.Element => {
   const routeElements = useMemo(
     (): JSX.Element[] =>
       [
-        { path: "/", component: LoginPage },
+        { path: "/", component: LandingPage },
         { path: "/home", component: HomePage },
         { path: "/menu", component: MenuPage },
         { path: "/cart", component: CartPage },
