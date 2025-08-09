@@ -14,6 +14,7 @@ import {
 import LoadingSpinner from "../components/LoadingSpinner";
 import { debounce } from "../utils/performance";
 import { apiService } from "../utils/api";
+import ProductOptionsModal from "../components/ProductOptionsModal";
 import { Product, Category } from "../types";
 import { toast } from "react-toastify";
 
@@ -362,6 +363,7 @@ const MenuPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [lastAddedId, setLastAddedId] = useState<number | null>(null);
   const [optionsByProduct, setOptionsByProduct] = useState<Record<number, any[]>>({});
+  const [modalProduct, setModalProduct] = useState<any | null>(null);
 
   // Fetch products and categories on component mount
   useEffect(() => {
@@ -485,53 +487,58 @@ const MenuPage: React.FC = () => {
   // Memoized handlers
   const handleAddToCart = useCallback(
     async (product: Product) => {
-      // Fetch options if available, pick defaults (first available per option)
-      let description: string | undefined;
+      // Open modal to select options if any exist; otherwise add directly
       try {
         const cached = optionsByProduct[product.id];
         const respData = cached
           ? cached
           : (((await apiService.getProductOptions(product.id)) as any)?.data?.data || []);
-        if (!cached) {
-          setOptionsByProduct((prev) => ({ ...prev, [product.id]: respData }));
-        }
+        if (!cached) setOptionsByProduct((prev) => ({ ...prev, [product.id]: respData }));
         if (Array.isArray(respData) && respData.length > 0) {
-          const parts: string[] = [];
-          for (const o of respData) {
-            const values = (o.values || []).filter((v: any) => v.is_available !== false);
-            const picked = values.slice(0, o.max_selections || 1);
-            if (picked.length > 0) {
-              parts.push(`${o.name}: ${picked.map((v: any) => v.name).join(', ')}`);
-            }
-          }
-          if (parts.length > 0) description = parts.join(' | ');
+          setModalProduct(product);
+          return;
         }
       } catch {}
 
       dispatch(
         addToCart({
           id: product.id.toString(),
-          name:
-            language === "he"
-              ? product.name_he || product.name
-              : product.name_en || product.name,
+          name: language === 'he' ? product.name_he || product.name : product.name_en || product.name,
           price: Number(product.price),
           quantity: 1,
-          image: product.image_url || product.image || "",
-          category: product.category?.name || "",
-          description,
-        }),
+          image: product.image_url || product.image || '',
+          category: product.category?.name || '',
+        })
       );
-
       setLastAddedId(product.id);
       window.setTimeout(() => setLastAddedId((prev) => (prev === product.id ? null : prev)), 900);
-
-      const addedText = language === "he" ? "נוסף לעגלה" : "Added to cart";
-      const nameText = language === "he" ? (product.name_he || product.name) : (product.name_en || product.name);
+      const addedText = language === 'he' ? 'נוסף לעגלה' : 'Added to cart';
+      const nameText = language === 'he' ? (product.name_he || product.name) : (product.name_en || product.name);
       toast.success(`${nameText} — ${addedText}`, { autoClose: 1200 });
     },
     [dispatch, language, optionsByProduct],
   );
+
+  const handleConfirmOptions = useCallback((result: { selections: any[]; description?: string; totalAdjustment: number }) => {
+    if (!modalProduct) return;
+    dispatch(
+      addToCart({
+        id: modalProduct.id.toString(),
+        name: language === 'he' ? modalProduct.name_he || modalProduct.name : modalProduct.name_en || modalProduct.name,
+        price: Number(modalProduct.price) + Number(result.totalAdjustment || 0),
+        quantity: 1,
+        image: modalProduct.image_url || modalProduct.image || '',
+        category: modalProduct.category?.name || '',
+        description: result.description,
+        optionsSelections: result.selections,
+      })
+    );
+    setLastAddedId(modalProduct.id);
+    window.setTimeout(() => setLastAddedId((prev) => (prev === modalProduct.id ? null : prev)), 900);
+    const addedText = language === 'he' ? 'נוסף לעגלה' : 'Added to cart';
+    const nameText = language === 'he' ? (modalProduct.name_he || modalProduct.name) : (modalProduct.name_en || modalProduct.name);
+    toast.success(`${nameText} — ${addedText}`, { autoClose: 1200 });
+  }, [dispatch, language, modalProduct]);
 
   const handleCategoryChange = useCallback((categoryId: number) => {
     setSelectedCategory(categoryId === 0 ? "all" : categoryId.toString());
@@ -694,6 +701,14 @@ const MenuPage: React.FC = () => {
             </EmptyState>
           )}
         </AnimatePresence>
+        {modalProduct && (
+          <ProductOptionsModal
+            product={modalProduct as any}
+            language={language}
+            onClose={() => setModalProduct(null)}
+            onConfirm={(r) => { handleConfirmOptions(r); setModalProduct(null); }}
+          />
+        )}
       </MenuContent>
     </MenuContainer>
   );

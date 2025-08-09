@@ -10,6 +10,12 @@ export interface CartItem {
   category: string;
   description?: string;
   available?: boolean;
+  // Selected product options for display and checkout payload
+  optionsSelections?: Array<{
+    option_id: number;
+    option_name: string;
+    values: Array<{ id: number; name: string; price_adjustment: number }>;
+  }>;
 }
 
 export interface CartState {

@@ -570,6 +570,7 @@ const CheckoutPage: React.FC = () => {
           quantity: item.quantity,
           unit_price: item.price,
           total_price: item.price * item.quantity,
+          selected_options: item.optionsSelections || undefined,
         })),
         subtotal: cartTotal,
         delivery_charge: deliveryFee,
