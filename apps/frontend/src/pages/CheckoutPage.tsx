@@ -52,7 +52,7 @@ const CheckoutContent = styled.div`
 `;
 
 const CheckoutHeader = styled.div`
-  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
+  background: ${({ theme }) => theme.gradients.primary};
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -175,7 +175,7 @@ const FormInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 
   &.error {
@@ -194,7 +194,7 @@ const FormTextarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 
   &.error {
@@ -213,13 +213,13 @@ const PaymentOption = styled.label<{ selected: boolean }>`
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border: 2px solid ${(props) => (props.selected ? "#00C2FF" : "#e0e0e0")};
+  border: 2px solid ${(props) => (props.selected ? props.theme.colors.primary : "#e0e0e0")};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -292,8 +292,8 @@ const ItemImage = styled.div<{ $imageUrl?: string }>`
   width: 40px;
   height: 40px;
   border-radius: 6px;
-  background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
+  background: ${({ $imageUrl, theme }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : theme.gradients.primary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -322,7 +322,7 @@ const ItemQuantity = styled.div`
 
 const ItemPrice = styled.div`
   font-weight: 600;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const SummaryRow = styled.div`
@@ -347,7 +347,7 @@ const SummaryTotal = styled.div`
 
 const PlaceOrderButton = styled.button`
   width: 100%;
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 1rem;
@@ -362,7 +362,7 @@ const PlaceOrderButton = styled.button`
   gap: 0.5rem;
 
   &:hover {
-    background: #00A3E0;
+    background: ${({ theme }) => theme.colors.primaryDark};
   }
 
   &:disabled {

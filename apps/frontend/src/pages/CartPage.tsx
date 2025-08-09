@@ -53,7 +53,7 @@ const CartContent = styled.div`
 `;
 
 const CartHeader = styled.div`
-  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
+  background: ${({ theme }) => theme.gradients.primary};
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -149,8 +149,8 @@ const ItemImage = styled.div<{ $imageUrl?: string }>`
   width: 80px;
   height: 80px;
   border-radius: 8px;
-  background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
+  background: ${({ $imageUrl, theme }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : theme.gradients.primary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +190,7 @@ const ItemCategory = styled.p`
 const ItemPrice = styled.div`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const ItemControls = styled.div`
@@ -231,7 +231,7 @@ const QuantityButton = styled.button`
   }
 
   &:focus {
-    outline: 2px solid #00C2FF;
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
 
@@ -311,7 +311,7 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   gap: 0.75rem;
   padding: 1rem;
   border: 2px solid
-    ${(props): string => (props.selected ? "#00C2FF" : "#e0e0e0")};
+    ${(props): string => (props.selected ? props.theme.colors.primary : "#e0e0e0")};
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -319,12 +319,12 @@ const DeliveryOption = styled.label<{ selected: boolean }>`
   min-height: 44px;
 
   &:hover {
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
     transform: translateY(-1px);
   }
 
   &:focus-within {
-    outline: 2px solid #00C2FF;
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
 `;
@@ -375,12 +375,12 @@ const SummaryTotal = styled.div`
   border-top: 2px solid #e0e0e0;
   font-size: 1.25rem;
   font-weight: bold;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const CheckoutButton = styled.button`
   width: 100%;
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 1rem;
@@ -396,9 +396,9 @@ const CheckoutButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #00A3E0;
+    background: ${({ theme }) => theme.colors.primaryDark};
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
   }
 
   &:focus {
@@ -427,7 +427,7 @@ const EmptyCartIcon = styled.div`
 `;
 
 const ContinueShoppingButton = styled.button`
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -439,7 +439,7 @@ const ContinueShoppingButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #00A3E0;
+    background: ${({ theme }) => theme.colors.primaryDark};
     transform: translateY(-1px);
   }
 

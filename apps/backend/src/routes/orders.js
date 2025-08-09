@@ -259,26 +259,20 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
     // Generate order number
     const orderNumber = generateOrderNumber();
 
-    // Create or find customer
+    // Create or find customer (always bind orders.customer_id to customers.id)
     let customerId = null;
-    if (req.user) {
-      customerId = req.user.id;
-    } else if (customer_email) {
-      const customerResult = await client.query(
-        'SELECT id FROM customers WHERE email = $1',
-        [customer_email]
-      );
-
-      if (customerResult.rows.length > 0) {
-        customerId = customerResult.rows[0].id;
+    const effectiveEmail = (customer_email && String(customer_email).trim()) || (req.user && req.user.email) || null;
+    if (effectiveEmail) {
+      const existing = await client.query('SELECT id FROM customers WHERE email = $1', [effectiveEmail]);
+      if (existing.rows.length > 0) {
+        customerId = existing.rows[0].id;
       } else {
-        const newCustomerResult = await client.query(
-          `INSERT INTO customers (name, name_en, name_he, email, phone, address, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-           RETURNING id`,
-          [customer_name, customer_name, customer_name, customer_email, customer_phone, delivery_address]
+        const newCustomer = await client.query(
+          `INSERT INTO customers (name, email, phone, language, delivery_address, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id`,
+          [customer_name || (effectiveEmail.split('@')[0]), effectiveEmail, customer_phone || null, 'en', delivery_address || null]
         );
-        customerId = newCustomerResult.rows[0].id;
+        customerId = newCustomer.rows[0].id;
       }
     }
 

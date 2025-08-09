@@ -30,7 +30,7 @@ const MenuContainer = styled.div`
 `;
 
 const MenuHeader = styled.div`
-  background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
+  background: ${({ theme }) => theme.gradients.primary};
   color: white;
   padding: 3rem 0;
   text-align: center;
@@ -116,8 +116,8 @@ const SearchInput = styled.input`
   font-size: 1rem;
 
   &:focus {
-    border-color: #00C2FF;
-    box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
 
   &::placeholder {
@@ -148,8 +148,8 @@ const CategoryFilter = styled.div`
 const CategoryButton = styled.button<{ $active: boolean }>`
   padding: 0.75rem 1.25rem;
   border: 2px solid
-    ${(props): string => (props.$active ? "#00C2FF" : "#e0e0e0")};
-  background: ${(props): string => (props.$active ? "#00C2FF" : "white")};
+    ${(props): string => (props.$active ? props.theme.colors.primary : "#e0e0e0")};
+  background: ${(props): string => (props.$active ? props.theme.colors.primary : "white")};
   color: ${(props): string => (props.$active ? "white" : "#333")};
   border-radius: 25px;
   cursor: pointer;
@@ -161,13 +161,13 @@ const CategoryButton = styled.button<{ $active: boolean }>`
   justify-content: center;
 
   &:hover {
-    border-color: #00C2FF;
-    background: ${(props): string => (props.$active ? "#00C2FF" : "#f8f9fa")};
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${(props): string => (props.$active ? props.theme.colors.primary : "#f8f9fa")};
     transform: translateY(-1px);
   }
 
   &:focus {
-    outline: 2px solid #00C2FF;
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
 `;
@@ -201,7 +201,7 @@ const ProductCard = styled(motion.div)`
   }
 
   &:focus-within {
-    outline: 2px solid #00C2FF;
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
 `;
@@ -211,8 +211,8 @@ const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   width: 100%;
   height: 200px;
   border-radius: 12px 12px 0 0;
-  background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
+  background: ${({ $imageUrl, theme }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : theme.gradients.primary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,7 +268,7 @@ const ProductName = styled.h3`
 const ProductPrice = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
   margin-left: 1rem;
 
   @media (max-width: 375px) {
@@ -303,7 +303,7 @@ const MetaItem = styled.div`
 
 const AddToCartButton = styled.button<{ $added?: boolean }>`
   width: 100%;
-  background: ${({ $added }) => ($added ? "#28a745" : "#00C2FF")};
+  background: ${({ $added, theme }) => ($added ? "#28a745" : theme.colors.primary)};
   color: white;
   border: none;
   padding: 0.875rem;
@@ -318,7 +318,7 @@ const AddToCartButton = styled.button<{ $added?: boolean }>`
   min-height: 44px;
 
   &:hover {
-    background: ${({ $added }) => ($added ? "#23913b" : "#0077CC")};
+    background: ${({ $added, theme }) => ($added ? "#23913b" : theme.colors.primaryDark)};
     transform: translateY(-1px);
   }
 

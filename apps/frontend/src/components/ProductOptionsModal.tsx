@@ -61,7 +61,7 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   border: none;
   cursor: pointer;
   font-weight: 600;
-  background: ${({ $variant }) => ($variant === 'primary' ? '#00C2FF' : '#e5e7eb')};
+  background: ${({ $variant, theme }) => ($variant === 'primary' ? theme.colors.primary : '#e5e7eb')};
   color: ${({ $variant }) => ($variant === 'primary' ? '#fff' : '#111827')};
   &:hover { opacity: 0.95; }
 `;
@@ -81,8 +81,8 @@ const ValuesGrid = styled.div`
 const ValueChip = styled.button<{ $selected?: boolean }>`
   padding: 0.5rem 0.75rem;
   border-radius: 999px;
-  border: 2px solid ${({ $selected }) => ($selected ? '#00C2FF' : '#e5e7eb')};
-  background: ${({ $selected }) => ($selected ? 'rgba(0,194,255,0.1)' : 'white')};
+  border: 2px solid ${({ $selected, theme }) => ($selected ? theme.colors.primary : '#e5e7eb')};
+  background: ${({ $selected }) => ($selected ? 'rgba(59,130,246,0.08)' : 'white')};
   cursor: pointer;
   font-size: 0.95rem;
 `;

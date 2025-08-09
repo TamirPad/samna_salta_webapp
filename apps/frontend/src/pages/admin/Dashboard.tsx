@@ -58,7 +58,7 @@ const StatIcon = styled.div`
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: 700;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 0.5rem;
 `;
 
@@ -100,7 +100,7 @@ const ActivityItem = styled.div`
   padding: 0.875rem;
   background: #f8f9fa;
   border-radius: 12px;
-  border-inline-start: 4px solid #00C2FF;
+  border-inline-start: 4px solid ${({ theme }) => theme.colors.primary};
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
 
@@ -112,7 +112,7 @@ const ActivityItem = styled.div`
   /* RTL: move the accent border to the other side */
   [dir='rtl'] & {
     border-inline-start: none;
-    border-inline-end: 4px solid #00C2FF;
+    border-inline-end: 4px solid ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -164,7 +164,7 @@ const QuickActions = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 1rem;
@@ -180,7 +180,7 @@ const ActionButton = styled.button`
   min-height: 48px;
   
   &:hover {
-    background: #0077CC;
+    background: ${({ theme }) => theme.colors.primaryDark};
     transform: translateY(-2px);
   }
 `;

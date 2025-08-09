@@ -103,7 +103,7 @@ const SearchField = styled.input`
   transition: border-color 0.3s ease;
 
   &:focus {
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -128,7 +128,7 @@ const FilterButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
     background: #f8f9fa;
   }
 `;
@@ -156,7 +156,7 @@ const CustomerCard = styled(motion.div)`
 `;
 
 const CustomerHeader = styled.div`
-  background: linear-gradient(135deg, #00C2FF 0%, #00A3E0 100%);
+  background: ${({ theme }) => theme.gradients.primary};
   color: white;
   padding: 1.5rem;
   text-align: center;
@@ -240,9 +240,9 @@ const ActionButton = styled.button<{
     switch (props.variant) {
       case "primary":
         return `
-          background: #00C2FF;
+          background: ${'${({ theme }) => theme.colors.primary}'};
           color: white;
-          &:hover { background: #00A3E0; }
+          &:hover { background: ${'${({ theme }) => theme.colors.primaryDark}'}; }
         `;
       case "secondary":
         return `
@@ -279,8 +279,8 @@ const PaginationButton = styled.button<{
   disabled?: boolean;
 }>`
   padding: 0.5rem 1rem;
-  border: 2px solid ${(props) => (props.active ? "#00C2FF" : "#e0e0e0")};
-  background: ${(props) => (props.active ? "#00C2FF" : "white")};
+  border: 2px solid ${(props) => (props.active ? props.theme.colors.primary : "#e0e0e0")};
+  background: ${(props) => (props.active ? props.theme.colors.primary : "white")};
   color: ${(props) =>
     props.active ? "white" : props.disabled ? "#ccc" : "#333"};
   border-radius: 8px;
@@ -288,8 +288,8 @@ const PaginationButton = styled.button<{
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    border-color: #00C2FF;
-    background: ${(props) => (props.active ? "#00C2FF" : "#f8f9fa")};
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${(props) => (props.active ? props.theme.colors.primary : "#f8f9fa")};
   }
 `;
 
@@ -521,7 +521,7 @@ const AdminCustomers: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <h1 style={{ color: "#00C2FF", marginBottom: "1rem" }}>
+        <h1 style={{ color: '#3B82F6', marginBottom: '1rem' }}>
           Customers Management
         </h1>
         <div
@@ -549,7 +549,7 @@ const AdminCustomers: React.FC = () => {
             <button
               onClick={handleLogin}
               style={{
-                background: "#00C2FF",
+                background: '#3B82F6',
                 color: "white",
                 border: "none",
                 padding: "0.75rem 1.5rem",

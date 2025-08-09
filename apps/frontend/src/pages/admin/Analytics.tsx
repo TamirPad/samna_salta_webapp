@@ -54,9 +54,9 @@ const TabContainer = styled.div`
 `;
 
 const Tab = styled.button<{ $active: boolean }>`
-  background: ${(props) => (props.$active ? "#00C2FF" : "transparent")};
-  color: ${(props) => (props.$active ? "white" : "#00C2FF")};
-  border: 2px solid #00C2FF;
+  background: ${(props) => (props.$active ? props.theme.colors.primary : "transparent")};
+  color: ${(props) => (props.$active ? "white" : props.theme.colors.primary)};
+  border: 2px solid ${({ theme }) => theme.colors.primary};
   padding: 0.625rem 1rem;
   border-radius: 6px;
   cursor: pointer;
@@ -65,7 +65,7 @@ const Tab = styled.button<{ $active: boolean }>`
   min-height: 44px;
 
   &:hover {
-    background: ${(props) => (props.$active ? "#00C2FF" : "#f8f9fa")};
+    background: ${(props) => (props.$active ? props.theme.colors.primary : "#f8f9fa")};
     transform: translateY(-1px);
   }
 `;
@@ -89,8 +89,8 @@ const ControlsRow = styled.div`
 const SmallButton = styled.button<{ $active?: boolean }>`
   padding: 0.4rem 0.7rem;
   border-radius: 6px;
-  border: 1px solid ${({ $active }) => ($active ? '#00C2FF' : '#e1e5e9')};
-  background: ${({ $active }) => ($active ? '#E6F7FF' : 'white')};
+  border: 1px solid ${({ $active, theme }) => ($active ? theme.colors.primary : '#e1e5e9')};
+  background: ${({ $active }) => ($active ? 'rgba(59, 130, 246, 0.08)' : 'white')};
   color: #333;
   cursor: pointer;
   font-size: 0.85rem;
@@ -108,13 +108,13 @@ const StatCard = styled.div`
   padding: 1.5rem;
   border-radius: 12px;
   text-align: center;
-  border-inline-start: 4px solid #00C2FF;
+  border-inline-start: 4px solid ${({ theme }) => theme.colors.primary};
 `;
 
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: bold;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 0.5rem;
 `;
 
@@ -150,7 +150,7 @@ const ButtonGroup = styled.div`
 `;
 
 const AuthButton = styled.button`
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 0.75rem 1.25rem;
@@ -161,7 +161,7 @@ const AuthButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #0077CC;
+    background: ${({ theme }) => theme.colors.primaryDark};
   }
 `;
 
@@ -467,7 +467,7 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#00C2FF" strokeWidth={2} dot={false} name="Revenue" />
+                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={false} name="Revenue" />
                         <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name="Orders" />
                       </LineChart>
                     </ResponsiveContainer>
@@ -482,7 +482,7 @@ const AdminAnalytics: React.FC = () => {
                         <XAxis dataKey="status" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#0077CC" name="Orders" />
+                        <Bar dataKey="count" fill="#2563EB" name="Orders" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -549,7 +549,7 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#00C2FF" strokeWidth={2} dot={false} name="Revenue" />
+                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={false} name="Revenue" />
                         <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name="Orders" />
                       </LineChart>
                     </ResponsiveContainer>
@@ -592,7 +592,7 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} />
                         <Legend />
-                        <Bar dataKey="total_revenue" fill="#00C2FF" name="Revenue" />
+                        <Bar dataKey="total_revenue" fill="#3B82F6" name="Revenue" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -604,8 +604,8 @@ const AdminAnalytics: React.FC = () => {
                         <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} />
                         <Legend />
                         <Pie data={productSeries.map((p) => ({ name: p.name, value: p.total_revenue }))} dataKey="value" nameKey="name" outerRadius={110} innerRadius={60} label>
-                          {productSeries.map((_, idx) => (
-                            <Cell key={`pp-cell-${idx}`} fill={["#00C2FF","#28a745","#ff6b6b","#ffa502","#5352ed","#2ed573","#1e90ff","#ff7f50"][idx % 8]} />
+                            {productSeries.map((_, idx) => (
+                            <Cell key={`pp-cell-${idx}`} fill={["#3B82F6","#10B981","#EF4444","#F59E0B","#6366F1","#22C55E","#0EA5E9","#ff7f50"][idx % 8]} />
                           ))}
                         </Pie>
                       </PieChart>

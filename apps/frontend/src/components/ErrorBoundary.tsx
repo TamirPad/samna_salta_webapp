@@ -71,7 +71,7 @@ const ErrorStack = styled.pre`
 `;
 
 const ActionButton = styled.button`
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -82,7 +82,7 @@ const ActionButton = styled.button`
   transition: background-color 0.2s;
 
   &:hover {
-    background: #0077CC;
+    background: ${({ theme }) => theme.colors.primaryDark};
   }
 
   &:active {

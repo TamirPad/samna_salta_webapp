@@ -100,12 +100,12 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   a {
-    color: #00C2FF;
+    color: ${({ theme }) => theme.colors.primary};
     text-decoration: none;
     transition: color 0.3s ease;
 
     &:hover {
-      color: #0077CC;
+      color: ${({ theme }) => theme.colors.primaryDark};
     }
   }
 
@@ -454,7 +454,7 @@ export const GlobalStyles = createGlobalStyle`
 
   /* Focus Styles for Accessibility */
   *:focus {
-    outline: 2px solid #00C2FF;
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
 
@@ -463,7 +463,7 @@ export const GlobalStyles = createGlobalStyle`
     position: absolute;
     top: -40px;
     left: 6px;
-    background: #00C2FF;
+    background: ${({ theme }) => theme.colors.primary};
     color: white;
     padding: 8px;
     text-decoration: none;

@@ -136,8 +136,8 @@ const SearchField = styled.input`
   font-size: 1rem;
 
   &:focus {
-    border-color: #00C2FF;
-    box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.1);
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
 
   &::placeholder {
@@ -169,7 +169,7 @@ const FilterButton = styled.button`
 
   &:hover {
     background: #f8f9fa;
-    border-color: #00C2FF;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -178,7 +178,7 @@ const AddButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   border-radius: 8px;
@@ -188,9 +188,9 @@ const AddButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #00A3E0;
+    background: ${({ theme }) => theme.colors.primaryDark};
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 194, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
   }
 
   &:focus {
@@ -226,7 +226,7 @@ const ProductCard = styled.div`
   }
 
   &:focus-within {
-    outline: 2px solid #00C2FF;
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
   }
 `;
@@ -236,8 +236,8 @@ const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   width: 100%;
   height: 200px;
   border-radius: 12px 12px 0 0;
-  background: ${({ $imageUrl }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : 'linear-gradient(135deg, #00C2FF 0%, #0077CC 100%)'};
+  background: ${({ $imageUrl, theme }) =>
+    $imageUrl ? `url(${$imageUrl}) center/cover` : theme.gradients.primary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -289,7 +289,7 @@ const ProductName = styled.h3`
 const ProductPrice = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00C2FF;
+  color: ${({ theme }) => theme.colors.primary};
   margin-left: 1rem;
 `;
 
@@ -326,10 +326,10 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' | 'danger' }>`
     switch ($variant) {
       case 'primary':
         return `
-          background-color: #00C2FF;
+          background-color: ${'${({ theme }) => theme.colors.primary}'};
           color: white;
           &:hover {
-            background-color: #0077CC;
+            background-color: ${'${({ theme }) => theme.colors.primaryDark}'};
           }
         `;
       case 'secondary':
@@ -350,10 +350,10 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' | 'danger' }>`
         `;
       default:
         return `
-          background-color: #00C2FF;
+          background-color: ${'${({ theme }) => theme.colors.primary}'};
           color: white;
           &:hover {
-            background-color: #0077CC;
+            background-color: ${'${({ theme }) => theme.colors.primaryDark}'};
           }
         `;
     }
@@ -463,7 +463,7 @@ const PrimaryBtn = styled.button`
   padding: 0.5rem 0.9rem;
   border-radius: 8px;
   border: none;
-  background: #00C2FF;
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
 `;
 
@@ -914,7 +914,7 @@ const AdminProducts: React.FC = () => {
                 {language === 'he' ? 'תמונה (URL)' : 'Image URL'}
                 <TextInput name="image_url" value={(form.image_url as any) || ''} onChange={handleFormChange} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                  <label htmlFor="imageFile" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#0077CC' }}>
+                  <label htmlFor="imageFile" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#2563EB' }}>
                     <UploadIcon size={16} /> {language === 'he' ? 'העלה תמונה' : 'Upload image'}
                   </label>
                   <input id="imageFile" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageFile} />
