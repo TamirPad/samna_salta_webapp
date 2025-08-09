@@ -323,6 +323,7 @@ export interface ApiService {
   getProducts: (params?: any) => Promise<any>;
   getProduct: (id: number) => Promise<any>;
   getProductOptions: (id: number) => Promise<any>;
+  uploadProductImage: (file: File) => Promise<any>;
   createProduct: (productData: any) => Promise<any>;
   updateProduct: (id: number, productData: any) => Promise<any>;
   deleteProduct: (id: number) => Promise<any>;
@@ -402,6 +403,13 @@ export const apiService: ApiService = {
 
   getProduct: (id: number) => api.get(`/products/${id}`),
   getProductOptions: (id: number) => api.get(`/products/${id}/options`),
+  uploadProductImage: (file: File) => {
+    const form = new FormData();
+    form.append('image', file);
+    return api.post('/products/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 
   createProduct: (productData: unknown) => api.post("/products", productData),
 

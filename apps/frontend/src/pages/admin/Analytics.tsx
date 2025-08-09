@@ -1,10 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../hooks/redux";
 import { selectAuth } from "../../features/auth/authSlice";
 import { apiService } from "../../utils/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
 // Styled Components
 const AnalyticsContainer = styled.div`
@@ -178,6 +193,25 @@ const AdminAnalytics: React.FC = () => {
     revenueByDay: []
   });
 
+  const revenueSeries = useMemo(() => {
+    const items = Array.isArray(dashboardData?.revenue_by_day) ? dashboardData.revenue_by_day : [];
+    return items.map((d: any) => ({
+      date: typeof d.date === 'string' ? d.date.slice(0, 10) : new Date(d.date).toISOString().slice(0, 10),
+      revenue: Number(d.revenue || d.total || 0),
+      orders: Number(d.orders || 0),
+    }));
+  }, [dashboardData]);
+
+  const statusSeries = useMemo(() => {
+    const items = Array.isArray(dashboardData?.orders_by_status) ? dashboardData.orders_by_status : [];
+    return items.map((s: any) => ({ status: s.status, count: Number(s.count || 0) }));
+  }, [dashboardData]);
+
+  // Sales tab state
+  const [salesSeries, setSalesSeries] = useState<Array<{ period: string; revenue: number; orders: number; aov: number }>>([]);
+  // Products tab state
+  const [productSeries, setProductSeries] = useState<Array<{ name: string; total_revenue: number; order_count: number; total_quantity: number }>>([]);
+
   // Load dashboard data
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -225,6 +259,72 @@ const AdminAnalytics: React.FC = () => {
     };
     if (isAuthenticated && activeTab === 'customers') {
       loadCustomerAnalytics();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  // Load Sales analytics on tab open
+  useEffect(() => {
+    const loadSales = async () => {
+      try {
+        setLoading(true);
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 29);
+        const resp = await apiService.getSalesReport({
+          start_date: end.toISOString().slice(0, 10),
+          end_date: end.toISOString().slice(0, 10),
+          group_by: 'day',
+        });
+        const payload = (resp as any)?.data?.data || (resp as any)?.data;
+        const items: any[] = payload?.sales || [];
+        setSalesSeries(items.map((it: any) => ({
+          period: String(it.period),
+          revenue: Number(it.revenue || 0),
+          orders: Number(it.orders || 0),
+          aov: Number(it.avg_order_value || 0),
+        })));
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load sales analytics', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (isAuthenticated && activeTab === 'sales') {
+      loadSales();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  // Load Product analytics on tab open
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 29);
+        const resp = await apiService.getProductAnalytics({
+          start_date: start.toISOString().slice(0, 10),
+          end_date: end.toISOString().slice(0, 10),
+        });
+        const payload = (resp as any)?.data?.data || (resp as any)?.data;
+        const items: any[] = payload?.products || [];
+        const normalized = items.map((p: any) => ({
+          name: p.name || p.name_en || p.name_he,
+          total_revenue: Number(p.total_revenue || 0),
+          order_count: Number(p.order_count || 0),
+          total_quantity: Number(p.total_quantity || 0),
+        }));
+        setProductSeries(normalized.sort((a: any, b: any) => b.total_revenue - a.total_revenue).slice(0, 10));
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load product analytics', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (isAuthenticated && activeTab === 'products') {
+      loadProducts();
     }
   }, [isAuthenticated, activeTab]);
 
@@ -322,8 +422,34 @@ const AdminAnalytics: React.FC = () => {
                 </StatsGrid>
 
                 <ChartContainer>
-                  <p>Revenue and Orders Chart</p>
-                  <p>Chart implementation would go here</p>
+                  <div style={{ width: '100%', height: 320 }}>
+                    <ResponsiveContainer>
+                      <LineChart data={revenueSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#00C2FF" strokeWidth={2} dot={false} name="Revenue" />
+                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name="Orders" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartContainer>
+
+                <ChartContainer>
+                  <div style={{ width: '100%', height: 300 }}>
+                    <ResponsiveContainer>
+                      <BarChart data={statusSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="status" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#0077CC" name="Orders" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </ChartContainer>
 
                 {dashboardData?.top_products &&
@@ -366,17 +492,84 @@ const AdminAnalytics: React.FC = () => {
         )}
 
         {activeTab === "sales" && (
-          <ChartContainer>
-            <p>Sales Analytics</p>
-            <p>Sales charts and reports would be implemented here</p>
-          </ChartContainer>
+          <>
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <ChartContainer>
+                  <div style={{ width: '100%', height: 320 }}>
+                    <ResponsiveContainer>
+                      <LineChart data={salesSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                        <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#00C2FF" strokeWidth={2} dot={false} name="Revenue" />
+                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name="Orders" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartContainer>
+                <ChartContainer>
+                  <div style={{ width: '100%', height: 280 }}>
+                    <ResponsiveContainer>
+                      <BarChart data={salesSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="aov" fill="#ff7f50" name="Avg Order Value" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartContainer>
+              </>
+            )}
+          </>
         )}
 
         {activeTab === "products" && (
-          <ChartContainer>
-            <p>Product Analytics</p>
-            <p>Product performance charts would be implemented here</p>
-          </ChartContainer>
+          <>
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <ChartContainer>
+                  <div style={{ width: '100%', height: 320 }}>
+                    <ResponsiveContainer>
+                      <BarChart data={productSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} angle={-20} textAnchor="end" height={60} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} />
+                        <Legend />
+                        <Bar dataKey="total_revenue" fill="#00C2FF" name="Revenue" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartContainer>
+                <ChartContainer>
+                  <div style={{ width: '100%', height: 320 }}>
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} />
+                        <Legend />
+                        <Pie data={productSeries.map((p) => ({ name: p.name, value: p.total_revenue }))} dataKey="value" nameKey="name" outerRadius={110} innerRadius={60} label>
+                          {productSeries.map((_, idx) => (
+                            <Cell key={`pp-cell-${idx}`} fill={["#00C2FF","#28a745","#ff6b6b","#ffa502","#5352ed","#2ed573","#1e90ff","#ff7f50"][idx % 8]} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartContainer>
+              </>
+            )}
+          </>
         )}
 
         {activeTab === "customers" && (

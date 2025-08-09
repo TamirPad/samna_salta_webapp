@@ -13,7 +13,8 @@ import {
   deleteProduct as deleteProductThunk,
 } from '../../features/products/productsSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { Edit, Trash2, Package, Search, Plus, Filter } from 'lucide-react';
+import { Edit, Trash2, Package, Search, Plus, Filter, Image as ImageIcon, Upload as UploadIcon } from 'lucide-react';
+import { apiService } from '../../utils/api';
 import { toast } from 'react-toastify';
 
 // Types
@@ -516,6 +517,7 @@ const AdminProducts: React.FC = () => {
     preparation_time_minutes: 15,
     display_order: 0,
   });
+  const [uploading, setUploading] = useState<boolean>(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -722,6 +724,28 @@ const AdminProducts: React.FC = () => {
     }));
   }, []);
 
+  const handleImageFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setUploading(true);
+      const resp = await apiService.uploadProductImage(file);
+      const url = (resp as any)?.data?.data?.url;
+      if (url) {
+        setForm(prev => ({ ...prev, image_url: url }));
+        toast.success(language === 'he' ? 'תמונה הועלתה' : 'Image uploaded');
+      } else {
+        toast.error(language === 'he' ? 'העלאת תמונה נכשלה' : 'Upload failed');
+      }
+    } catch {
+      toast.error(language === 'he' ? 'העלאת תמונה נכשלה' : 'Upload failed');
+    } finally {
+      setUploading(false);
+      // reset input value to allow re-upload same file if needed
+      if (e.target) e.target.value = '';
+    }
+  }, [language]);
+
   const handleSubmitForm = useCallback(async () => {
     try {
       if (!form.name || !form.price) {
@@ -889,6 +913,18 @@ const AdminProducts: React.FC = () => {
               <FormRow>
                 {language === 'he' ? 'תמונה (URL)' : 'Image URL'}
                 <TextInput name="image_url" value={(form.image_url as any) || ''} onChange={handleFormChange} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                  <label htmlFor="imageFile" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#0077CC' }}>
+                    <UploadIcon size={16} /> {language === 'he' ? 'העלה תמונה' : 'Upload image'}
+                  </label>
+                  <input id="imageFile" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageFile} />
+                  {uploading ? <span>{language === 'he' ? 'מעלה...' : 'Uploading...'}</span> : null}
+                </div>
+                {form.image_url ? (
+                  <div style={{ marginTop: 8 }}>
+                    <img src={form.image_url} alt="preview" style={{ maxWidth: '100%', borderRadius: 8, border: '1px solid #eee' }} />
+                  </div>
+                ) : null}
               </FormRow>
               <FormRow>
                 {language === 'he' ? 'אימוג׳י' : 'Emoji'}

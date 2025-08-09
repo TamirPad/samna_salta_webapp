@@ -195,6 +195,13 @@ const DemoButton = styled.button`
   }
 `;
 
+const DemoButtonsRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+`;
+
 const ErrorMessage = styled.div`
   background: #fef2f2;
   color: ${({ theme }) => theme.colors.error};
@@ -289,9 +296,14 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = () => {
+  const handleDemoAdmin = () => {
     setEmail('admin@sammasalta.com');
     setPassword('admin123');
+  };
+
+  const handleDemoCustomer = () => {
+    setEmail('customer@sammasalta.com');
+    setPassword('customer123');
   };
 
   const getContent = () => ({
@@ -301,6 +313,8 @@ const LoginPage: React.FC = () => {
     password: t('password', language),
     login: t('sign_in', language),
     demo: t('login_demo', language),
+    demoAdmin: language === 'he' ? 'כניסת דמו (מנהל)' : 'Use Admin Demo',
+    demoCustomer: language === 'he' ? 'כניסת דמו (לקוח)' : 'Use Customer Demo',
     show: language === 'he' ? 'הצג' : 'Show',
     hide: language === 'he' ? 'הסתר' : 'Hide',
     forgot: t('forgot_password', language),
@@ -389,9 +403,14 @@ const LoginPage: React.FC = () => {
               )}
             </LoginButton>
 
-            <DemoButton type="button" onClick={handleDemoLogin} disabled={loading}>
-              {content.demo}
-            </DemoButton>
+            <DemoButtonsRow>
+              <DemoButton type="button" onClick={handleDemoAdmin} disabled={loading}>
+                {content.demoAdmin}
+              </DemoButton>
+              <DemoButton type="button" onClick={handleDemoCustomer} disabled={loading}>
+                {content.demoCustomer}
+              </DemoButton>
+            </DemoButtonsRow>
           </Form>
         </Card>
       </FormPane>
