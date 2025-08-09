@@ -1,3 +1,5 @@
+import 'styled-components';
+
 // Wolt-inspired color theme
 export const theme = {
   colors: {
@@ -68,7 +70,12 @@ export const theme = {
     lg: '1.5rem',
     xl: '2rem',
   },
-};
+} as const;
 
 export type Theme = typeof theme;
+
+declare module 'styled-components' {
+  export interface DefaultTheme extends Theme {}
+}
+
 export default theme; 

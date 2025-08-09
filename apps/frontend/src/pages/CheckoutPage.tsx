@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -21,7 +21,15 @@ import {
   clearCart,
   CartItem,
 } from "../features/cart/cartSlice";
-// import { apiService } from '../utils/api'; // Uncomment when backend API is ready
+import { apiService } from "../utils/api";
+
+// Delivery areas (frontend-only until backend endpoint exists)
+const deliveryAreas = [
+  { id: 1, name_en: "Tel Aviv", name_he: "תל אביב", charge: 15 },
+  { id: 2, name_en: "Ramat Gan", name_he: "רמת גן", charge: 18 },
+  { id: 3, name_en: "Givatayim", name_he: "גבעתיים", charge: 18 },
+  { id: 4, name_en: "Herzliya", name_he: "הרצליה", charge: 22 },
+];
 
 const CheckoutContainer = styled.div`
   min-height: 100vh;
@@ -379,6 +387,13 @@ const CheckoutPage: React.FC = () => {
 
   const cartTotal = useAppSelector(selectCartTotal);
 
+  // Redirect to cart if empty without updating router during render
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      navigate("/cart", { replace: true });
+    }
+  }, [cartItems.length, navigate]);
+
   const [formData, setFormData] = useState({
     customer_name: "",
     customer_phone: "",
@@ -394,6 +409,7 @@ const CheckoutPage: React.FC = () => {
   const [deliveryMethod, setDeliveryMethod] = useState<"pickup" | "delivery">(
     "pickup",
   );
+  const [selectedAreaId, setSelectedAreaId] = useState<number>(deliveryAreas[0].id);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -412,6 +428,8 @@ const CheckoutPage: React.FC = () => {
         deliveryAddress: "כתובת משלוח",
         deliveryInstructions: "הוראות משלוח",
         specialInstructions: "הוראות מיוחדות",
+        deliveryArea: "אזור משלוח",
+        selectArea: "בחר אזור",
         paymentMethod: "אמצעי תשלום",
         cash: "מזומן",
         card: "כרטיס אשראי",
@@ -428,6 +446,8 @@ const CheckoutPage: React.FC = () => {
         requiredField: "שדה זה הוא חובה",
         invalidEmail: "כתובת אימייל לא תקינה",
         invalidPhone: "מספר טלפון לא תקין",
+        pickup: "איסוף",
+        delivery: "משלוח",
       },
       en: {
         checkoutTitle: "Complete Order",
@@ -441,6 +461,8 @@ const CheckoutPage: React.FC = () => {
         deliveryAddress: "Delivery Address",
         deliveryInstructions: "Delivery Instructions",
         specialInstructions: "Special Instructions",
+        deliveryArea: "Delivery Area",
+        selectArea: "Select area",
         paymentMethod: "Payment Method",
         cash: "Cash",
         card: "Credit Card",
@@ -457,6 +479,8 @@ const CheckoutPage: React.FC = () => {
         requiredField: "This field is required",
         invalidEmail: "Invalid email address",
         invalidPhone: "Invalid phone number",
+        pickup: "Pickup",
+        delivery: "Delivery",
       },
     }),
     [],
@@ -467,7 +491,12 @@ const CheckoutPage: React.FC = () => {
     [translations, language],
   );
 
-  const deliveryFee = deliveryMethod === "delivery" ? 15 : 0;
+  const selectedArea = useMemo(
+    () => deliveryAreas.find((a) => a.id === selectedAreaId) || deliveryAreas[0],
+    [selectedAreaId],
+  );
+
+  const deliveryFee = deliveryMethod === "delivery" ? selectedArea.charge : 0;
   const finalTotal = cartTotal + deliveryFee;
 
   const validateForm = () => {
@@ -479,10 +508,6 @@ const CheckoutPage: React.FC = () => {
 
     if (!formData.customer_phone.trim()) {
       newErrors["customer_phone"] = t.requiredField;
-    } else if (
-      !/^[+]?[1-9][\d]{0,15}$/.test(formData.customer_phone.replace(/\s/g, ""))
-    ) {
-      newErrors["customer_phone"] = t.invalidPhone;
     }
 
     if (
@@ -492,8 +517,13 @@ const CheckoutPage: React.FC = () => {
       newErrors["customer_email"] = t.invalidEmail;
     }
 
-    if (deliveryMethod === "delivery" && !formData.delivery_address.trim()) {
-      newErrors["delivery_address"] = t.requiredField;
+    if (deliveryMethod === "delivery") {
+      if (!formData.delivery_address.trim()) {
+        newErrors["delivery_address"] = t.requiredField;
+      }
+      if (!selectedAreaId) {
+        newErrors["delivery_area"] = t.requiredField;
+      }
     }
 
     setErrors(newErrors);
@@ -517,52 +547,60 @@ const CheckoutPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // const orderData = {
-      //   customer_name: formData.customer_name,
-      //   customer_phone: formData.customer_phone,
-      //   customer_email: formData.customer_email || undefined,
-      //   delivery_method: deliveryMethod,
-      //   delivery_address: deliveryMethod === 'delivery' ? formData.delivery_address : undefined,
-      //   delivery_instructions: formData.delivery_instructions || undefined,
-      //   special_instructions: formData.special_instructions || undefined,
-      //   payment_method: paymentMethod,
-      //   order_items: cartItems.map(item => ({
-      //     product_id: item.id,
-      //     product_name: item.name,
-      //     quantity: item.quantity,
-      //     unit_price: item.price,
-      //     total_price: item.price * item.quantity,
-      //   })),
-      //   subtotal: cartTotal,
-      //   delivery_charge: deliveryFee,
-      //   total: finalTotal,
-      // };
-
-      // Submit order to API (mocked for now)
-      // const response = await apiService.createOrder(orderData);
-
-      // Mock successful order creation
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            id: Math.floor(Math.random() * 10000) + 1000,
-          },
-        },
+      const orderData = {
+        customer_name: formData.customer_name,
+        customer_phone: formData.customer_phone,
+        customer_email: formData.customer_email || undefined,
+        delivery_method: deliveryMethod,
+        delivery_address:
+          deliveryMethod === "delivery" ? formData.delivery_address : undefined,
+        delivery_instructions: formData.delivery_instructions || undefined,
+        special_instructions: formData.special_instructions || undefined,
+        payment_method: paymentMethod,
+        order_items: cartItems.map((item) => ({
+          product_id: parseInt(item.id, 10),
+          product_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+        })),
+        subtotal: cartTotal,
+        delivery_charge: deliveryFee,
+        total: finalTotal,
       };
 
-      if (mockResponse.data?.success) {
-        setSubmitSuccess(true);
-        dispatch(clearCart());
+      const response = await apiService.createOrder(orderData);
+      const apiData = (response as any)?.data;
 
-        // Redirect to order tracking page after a short delay
+      if (apiData?.success && apiData?.data?.order) {
+        setSubmitSuccess(true);
+        const orderId = apiData.data.order.id;
+        try { localStorage.setItem('lastOrderId', String(orderId)); } catch {}
+        ;(window as any).__last_order_id__ = orderId;
+        dispatch(clearCart());
         setTimeout(() => {
-          navigate(`/order/${mockResponse.data.data.id}`);
-        }, 2000);
+          navigate(`/order/${orderId}`);
+        }, 1200);
+      } else if (apiData?.success && apiData?.data) {
+        const orderId = apiData.data.id || apiData.data.order_id;
+        if (orderId) {
+          setSubmitSuccess(true);
+          try { localStorage.setItem('lastOrderId', String(orderId)); } catch {}
+          ;(window as any).__last_order_id__ = orderId;
+          dispatch(clearCart());
+          setTimeout(() => {
+            navigate(`/order/${orderId}`);
+          }, 1200);
+        } else {
+          throw new Error("Unexpected response from server");
+        }
+      } else {
+        throw new Error(apiData?.error || "Failed to place order");
       }
     } catch (error) {
-      // console.error('Error placing order:', error);
-      setErrors({ submit: "Failed to place order. Please try again." });
+      const message =
+        error instanceof Error ? error.message : "Failed to place order. Please try again.";
+      setErrors({ submit: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -573,7 +611,6 @@ const CheckoutPage: React.FC = () => {
   };
 
   if (cartItems.length === 0) {
-    navigate("/cart");
     return null;
   }
 
@@ -681,7 +718,7 @@ const CheckoutPage: React.FC = () => {
                       }
                     />
                     <Truck size={16} />
-                    {language === "he" ? "איסוף" : "Pickup"}
+                    {t.pickup}
                   </label>
                   <label
                     style={{
@@ -702,28 +739,54 @@ const CheckoutPage: React.FC = () => {
                       }
                     />
                     <Truck size={16} />
-                    {language === "he" ? "משלוח" : "Delivery"}
+                    {t.delivery}
                   </label>
                 </div>
 
                 {deliveryMethod === "delivery" && (
-                  <FormGroup>
-                    <FormLabel>
-                      <MapPin size={16} />
-                      {t.deliveryAddress} *
-                    </FormLabel>
-                    <FormInput
-                      type="text"
-                      value={formData.delivery_address}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleInputChange("delivery_address", e.target.value)
-                      }
-                      className={errors["delivery_address"] ? "error" : ""}
-                    />
-                    {errors["delivery_address"] && (
-                      <ErrorMessage>{errors["delivery_address"]}</ErrorMessage>
-                    )}
-                  </FormGroup>
+                  <>
+                    <FormGroup>
+                      <FormLabel>{t.deliveryArea} *</FormLabel>
+                      <select
+                        value={selectedAreaId}
+                        onChange={(e) => setSelectedAreaId(parseInt(e.target.value, 10))}
+                        style={{
+                          padding: "0.75rem",
+                          border: `2px solid ${errors["delivery_area"] ? "#ff6b6b" : "#e0e0e0"}`,
+                          borderRadius: 8,
+                          fontSize: "1rem",
+                        }}
+                        aria-label={t.deliveryArea}
+                      >
+                        {deliveryAreas.map((area) => (
+                          <option key={area.id} value={area.id}>
+                            {language === "he" ? area.name_he : area.name_en} (₪{area.charge})
+                          </option>
+                        ))}
+                      </select>
+                      {errors["delivery_area"] && (
+                        <ErrorMessage>{errors["delivery_area"]}</ErrorMessage>
+                      )}
+                    </FormGroup>
+
+                    <FormGroup>
+                      <FormLabel>
+                        <MapPin size={16} />
+                        {t.deliveryAddress} *
+                      </FormLabel>
+                      <FormInput
+                        type="text"
+                        value={formData.delivery_address}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleInputChange("delivery_address", e.target.value)
+                        }
+                        className={errors["delivery_address"] ? "error" : ""}
+                      />
+                      {errors["delivery_address"] && (
+                        <ErrorMessage>{errors["delivery_address"]}</ErrorMessage>
+                      )}
+                    </FormGroup>
+                  </>
                 )}
 
                 <FormGroup>

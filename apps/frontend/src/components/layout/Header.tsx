@@ -4,17 +4,20 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { selectAuth } from '../../features/auth/authSlice';
 import { selectLanguage } from '../../features/language/languageSlice';
 import { logoutUser } from '../../features/auth/authSlice';
+import { setLanguage } from '../../features/language/languageSlice';
+import { selectAdminView, toggleAdminView, setAdminView } from '../../features/ui/uiSlice';
+import { selectCartItemsCount } from '../../features/cart/cartSlice';
 import styled from 'styled-components';
 
 const HeaderContainer = styled.header`
-  background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
+  background: ${({ theme }) => theme.gradients.primary};
   color: white;
-  padding: 0.75rem 0;
-  box-shadow: 0 2px 8px rgba(0, 194, 255, 0.1);
+  padding: 0.5rem 0; /* tighter header for mobile */
+  box-shadow: ${({ theme }) => theme.shadows.small};
   position: sticky;
   top: 0;
   z-index: 1000;
-  min-height: 60px;
+  min-height: 56px;
   width: 100%;
   overflow: hidden;
 `;
@@ -22,48 +25,31 @@ const HeaderContainer = styled.header`
 const HeaderContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem;
   position: relative;
   
-  @media (max-width: 768px) {
-    padding: 0 0.5rem;
-    gap: 0.5rem;
-  }
-  
-  @media (max-width: 428px) {
-    padding: 0 0.75rem;
+  @media (min-width: 768px) {
+    padding: 0 1rem;
+    gap: 1rem;
   }
 `;
 
 const Logo = styled(Link)`
-  font-size: 1.25rem;
-  font-weight: bold;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: white;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  gap: 0.4rem;
+  letter-spacing: 0.2px;
   
   &:hover {
-    color: #f0f0f0;
-  }
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-    gap: 0.25rem;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.9rem;
-  }
-  
-  @media (max-width: 375px) {
-    font-size: 0.85rem;
+    opacity: 0.95;
   }
 `;
 
@@ -80,45 +66,62 @@ const LogoIcon = styled.span`
 `;
 
 const Nav = styled.nav`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-  justify-content: center;
-  
-  @media (max-width: 768px) {
-    display: none;
+  display: none;
+  @media (min-width: 768px) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
   }
 `;
 
 const NavLink = styled(Link)<{ $active: boolean }>`
   color: white;
   text-decoration: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 999px;
   transition: all 0.2s;
-  font-weight: ${({ $active }) => $active ? '600' : '400'};
-  background: ${({ $active }) => $active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
+  font-weight: ${({ $active }) => ($active ? 700 : 500)};
+  background: ${({ $active }) => ($active ? 'rgba(255, 255, 255, 0.2)' : 'transparent')};
   font-size: 0.9rem;
   white-space: nowrap;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
   }
 `;
 
-const UserSection = styled.div`
-  display: flex;
+const NavText = styled.span`
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-  
-  @media (max-width: 768px) {
+`;
+
+const CartBadge = styled.span`
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: ${({ theme }) => theme.colors.error || '#DC3545'};
+  color: white;
+  border-radius: 999px;
+  padding: 0 6px;
+  height: 18px;
+  min-width: 18px;
+  font-size: 11px;
+  line-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+`;
+
+const UserSection = styled.div`
+  display: none;
+  @media (min-width: 768px) {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
-  }
-  
-  @media (max-width: 480px) {
-    gap: 0.25rem;
   }
 `;
 
@@ -149,20 +152,20 @@ const Button = styled.button`
   background: transparent;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.4rem 0.75rem;
-  border-radius: 4px;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   white-space: nowrap;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 40px;
+  min-width: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.5);
   }
   
@@ -172,41 +175,19 @@ const Button = styled.button`
   }
 `;
 
-const LanguageButton = styled.button`
-  background: transparent;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  transition: all 0.2s;
-  white-space: nowrap;
-  min-height: 44px;
-  min-width: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  
-  @media (max-width: 480px) {
-    padding: 0.15rem 0.3rem;
-    font-size: 0.7rem;
-  }
+const LanguageButton = styled(Button)`
+  font-weight: 700;
 `;
 
 const MobileMenuButton = styled.button`
-  display: none;
-  background: transparent;
+  display: flex;
+  background: rgba(255,255,255,0.12);
   color: white;
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: 12px;
   transition: all 0.2s;
   min-width: 44px;
   min-height: 44px;
@@ -217,91 +198,63 @@ const MobileMenuButton = styled.button`
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
-  
+
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.18);
   }
-  
-  &:active {
-    background: rgba(255, 255, 255, 0.2);
-  }
-  
-  @media (max-width: 768px) {
-    display: flex;
-  }
-  
-  @media (max-width: 428px) {
-    font-size: 1.1rem;
-    padding: 0.4rem;
-  }
-  
-  /* iPhone specific optimizations */
-  @media (max-width: 428px) {
-    min-width: 48px;
-    min-height: 48px;
-    font-size: 1.2rem;
+
+  @media (min-width: 768px) {
+    display: none;
   }
 `;
 
 const MobileMenu = styled.div<{ $isOpen: boolean }>`
-  display: none;
-  
-  @media (max-width: 768px) {
-    display: ${({ $isOpen }) => $isOpen ? 'flex' : 'none'};
-    flex-direction: column;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #00C2FF 0%, #0077CC 100%);
-    padding: 1rem;
-    gap: 0.75rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: calc(100vh - 60px);
-    overflow-y: auto;
-    z-index: 9999;
-    width: 100%;
-    opacity: ${({ $isOpen }) => $isOpen ? '1' : '0'};
-    visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
-    transform: ${({ $isOpen }) => $isOpen ? 'translateY(0)' : 'translateY(-10px)'};
-    transition: all 0.3s ease;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    
-    /* iPhone safe area support */
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-  
-  @media (max-width: 428px) {
-    top: 60px;
-    padding: 0.75rem;
-    gap: 0.5rem;
-  }
+  display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
+  flex-direction: column;
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: ${({ theme }) => theme.gradients.primary};
+  padding: 0.75rem;
+  gap: 0.5rem;
+  box-shadow: ${({ theme }) => theme.shadows.medium};
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  z-index: 9999;
+  width: 100%;
+  opacity: ${({ $isOpen }) => ($isOpen ? '1' : '0')};
+  visibility: ${({ $isOpen }) => ($isOpen ? 'visible' : 'hidden')};
+  transform: ${({ $isOpen }) => ($isOpen ? 'translateY(0)' : 'translateY(-10px)')};
+  transition: all 0.3s ease;
+  -webkit-overflow-scrolling: touch;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 `;
 
 const MobileNavLink = styled(Link)<{ $active: boolean }>`
   color: white;
   text-decoration: none;
-  padding: 0.75rem 1rem;
-  border-radius: 4px;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
   transition: all 0.2s;
-  font-weight: ${({ $active }) => $active ? '600' : '400'};
-  background: ${({ $active }) => $active ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
-  font-size: 0.9rem;
+  font-weight: ${({ $active }) => ($active ? 800 : 600)};
+  background: ${({ $active }) => ($active ? 'rgba(255, 255, 255, 0.2)' : 'transparent')};
+  font-size: 1rem;
   display: block;
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
+  position: relative;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.18);
   }
   
   &:active {
@@ -395,15 +348,15 @@ const Header: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const language = useAppSelector(selectLanguage);
+  const isAdminView = useAppSelector(selectAdminView);
+  const cartCount = useAppSelector(selectCartItemsCount);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
@@ -420,7 +373,6 @@ const Header: React.FC = () => {
     if (mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleTouchStart);
-      // Prevent body scroll when menu is open
       document.body.style.overflow = 'hidden';
       document.body.classList.add('menu-open');
     } else {
@@ -436,6 +388,13 @@ const Header: React.FC = () => {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    // default admins to adminView true on load
+    if (isAuthenticated && user?.isAdmin) {
+      dispatch(setAdminView(true));
+    }
+  }, [dispatch, isAuthenticated, user?.isAdmin]);
+
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate('/login');
@@ -443,14 +402,11 @@ const Header: React.FC = () => {
   };
 
   const toggleLanguage = () => {
-    // Language toggle logic would go here
-    // eslint-disable-next-line no-console
-    console.log('Toggle language');
+    const next = language === 'he' ? 'en' : 'he';
+    dispatch(setLanguage(next));
   };
 
   const toggleMobileMenu = () => {
-    // eslint-disable-next-line no-console
-    console.log('Mobile menu toggle clicked, current state:', mobileMenuOpen);
     setMobileMenuOpen(prev => !prev);
   };
 
@@ -460,6 +416,7 @@ const Header: React.FC = () => {
     { path: '/home', label: language === 'he' ? 'בית' : 'Home' },
     { path: '/menu', label: language === 'he' ? 'תפריט' : 'Menu' },
     { path: '/cart', label: language === 'he' ? 'עגלה' : 'Cart' },
+    { path: '/orders', label: language === 'he' ? 'ההזמנות שלי' : 'My Orders' },
   ];
 
   const adminItems = [
@@ -470,6 +427,8 @@ const Header: React.FC = () => {
     { path: '/admin/analytics', label: language === 'he' ? 'ניתוח' : 'Analytics' },
   ];
 
+  const showAdminNav = isAuthenticated && user?.isAdmin && isAdminView;
+
   return (
     <HeaderContainer>
       <HeaderContent>
@@ -479,36 +438,34 @@ const Header: React.FC = () => {
         </Logo>
 
         <Nav>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              $active={isActive(item.path)}
-            >
-              {item.label}
-            </NavLink>
-          ))}
-          
-          {isAuthenticated && user?.isAdmin && (
-            <>
-              {adminItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  $active={isActive(item.path)}
-                >
+          {(showAdminNav ? adminItems : navItems).map((item) => {
+            const showBadge = item.path === '/cart' && cartCount > 0;
+            const aria = showBadge ? `${item.label} (${cartCount})` : item.label;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                $active={isActive(item.path)}
+                aria-label={aria}
+              >
+                <NavText>
                   {item.label}
-                </NavLink>
-              ))}
-            </>
-          )}
+                  {showBadge && <CartBadge data-testid="cart-count-badge">{cartCount}</CartBadge>}
+                </NavText>
+              </NavLink>
+            );
+          })}
         </Nav>
 
         <UserSection>
+          {isAuthenticated && user?.isAdmin && (
+            <Button onClick={() => dispatch(toggleAdminView())}>
+              {isAdminView ? (language === 'he' ? 'לתצוגת לקוח' : 'Customer View') : (language === 'he' ? 'לתצוגת מנהל' : 'Admin View')}
+            </Button>
+          )}
           <LanguageButton onClick={toggleLanguage}>
             {language === 'he' ? 'EN' : 'עב'}
           </LanguageButton>
-          
           {isAuthenticated ? (
             <>
               <UserInfo>
@@ -537,36 +494,31 @@ const Header: React.FC = () => {
         </MobileMenuButton>
       </HeaderContent>
 
-      <Overlay $isOpen={mobileMenuOpen} />
+      <Overlay $isOpen={mobileMenuOpen} onClick={() => setMobileMenuOpen(false)} />
       
       <MobileMenu ref={mobileMenuRef} $isOpen={mobileMenuOpen} data-testid="mobile-menu">
-        {navItems.map((item) => (
-          <MobileNavLink
-            key={item.path}
-            to={item.path}
-            $active={isActive(item.path)}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            {item.label}
-          </MobileNavLink>
-        ))}
-        
-        {isAuthenticated && user?.isAdmin && (
-          <>
-            {adminItems.map((item) => (
-              <MobileNavLink
-                key={item.path}
-                to={item.path}
-                $active={isActive(item.path)}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.label}
-              </MobileNavLink>
-            ))}
-          </>
-        )}
-        
+        {(showAdminNav ? adminItems : navItems).map((item) => {
+          const showBadge = item.path === '/cart' && cartCount > 0;
+          const aria = showBadge ? `${item.label} (${cartCount})` : item.label;
+          return (
+            <MobileNavLink
+              key={item.path}
+              to={item.path}
+              $active={isActive(item.path)}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label={aria}
+            >
+              {item.label}
+              {showBadge && <CartBadge style={{ right: 10, top: 8 }}>{cartCount}</CartBadge>}
+            </MobileNavLink>
+          );
+        })}
         <MobileUserSection>
+          {isAuthenticated && user?.isAdmin && (
+            <MobileButton onClick={() => { dispatch(toggleAdminView()); setMobileMenuOpen(false); }}>
+              {isAdminView ? (language === 'he' ? 'לתצוגת לקוח' : 'Customer View') : (language === 'he' ? 'לתצוגת מנהל' : 'Admin View')}
+            </MobileButton>
+          )}
           {isAuthenticated ? (
             <>
               <MobileUserInfo>
@@ -580,10 +532,7 @@ const Header: React.FC = () => {
               </MobileButton>
             </>
           ) : (
-            <MobileButton onClick={() => {
-              navigate('/login');
-              setMobileMenuOpen(false);
-            }}>
+            <MobileButton onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>
               {language === 'he' ? 'התחבר' : 'Login'}
             </MobileButton>
           )}

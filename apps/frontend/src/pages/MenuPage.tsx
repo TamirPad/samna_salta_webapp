@@ -14,6 +14,7 @@ import {
 import LoadingSpinner from "../components/LoadingSpinner";
 import { debounce } from "../utils/performance";
 import { Product, Category } from "../types";
+import { toast } from "react-toastify";
 
 // Styled Components
 const MenuContainer = styled.div`
@@ -279,9 +280,9 @@ const MetaItem = styled.div`
   gap: 0.25rem;
 `;
 
-const AddToCartButton = styled.button`
+const AddToCartButton = styled.button<{ $added?: boolean }>`
   width: 100%;
-  background: #00C2FF;
+  background: ${({ $added }) => ($added ? "#28a745" : "#00C2FF")};
   color: white;
   border: none;
   padding: 0.875rem;
@@ -296,7 +297,7 @@ const AddToCartButton = styled.button`
   min-height: 44px;
 
   &:hover {
-    background: #0077CC;
+    background: ${({ $added }) => ($added ? "#23913b" : "#0077CC")};
     transform: translateY(-1px);
   }
 
@@ -339,6 +340,7 @@ const MenuPage: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [lastAddedId, setLastAddedId] = useState<number | null>(null);
 
   // Fetch products and categories on component mount
   useEffect(() => {
@@ -475,6 +477,15 @@ const MenuPage: React.FC = () => {
           category: product.category?.name || "",
         }),
       );
+
+      // Visual feedback on button
+      setLastAddedId(product.id);
+      window.setTimeout(() => setLastAddedId((prev) => (prev === product.id ? null : prev)), 900);
+
+      // Toast feedback
+      const addedText = language === "he" ? "נוסף לעגלה" : "Added to cart";
+      const nameText = language === "he" ? (product.name_he || product.name) : (product.name_en || product.name);
+      toast.success(`${nameText} — ${addedText}`, { autoClose: 1200 });
     },
     [dispatch, language],
   );
@@ -620,12 +631,12 @@ const MenuPage: React.FC = () => {
                       </ProductMeta>
 
                       <AddToCartButton
+                        $added={lastAddedId === product.id}
                         onClick={(): void => handleAddToCart(product)}
                         disabled={!product.is_active}
                         aria-label={`Add ${getProductName(product)} to cart`}
                       >
-                        🛒
-                        {t.addToCart}
+                        {lastAddedId === product.id ? "✔ Added!" : `🛒 ${t.addToCart}`}
                       </AddToCartButton>
                     </ProductInfo>
                   </ProductCard>

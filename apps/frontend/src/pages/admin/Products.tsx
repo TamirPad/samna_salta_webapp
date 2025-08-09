@@ -2,10 +2,19 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { selectLanguage } from '../../features/language/languageSlice';
-import { fetchProducts, selectProducts } from '../../features/products/productsSlice';
-import { apiService } from '../../utils/api';
+import {
+  fetchProducts,
+  fetchCategories,
+  selectProducts,
+  selectCategories,
+  selectProductsLoading,
+  createProduct,
+  updateProductAsync,
+  deleteProduct as deleteProductThunk,
+} from '../../features/products/productsSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { Eye, Edit, Trash2, Package, Search, Plus, Filter } from 'lucide-react';
+import { Edit, Trash2, Package, Search, Plus, Filter } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 // Types
 interface Product {
@@ -30,6 +39,13 @@ interface Product {
   created_at: string;
   updated_at: string;
   emoji?: string;
+}
+
+interface CategoryOption {
+  id: number;
+  name?: string;
+  name_en?: string;
+  name_he?: string;
 }
 
 // Styled Components
@@ -355,15 +371,106 @@ const ResultsCount = styled.div`
   font-size: 0.9rem;
 `;
 
+// Modal + form styles
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 560px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+`;
+
+const ModalTitle = styled.h3`
+  margin: 0;
+  font-size: 1.25rem;
+`;
+
+const ModalBody = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+`;
+
+const FormRow = styled.label`
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+`;
+
+const TextInput = styled.input`
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.95rem;
+`;
+
+const TextArea = styled.textarea`
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  min-height: 80px;
+`;
+
+const SelectInput = styled.select`
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+`;
+
+const ModalFooter = styled.div`
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+`;
+
+const SecondaryBtn = styled.button`
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #e1e5e9;
+  background: white;
+`;
+
+const PrimaryBtn = styled.button`
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: none;
+  background: #00C2FF;
+  color: white;
+`;
+
 const AdminProducts: React.FC = () => {
   const language = useAppSelector(selectLanguage);
   const dispatch = useAppDispatch();
   
   // Use Redux selectors instead of local state
   const reduxProducts = useAppSelector(selectProducts);
+  const categories = useAppSelector(selectCategories);
+  const isLoading = useAppSelector(selectProductsLoading);
   
   // Convert Redux products to local interface
-  const products: Product[] = reduxProducts.map((reduxProduct: any) => ({
+  const products: Product[] = (reduxProducts || []).map((reduxProduct: any) => ({
     id: reduxProduct.id,
     name: reduxProduct.name || reduxProduct.name_en || reduxProduct.name_he || 'Unknown Product',
     name_en: reduxProduct.name_en,
@@ -388,26 +495,26 @@ const AdminProducts: React.FC = () => {
   }));
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [localLoading, setLocalLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [form, setForm] = useState<Partial<Product>>({
+    name: '',
+    name_en: '',
+    name_he: '',
+    description: '',
+    price: 0,
+    category_id: undefined,
+    image_url: '',
+    emoji: '',
+    is_active: true,
+    preparation_time_minutes: 15,
+    display_order: 0,
+  });
 
   // Load data on component mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLocalLoading(true);
-        const response = await apiService.getProducts();
-        
-        if (response && response.data && response.data.success) {
-          dispatch(fetchProducts.fulfilled(response.data, 'products', { category: undefined, search: undefined, page: undefined, limit: undefined }));
-        }
-      } catch (error: any) {
-        // Error handling - console statements removed for clean build
-      } finally {
-        setLocalLoading(false);
-      }
-    };
-
-    loadData();
+    dispatch(fetchProducts({}));
+    dispatch(fetchCategories());
   }, [dispatch]);
 
   // Helper functions
@@ -524,51 +631,111 @@ const AdminProducts: React.FC = () => {
     [debouncedSearchHandler],
   );
 
-  const handleAddProduct = useCallback(
-    () => {
-      try {
-        // Add product functionality can be implemented here
-      } catch (err) {
-        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
-      }
-    },
-    [],
-  );
+  const openAddModal = useCallback(() => {
+    setEditingProduct(null);
+    setForm({
+      name: '',
+      name_en: '',
+      name_he: '',
+      description: '',
+      price: 0,
+      category_id: categories?.[0]?.id,
+      image_url: '',
+      emoji: '',
+      is_active: true,
+      preparation_time_minutes: 15,
+      display_order: 0,
+    });
+    setIsModalOpen(true);
+  }, [categories]);
 
-  const handleViewProduct = useCallback(
-    (productId: number) => {
-      try {
-        // View product functionality can be implemented here
-      } catch (err) {
-        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
-      }
-    },
-    [],
-  );
+  // Removed view product handler (no separate view mode)
 
   const handleEditProduct = useCallback(
     (productId: number) => {
       try {
-        // Edit product functionality can be implemented here
+        const prod = products.find(p => p.id === productId);
+        if (!prod) return;
+        setEditingProduct(prod);
+        setForm({
+          name: prod.name,
+          name_en: prod.name_en || '',
+          name_he: prod.name_he || '',
+          description: prod.description || '',
+          price: prod.price,
+          category_id: prod.category_id,
+          image_url: prod.image_url || '',
+          emoji: prod.emoji || '',
+          is_active: prod.is_active,
+          preparation_time_minutes: prod.preparation_time_minutes || 15,
+          display_order: prod.display_order || 0,
+        });
+        setIsModalOpen(true);
       } catch (err) {
-        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
+        // no-op
       }
     },
-    [],
+    [products],
   );
 
   const handleDeleteProduct = useCallback(
-    (productId: number) => {
+    async (productId: number) => {
       try {
         if (window.confirm(t.confirmDelete)) {
-          // Delete product functionality can be implemented here
+          await dispatch(deleteProductThunk(productId));
+          toast.success(language === 'he' ? 'המוצר הוסר' : 'Product deleted');
+          dispatch(fetchProducts({}));
         }
       } catch (err) {
-        // setError(t.errorOccurred); // This line was removed from the new_code, so it's removed here.
+        toast.error(language === 'he' ? 'מחיקה נכשלה' : 'Delete failed');
       }
     },
-    [t.confirmDelete],
+    [dispatch, t.confirmDelete, language],
   );
+
+  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    const name = (target as any).name as string;
+    const value = (target as any).value as string;
+
+    let nextValue: any = value;
+    if (target instanceof HTMLInputElement && target.type === 'checkbox') {
+      nextValue = target.checked;
+    } else if (
+      name === 'price' ||
+      name === 'display_order' ||
+      name === 'preparation_time_minutes' ||
+      name === 'category_id'
+    ) {
+      nextValue = value === '' ? '' : Number(value);
+    }
+
+    setForm(prev => ({
+      ...prev,
+      [name]: nextValue,
+    }));
+  }, []);
+
+  const handleSubmitForm = useCallback(async () => {
+    try {
+      if (!form.name || !form.price) {
+        toast.error(language === 'he' ? 'שם ומחיר נדרשים' : 'Name and price are required');
+        return;
+      }
+      if (editingProduct) {
+        await dispatch(updateProductAsync({ id: editingProduct.id, productData: form as any }));
+        toast.success(language === 'he' ? 'המוצר עודכן' : 'Product updated');
+      } else {
+        await dispatch(createProduct(form as any));
+        toast.success(language === 'he' ? 'מוצר נוצר' : 'Product created');
+      }
+      setIsModalOpen(false);
+      setEditingProduct(null);
+      dispatch(fetchProducts({}));
+    } catch (err) {
+      toast.error(language === 'he' ? 'שמירה נכשלה' : 'Save failed');
+    }
+  }, [dispatch, editingProduct, form, language]);
 
   return (
     <ProductsContainer>
@@ -600,7 +767,7 @@ const AdminProducts: React.FC = () => {
               {t.filter}
             </FilterButton>
 
-            <AddButton onClick={handleAddProduct} aria-label={t.addProduct}>
+            <AddButton onClick={openAddModal} aria-label={t.addProduct}>
               <Plus size={16} />
               {t.addProduct}
             </AddButton>
@@ -614,23 +781,12 @@ const AdminProducts: React.FC = () => {
           )}
         </ResultsCount>
 
-        {localLoading ? (
+        {isLoading ? (
             <LoadingSpinner />
           ) : filteredProducts && filteredProducts.length > 0 ? (
             <ProductsGrid>
               {filteredProducts.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`View ${getProductName(product)} - ₪${product.price}`}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleViewProduct(product.id);
-                    }
-                  }}
-                >
+                <ProductCard key={product.id}>
                   <ProductImage $imageUrl={product.image_url} $emoji={product.emoji}>
                     {!product.image_url && product.emoji && (
                       <span role="img" aria-label={getProductName(product)}>
@@ -665,13 +821,7 @@ const AdminProducts: React.FC = () => {
                     </ProductMeta>
 
                     <ProductActions>
-                      <Button
-                        onClick={() => handleViewProduct(product.id)}
-                        aria-label={`View ${getProductName(product)}`}
-                      >
-                        <Eye size={14} />
-                        {t.view}
-                      </Button>
+                      {/* View button removed */}
                       <Button
                         $variant="secondary"
                         onClick={() => handleEditProduct(product.id)}
@@ -701,6 +851,61 @@ const AdminProducts: React.FC = () => {
             </EmptyState>
           )}
       </ProductsContent>
+      {isModalOpen && (
+        <ModalOverlay onClick={() => setIsModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <ModalHeader>
+              <ModalTitle>{editingProduct ? (language === 'he' ? 'עריכת מוצר' : 'Edit Product') : (language === 'he' ? 'מוצר חדש' : 'New Product')}</ModalTitle>
+              <SecondaryBtn onClick={() => setIsModalOpen(false)}>{language === 'he' ? 'סגור' : 'Close'}</SecondaryBtn>
+            </ModalHeader>
+            <ModalBody>
+              <FormRow>
+                {language === 'he' ? 'שם' : 'Name'}
+                <TextInput name="name" value={form.name as any} onChange={handleFormChange} />
+              </FormRow>
+              <FormRow>
+                {language === 'he' ? 'מחיר (₪)' : 'Price (₪)'}
+                <TextInput name="price" type="number" min={0} step={0.5} value={form.price as any} onChange={handleFormChange} />
+              </FormRow>
+              <FormRow>
+                {language === 'he' ? 'קטגוריה' : 'Category'}
+                <SelectInput name="category_id" value={(form.category_id as any) ?? ''} onChange={handleFormChange}>
+                  <option value="">{language === 'he' ? 'בחר קטגוריה' : 'Select category'}</option>
+                  {(categories || []).map((c: CategoryOption) => (
+                    <option key={c.id} value={c.id}>{language === 'he' ? (c.name_he || c.name || c.name_en) : (c.name_en || c.name || c.name_he)}</option>
+                  ))}
+                </SelectInput>
+              </FormRow>
+              <FormRow>
+                {language === 'he' ? 'תיאור' : 'Description'}
+                <TextArea name="description" value={(form.description as any) || ''} onChange={handleFormChange} />
+              </FormRow>
+              <FormRow>
+                {language === 'he' ? 'תמונה (URL)' : 'Image URL'}
+                <TextInput name="image_url" value={(form.image_url as any) || ''} onChange={handleFormChange} />
+              </FormRow>
+              <FormRow>
+                {language === 'he' ? 'אימוג׳י' : 'Emoji'}
+                <TextInput name="emoji" value={(form.emoji as any) || ''} onChange={handleFormChange} />
+              </FormRow>
+              <FormRow>
+                {language === 'he' ? 'זמן הכנה (דק׳)' : 'Prep time (min)'}
+                <TextInput name="preparation_time_minutes" type="number" min={0} step={1} value={(form.preparation_time_minutes as any) ?? 15} onChange={handleFormChange} />
+              </FormRow>
+              <FormRow>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="checkbox" name="is_active" checked={Boolean(form.is_active)} onChange={handleFormChange} />
+                  {language === 'he' ? 'מוצר פעיל' : 'Active product'}
+                </label>
+              </FormRow>
+            </ModalBody>
+            <ModalFooter>
+              <SecondaryBtn onClick={() => setIsModalOpen(false)}>{language === 'he' ? 'בטל' : 'Cancel'}</SecondaryBtn>
+              <PrimaryBtn onClick={handleSubmitForm}>{language === 'he' ? 'שמור' : 'Save'}</PrimaryBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </ProductsContainer>
   );
 };

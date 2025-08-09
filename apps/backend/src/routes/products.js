@@ -1,7 +1,8 @@
 const express = require('express');
 const {body, validationResult, query} = require('express-validator');
 const {authenticateToken, requireAdmin} = require('../middleware/auth');
-const {query: dbQuery, getCache, setCache} = require('../config/database');
+const {query: dbQuery} = require('../config/database');
+const {getCache, setCache} = require('../config/redis');
 const logger = require('../utils/logger');
 
 const router = express.Router();

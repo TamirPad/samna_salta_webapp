@@ -5,8 +5,8 @@ import { selectLanguage } from '../../features/language/languageSlice';
 import { fetchOrders, selectOrders, selectOrdersLoading } from '../../features/orders/ordersSlice';
 import { fetchProducts, selectProducts, selectProductsLoading } from '../../features/products/productsSlice';
 import { fetchDashboardAnalytics, selectDashboardAnalytics, selectAnalyticsLoading } from '../../features/analytics/analyticsSlice';
-import { apiService } from '../../utils/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardContainer = styled.div`
   padding: 2rem;
@@ -153,6 +153,7 @@ const ActionButton = styled.button`
 const Dashboard: React.FC = () => {
   const language = useAppSelector(selectLanguage);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   
   // Use Redux selectors instead of local state
   const analytics = useAppSelector(selectDashboardAnalytics);
@@ -165,38 +166,10 @@ const Dashboard: React.FC = () => {
   const loading = analyticsLoading || productsLoading || ordersLoading;
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        // Fetch analytics data
-        const analyticsResponse = await apiService.getDashboardAnalytics();
-        
-        if (analyticsResponse.success) {
-          // Dispatch to Redux store
-          dispatch(fetchDashboardAnalytics.fulfilled(analyticsResponse, 'dashboard', undefined));
-        }
-
-        // Fetch products data
-        const productsResponse = await apiService.getProducts();
-        
-        if (productsResponse.success) {
-          // Dispatch to Redux store
-          dispatch(fetchProducts.fulfilled(productsResponse, 'products', { category: undefined, search: undefined, page: undefined, limit: undefined }));
-        }
-
-        // Fetch recent orders
-        const ordersResponse = await apiService.getOrders({ limit: 5 });
-        
-        if (ordersResponse.success) {
-          // Dispatch to Redux store
-          dispatch(fetchOrders.fulfilled(ordersResponse, 'orders', { status: undefined, page: undefined, limit: undefined }));
-        }
-
-      } catch (error: any) {
-          // Error handling - console statements removed for clean build
-        }
-    };
-
-    loadDashboardData();
+    // Use thunks to populate Redux from API
+    dispatch(fetchDashboardAnalytics());
+    dispatch(fetchProducts({} as any));
+    dispatch(fetchOrders({ status: 'all', page: 1, limit: 10 } as any));
   }, [dispatch]);
 
   // Calculate stats from Redux state
@@ -211,9 +184,9 @@ const Dashboard: React.FC = () => {
   const recentActivity = orders?.slice(0, 5).map((order: any) => ({
     id: order.id,
     type: 'order',
-    title: `Order #${order.order_number}`,
-    description: `Order placed by ${order.customer_name}`,
-    time: new Date(order.created_at).toLocaleString(),
+    title: `Order #${order.order_number || order.id}`,
+    description: `₪${order.total?.toFixed ? order.total.toFixed(2) : order.total}`,
+    time: new Date(order.created_at || Date.now()).toLocaleString(),
     icon: '🛒',
     amount: order.total
   })) || [];
@@ -303,7 +276,7 @@ const Dashboard: React.FC = () => {
         <ActivityTitle>{content.recentActivity}</ActivityTitle>
         <ActivityList>
           {recentActivity.map((activity) => (
-            <ActivityItem key={activity.id}>
+            <ActivityItem key={activity.id} onClick={() => navigate(`/order/${activity.id}`)} style={{ cursor: 'pointer' }}>
               <ActivityIcon>{activity.icon}</ActivityIcon>
               <ActivityContent>
                 <ActivityItemTitle>{activity.title}</ActivityItemTitle>
@@ -316,16 +289,16 @@ const Dashboard: React.FC = () => {
       </RecentActivity>
 
       <QuickActions>
-        <ActionButton>
+        <ActionButton onClick={() => navigate('/admin/orders')}>
           🛒 {content.viewOrders}
         </ActionButton>
-        <ActionButton>
+        <ActionButton onClick={() => navigate('/admin/products')}>
           ➕ {content.addProduct}
         </ActionButton>
-        <ActionButton>
+        <ActionButton onClick={() => navigate('/admin/customers')}>
           👥 {content.viewCustomers}
         </ActionButton>
-        <ActionButton>
+        <ActionButton onClick={() => navigate('/admin/analytics')}>
           📊 {content.viewAnalytics}
         </ActionButton>
       </QuickActions>

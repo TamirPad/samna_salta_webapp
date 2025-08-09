@@ -71,7 +71,7 @@ export const fetchOrders = createAsyncThunk(
   ) => {
     try {
       const response = await apiService.getOrders(params);
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -87,7 +87,7 @@ export const fetchOrderDetails = createAsyncThunk(
   async (orderId: string, { rejectWithValue }) => {
     try {
       const response = await apiService.getOrder(parseInt(orderId));
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -115,7 +115,7 @@ export const updateOrderStatus = createAsyncThunk(
         status,
         description,
       );
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -158,12 +158,13 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orders = action.payload.data;
+        const payloadData = (action.payload as any)?.data ?? action.payload ?? [];
+        state.orders = Array.isArray(payloadData) ? payloadData : [];
         state.pagination = {
-          page: action.payload.pagination?.page || 1,
-          limit: action.payload.pagination?.limit || 10,
-          total: action.payload.pagination?.total || 0,
-          totalPages: action.payload.pagination?.totalPages || 0,
+          page: (action.payload as any)?.pagination?.page || 1,
+          limit: (action.payload as any)?.pagination?.limit || 10,
+          total: (action.payload as any)?.pagination?.total || 0,
+          totalPages: (action.payload as any)?.pagination?.totalPages || 0,
         };
       })
       .addCase(fetchOrders.rejected, (state, action) => {
@@ -177,7 +178,7 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrderDetails.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.selectedOrder = action.payload.data;
+        state.selectedOrder = (action.payload as any)?.data ?? (action.payload as any) ?? null;
       })
       .addCase(fetchOrderDetails.rejected, (state, action) => {
         state.isLoading = false;
@@ -190,15 +191,15 @@ const ordersSlice = createSlice({
       })
       .addCase(updateOrderStatus.fulfilled, (state, action) => {
         state.isLoading = false;
-        const updatedOrder = action.payload.data;
+        const updatedOrder = (action.payload as any)?.data ?? (action.payload as any);
         const orderIndex = state.orders.findIndex(
-          (o) => o.id === updatedOrder.id,
+          (o: any) => o.id === updatedOrder?.id,
         );
-        if (orderIndex !== -1) {
-          state.orders[orderIndex] = updatedOrder;
+        if (orderIndex !== -1 && updatedOrder) {
+          (state.orders as any)[orderIndex] = updatedOrder;
         }
-        if (state.selectedOrder?.id === updatedOrder.id) {
-          state.selectedOrder = updatedOrder;
+        if ((state.selectedOrder as any)?.id === updatedOrder?.id) {
+          (state.selectedOrder as any) = updatedOrder;
         }
       })
       .addCase(updateOrderStatus.rejected, (state, action) => {
@@ -212,16 +213,20 @@ export const { setSelectedOrder, clearOrdersError, setOrdersPagination } =
   ordersSlice.actions;
 
 // Selectors
-export const selectOrders = (state: RootState): Order[] => state.orders.orders;
+export const selectOrders = (state: RootState): any[] => {
+  const ordersState: any = (state as any)?.orders;
+  const list = ordersState?.orders;
+  return Array.isArray(list) ? list : [];
+};
 export const selectSelectedOrder = (state: RootState): Order | null =>
-  state.orders.selectedOrder;
+  (state as any)?.orders?.selectedOrder ?? null;
 export const selectOrdersLoading = (state: RootState): boolean =>
-  state.orders.isLoading;
+  Boolean((state as any)?.orders?.isLoading);
 export const selectOrdersError = (state: RootState): string | null =>
-  state.orders.error;
+  ((state as any)?.orders?.error as string) ?? null;
 export const selectOrdersPagination = (
   state: RootState,
 ): { page: number; limit: number; total: number; totalPages: number } =>
-  state.orders.pagination;
+  (state as any)?.orders?.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 0 };
 
 export default ordersSlice.reducer;

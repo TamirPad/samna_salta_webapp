@@ -32,6 +32,7 @@ const Products = lazy(() => import("./pages/admin/Products"));
 const Customers = lazy(() => import("./pages/admin/Customers"));
 const Analytics = lazy(() => import("./pages/admin/Analytics"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 
 // Types
 interface AnimatedRouteProps {
@@ -139,6 +140,7 @@ const App: React.FC = (): JSX.Element => {
         { path: "/cart", component: CartPage },
         { path: "/checkout", component: CheckoutPage },
         { path: "/order/:orderId", component: OrderTrackingPage },
+        { path: "/orders", component: MyOrdersPage },
         { path: "/login", component: LoginPage },
         {
           path: "/admin",

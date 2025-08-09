@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useAppSelector } from "../hooks/redux";
 import { selectLanguage } from "../features/language/languageSlice";
-// import { apiService } from '../utils/api'; // Uncomment when backend API is ready
+import { apiService } from "../utils/api";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const TrackingContainer = styled.div`
@@ -142,8 +142,8 @@ const ProgressSteps = styled.div`
 `;
 
 const ProgressStep = styled.div<{
-  completed: boolean;
-  current: boolean;
+  $completed: boolean;
+  $current: boolean;
 }>`
   display: flex;
   align-items: center;
@@ -162,7 +162,7 @@ const ProgressStep = styled.div<{
     top: 40px;
     width: 2px;
     height: calc(100% + 1rem);
-    background: ${(props) => (props.completed ? "#28a745" : "#e0e0e0")};
+    background: ${(props) => (props.$completed ? "#28a745" : "#e0e0e0")};
     z-index: 1;
   }
 
@@ -171,13 +171,13 @@ const ProgressStep = styled.div<{
   }
 `;
 
-const StepIcon = styled.div<{ completed: boolean; current: boolean }>`
+const StepIcon = styled.div<{ $completed: boolean; $current: boolean }>`
   width: 40px;
   height: 40px;
   border-radius: 50%;
   background: ${(props) => {
-    if (props.completed) return "#28a745";
-    if (props.current) return "#00C2FF";
+    if (props.$completed) return "#28a745";
+    if (props.$current) return "#00C2FF";
     return "#e0e0e0";
   }};
   color: white;
@@ -192,34 +192,34 @@ const StepContent = styled.div`
   flex: 1;
 `;
 
-const StepTitle = styled.h3<{ completed: boolean; current: boolean }>`
+const StepTitle = styled.h3<{ $completed: boolean; $current: boolean }>`
   font-size: 1.1rem;
   font-weight: 600;
   color: ${(props) => {
-    if (props.completed) return "#28a745";
-    if (props.current) return "#00C2FF";
+    if (props.$completed) return "#28a745";
+    if (props.$current) return "#00C2FF";
     return "#666";
   }};
   margin: 0 0 0.25rem 0;
 `;
 
 const StepDescription = styled.p<{
-  completed: boolean;
-  current: boolean;
+  $completed: boolean;
+  $current: boolean;
 }>`
   color: ${(props) => {
-    if (props.completed) return "#28a745";
-    if (props.current) return "#00C2FF";
+    if (props.$completed) return "#28a745";
+    if (props.$current) return "#00C2FF";
     return "#999";
   }};
   margin: 0;
   font-size: 0.9rem;
 `;
 
-const StepTime = styled.div<{ completed: boolean; current: boolean }>`
+const StepTime = styled.div<{ $completed: boolean; $current: boolean }>`
   color: ${(props) => {
-    if (props.completed) return "#28a745";
-    if (props.current) return "#00C2FF";
+    if (props.$completed) return "#28a745";
+    if (props.$current) return "#00C2FF";
     return "#999";
   }};
   font-size: 0.8rem;
@@ -586,21 +586,45 @@ const OrderTrackingPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // In a real app, you would fetch from API
-      // const response = await apiService.getOrder(parseInt(orderId!));
-      // setOrder(response.data);
+      if (orderId) {
+        try {
+          const resp = await apiService.getOrder(parseInt(orderId, 10));
+          const data = (resp as any)?.data?.data || (resp as any)?.data;
+          if (data) {
+            setOrder({
+              order_number: `#${String(data.id || data.order?.id || orderId).padStart(6, "0")}`,
+              status: data.status || "placed",
+              customer_name: data.customer_name,
+              customer_phone: data.customer_phone,
+              customer_email: data.customer_email,
+              delivery_method: data.delivery_method,
+              delivery_address: data.delivery_address,
+              payment_method: data.payment_method || "cash",
+              subtotal: data.subtotal ?? data.total,
+              delivery_charge: data.delivery_charge ?? 0,
+              total: data.total,
+              created_at: data.created_at || new Date().toISOString(),
+              order_items: data.order_items || [],
+              status_updates: data.status_updates || [],
+            });
+            setLoading(false);
+            return;
+          }
+        } catch (_) {
+          // Fall back to mock if API fails
+        }
+      }
 
-      // For now, use mock data
+      // Fallback: mock data
       setTimeout(() => {
         setOrder(mockOrder);
         setLoading(false);
-      }, 1000);
+      }, 600);
     } catch (error) {
-      // console.error('Error fetching order:', error);
       setError("Failed to fetch order details");
       setLoading(false);
     }
-  }, [mockOrder]);
+  }, [mockOrder, orderId]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -778,29 +802,29 @@ const OrderTrackingPage: React.FC = () => {
               {getStatusSteps().map((step) => (
                 <ProgressStep
                   key={step.key}
-                  completed={step.completed}
-                  current={step.current}
+                  $completed={step.completed}
+                  $current={step.current}
                 >
-                  <StepIcon completed={step.completed} current={step.current}>
+                  <StepIcon $completed={step.completed} $current={step.current}>
                     {step.icon}
                   </StepIcon>
                   <StepContent>
                     <StepTitle
-                      completed={step.completed}
-                      current={step.current}
+                      $completed={step.completed}
+                      $current={step.current}
                     >
                       {step.title}
                     </StepTitle>
                     <StepDescription
-                      completed={step.completed}
-                      current={step.current}
+                      $completed={step.completed}
+                      $current={step.current}
                     >
                       {step.description}
                     </StepDescription>
                     {step.timestamp && (
                       <StepTime
-                        completed={step.completed}
-                        current={step.current}
+                        $completed={step.completed}
+                        $current={step.current}
                       >
                         {formatDate(step.timestamp)}
                       </StepTime>

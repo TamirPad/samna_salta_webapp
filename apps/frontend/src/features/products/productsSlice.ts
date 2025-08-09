@@ -39,7 +39,8 @@ export const fetchProducts = createAsyncThunk(
   ) => {
     try {
       const response = await apiService.getProducts(params);
-      return response.data;
+      // Handle cached responses which return raw data instead of AxiosResponse
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -55,7 +56,7 @@ export const fetchCategories = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getCategories();
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -72,7 +73,7 @@ export const createProduct = createAsyncThunk(
   async (productData: Partial<Product>, { rejectWithValue }) => {
     try {
       const response = await apiService.createProduct(productData);
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -91,7 +92,7 @@ export const updateProductAsync = createAsyncThunk(
   ) => {
     try {
       const response = await apiService.updateProduct(id, productData);
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -156,9 +157,8 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.products = Array.isArray(action.payload)
-          ? action.payload
-          : action.payload.data || [];
+        const payloadData = (action.payload as any)?.data ?? action.payload ?? [];
+        state.products = Array.isArray(payloadData) ? payloadData : [];
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.isLoading = false;
@@ -171,9 +171,8 @@ const productsSlice = createSlice({
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.categories = Array.isArray(action.payload)
-          ? action.payload
-          : action.payload.data || [];
+        const payloadData = (action.payload as any)?.data ?? action.payload ?? [];
+        state.categories = Array.isArray(payloadData) ? payloadData : [];
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.isLoading = false;

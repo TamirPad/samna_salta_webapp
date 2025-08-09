@@ -5,6 +5,7 @@ interface UIState {
   sidebarOpen: boolean;
   modalOpen: boolean;
   modalType: string | null;
+  adminView: boolean; // when true, admin sees admin navigation; when false, customer navigation
 }
 
 const initialState: UIState = {
@@ -12,6 +13,7 @@ const initialState: UIState = {
   sidebarOpen: false,
   modalOpen: false,
   modalType: null,
+  adminView: true,
 };
 
 const uiSlice = createSlice({
@@ -38,6 +40,12 @@ const uiSlice = createSlice({
       state.modalOpen = false;
       state.modalType = null;
     },
+    setAdminView: (state, action: PayloadAction<boolean>) => {
+      state.adminView = action.payload;
+    },
+    toggleAdminView: (state) => {
+      state.adminView = !state.adminView;
+    },
   },
 });
 
@@ -48,6 +56,8 @@ export const {
   closeSidebar,
   openModal,
   closeModal,
+  setAdminView,
+  toggleAdminView,
 } = uiSlice.actions;
 
 // Selectors
@@ -59,5 +69,7 @@ export const selectModalOpen = (state: { ui: UIState }): boolean =>
   state.ui.modalOpen;
 export const selectModalType = (state: { ui: UIState }): string | null =>
   state.ui.modalType;
+export const selectAdminView = (state: { ui: UIState }): boolean =>
+  state.ui.adminView;
 
 export default uiSlice.reducer;

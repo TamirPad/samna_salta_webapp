@@ -5,10 +5,12 @@ import { BrowserRouter } from "react-router-dom";
 import { PersistGate } from "redux-persist/integration/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { ThemeProvider } from "styled-components";
 
 import App from "./App";
 import { store, persistor } from "./store";
 import { GlobalStyles } from "./styles/GlobalStyles";
+import theme from "./styles/theme";
 import reportWebVitals from "./utils/webVitals";
 
 // Register service worker for offline support
@@ -49,20 +51,22 @@ root.render(
         <BrowserRouter
           future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
         >
-          <GlobalStyles />
-          <App />
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
+          <ThemeProvider theme={theme}>
+            <GlobalStyles />
+            <App />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+          </ThemeProvider>
         </BrowserRouter>
       </PersistGate>
     </Provider>

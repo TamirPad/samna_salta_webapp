@@ -306,7 +306,7 @@ const Orders: React.FC = () => {
   const loading = useAppSelector(selectOrdersLoading);
   
   // Convert Redux orders to local interface
-  const orders: Order[] = reduxOrders.map((reduxOrder: any) => ({
+  const orders: Order[] = (reduxOrders || []).map((reduxOrder: any) => ({
     id: reduxOrder.id,
     order_number: reduxOrder.order_number,
     customer_name: reduxOrder.customer_name,
@@ -327,23 +327,8 @@ const Orders: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const response = await apiService.getOrders({});
-        
-        // Check if the response is successful
-        if (response && response.data && response.data.success) {
-          // Update the order in the local state
-          dispatch(fetchOrders.fulfilled(response.data, 'orders', { status: undefined, page: undefined, limit: undefined }));
-        } else {
-          // Error handling - console statements removed for clean build
-        }
-      } catch (error: any) {
-        // Error handling - console statements removed for clean build
-      }
-    };
-
-    loadOrders();
+    // Load orders via thunk; reducer will handle setting the list safely
+    dispatch(fetchOrders({}));
   }, [dispatch]);
 
   const getContent = () => {
@@ -423,14 +408,12 @@ const Orders: React.FC = () => {
   const handleStatusChange = async (orderId: number, newStatus: Order['status']) => {
     try {
       const response = await apiService.updateOrderStatus(orderId, newStatus);
-      
-      if (response.success) {
-        // Update the order in the local state
-        dispatch(fetchOrders.fulfilled(response, 'orders', { status: undefined, page: undefined, limit: undefined }));
+      if (response?.data) {
+        // Re-fetch orders after status change
+        dispatch(fetchOrders({}));
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error updating order status:', error);
+      // no-op
     }
   };
 
