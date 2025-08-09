@@ -24,27 +24,55 @@ const Backdrop = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  @media (max-width: 768px) {
+    align-items: flex-end;
+  }
 `;
 
-const Modal = styled.div`
+const Modal = styled.div.attrs({ role: 'dialog', 'aria-modal': true })`
   width: 100%;
   max-width: 560px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   overflow: hidden;
+  max-height: 85vh;
+  @media (max-width: 768px) {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    width: 100%;
+  }
 `;
 
 const Header = styled.div`
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #eee;
   font-weight: 600;
+  position: relative;
+`;
+
+const DragHandle = styled.div`
+  width: 44px;
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  @media (min-width: 769px) {
+    display: none;
+  }
 `;
 
 const Body = styled.div`
   padding: 1rem 1.25rem;
   max-height: 70vh;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  @media (max-width: 768px) {
+    max-height: 65vh;
+  }
 `;
 
 const Footer = styled.div`
@@ -64,6 +92,7 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   background: ${({ $variant, theme }) => ($variant === 'primary' ? theme.colors.primary : '#e5e7eb')};
   color: ${({ $variant }) => ($variant === 'primary' ? '#fff' : '#111827')};
   &:hover { opacity: 0.95; }
+  min-height: 48px;
 `;
 
 const OptionGroup = styled.div`
@@ -183,6 +212,7 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
     <Backdrop onClick={onClose}>
       <Modal onClick={(e) => e.stopPropagation()}>
         <Header>
+          <DragHandle />
           {language === 'he' ? 'התאם את המנה' : 'Customize Item'} — {language === 'he' ? (product.name_he || product.name) : (product.name_en || product.name)}
         </Header>
         <Body>

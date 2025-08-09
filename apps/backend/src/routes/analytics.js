@@ -70,16 +70,19 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
     );
     console.log('⏳ Pending orders result:', pendingOrdersResult.rows[0]);
 
-    // Top selling products
+    // Top selling products (include revenue to avoid NaN on frontend)
     const topProductsResult = await dbQuery(
-      `SELECT p.name, p.name_he, p.name_en, COUNT(oi.id) as order_count, SUM(oi.quantity) as total_quantity
-       FROM products p
-       JOIN order_items oi ON p.id = oi.product_id
-       JOIN orders o ON oi.order_id = o.id
-       WHERE o.created_at >= $1
-       GROUP BY p.id, p.name, p.name_he, p.name_en
-       ORDER BY total_quantity DESC
-       LIMIT 5`,
+      `SELECT p.name, p.name_he, p.name_en,
+              COUNT(oi.id) as order_count,
+              COALESCE(SUM(oi.quantity), 0) as total_quantity,
+              COALESCE(SUM(COALESCE(oi.total_price, (COALESCE(oi.unit_price, p.price) * oi.quantity))), 0) as total_revenue
+         FROM products p
+         JOIN order_items oi ON p.id = oi.product_id
+         JOIN orders o ON oi.order_id = o.id
+        WHERE o.created_at >= $1
+        GROUP BY p.id, p.name, p.name_he, p.name_en
+        ORDER BY total_quantity DESC
+        LIMIT 5`,
       [startOfMonth]
     );
     console.log('🏆 Top products result:', topProductsResult.rows);

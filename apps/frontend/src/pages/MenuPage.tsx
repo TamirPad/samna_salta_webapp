@@ -92,6 +92,12 @@ const FilterSection = styled.div`
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
+    position: sticky;
+    top: calc(env(safe-area-inset-top) + 60px);
+    z-index: 900;
+    border-radius: 0;
+    margin: 0 -1rem 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
   }
 `;
 
@@ -141,7 +147,13 @@ const CategoryFilter = styled.div`
   flex: 1;
 
   @media (max-width: 768px) {
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+    gap: 0.5rem;
+    &::-webkit-scrollbar { display: none; }
   }
 `;
 
@@ -159,6 +171,7 @@ const CategoryButton = styled.button<{ $active: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
@@ -195,9 +208,11 @@ const ProductCard = styled(motion.div)`
   transition: transform 0.3s ease;
   cursor: pointer;
 
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
   }
 
   &:focus-within {
@@ -221,8 +236,10 @@ const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   overflow: hidden;
   transition: all 0.3s ease;
 
-  &:hover {
-    transform: scale(1.02);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.02);
+    }
   }
 `;
 
@@ -317,9 +334,11 @@ const AddToCartButton = styled.button<{ $added?: boolean }>`
   gap: 0.5rem;
   min-height: 44px;
 
-  &:hover {
-    background: ${({ $added, theme }) => ($added ? "#23913b" : theme.colors.primaryDark)};
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ $added, theme }) => ($added ? "#23913b" : theme.colors.primaryDark)};
+      transform: translateY(-1px);
+    }
   }
 
   &:focus {

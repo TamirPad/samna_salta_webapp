@@ -27,56 +27,22 @@ const HeaderContent = styled.div`
   margin: 0 auto;
   padding-left: max(0.75rem, env(safe-area-inset-left));
   padding-right: max(0.75rem, env(safe-area-inset-right));
-  min-height: 56px; /* vertically center children within header */
-  display: grid;
-  grid-template-columns: auto 1fr auto; /* cart | center | burger */
+  min-height: 60px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   position: relative;
 
   @media (min-width: 768px) {
-    display: flex;
-    justify-content: space-between;
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));
     gap: 1rem;
+    min-height: 64px;
   }
 `;
 
-const Logo = styled(Link)`
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: white;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  letter-spacing: 0.2px;
-  grid-column: 2; /* center on mobile */
-  justify-self: center;
-  
-  &:hover {
-    opacity: 0.95;
-  }
-`;
-
-const LogoImage = styled.img`
-  height: 28px;
-  width: 28px;
-  border-radius: 6px;
-  object-fit: cover;
-  display: block;
-  
-  @media (max-width: 768px) {
-    height: 24px;
-    width: 24px;
-  }
-  
-  @media (max-width: 480px) {
-    height: 20px;
-    width: 20px;
-  }
-`;
+/* Logo removed per request to simplify mobile alignment */
 
 const Nav = styled.nav`
   display: none;
@@ -100,8 +66,10 @@ const NavLink = styled(Link)<{ $active: boolean }>`
   font-size: 0.9rem;
   white-space: nowrap;
   
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
   }
 `;
 
@@ -195,9 +163,11 @@ const Button = styled.button`
   align-items: center;
   justify-content: center;
   
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.5);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
   }
   
   @media (max-width: 480px) {
@@ -220,8 +190,8 @@ const MobileMenuButton = styled.button`
   padding: 0.5rem;
   border-radius: 12px;
   transition: all 0.2s;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -232,8 +202,10 @@ const MobileMenuButton = styled.button`
   grid-column: 3;
   justify-self: end;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
   }
 
   @media (min-width: 768px) {
@@ -251,8 +223,8 @@ const MobileCartButton = styled(Link)`
   padding: 0.5rem;
   border-radius: 12px;
   transition: all 0.2s;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -263,8 +235,10 @@ const MobileCartButton = styled(Link)`
   grid-column: 1;
   justify-self: start;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
   }
 
   @media (min-width: 768px) {
@@ -276,7 +250,7 @@ const MobileMenu = styled.div<{ $isOpen: boolean }>`
   display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   flex-direction: column;
   position: fixed;
-  top: 56px;
+  top: 60px;
   left: 0;
   right: 0;
   background: ${({ theme }) => theme.gradients.primary};
@@ -284,7 +258,7 @@ const MobileMenu = styled.div<{ $isOpen: boolean }>`
   gap: 0.5rem;
   box-shadow: ${({ theme }) => theme.shadows.medium};
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  max-height: calc(100vh - 56px);
+  max-height: calc(100vh - 60px);
   overflow-y: auto;
   z-index: 9999;
   width: 100%;
@@ -317,8 +291,10 @@ const MobileNavLink = styled(Link)<{ $active: boolean }>`
   user-select: none;
   position: relative;
   
-  &:hover {
-    background: rgba(255, 255, 255, 0.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
   }
   
   &:active {
@@ -399,9 +375,11 @@ const MobileButton = styled.button`
   touch-action: manipulation;
   user-select: none;
   
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
   }
   
   &:active {
@@ -523,14 +501,7 @@ const Header: React.FC = () => {
   return (
     <HeaderContainer>
       <HeaderContent>
-        {/* Centered brand on mobile between burger and cart */}
-        <Logo to="/home">
-          <LogoImage
-            src={`${process.env.PUBLIC_URL ? process.env.PUBLIC_URL : ''}/logo.svg`}
-            alt={language === 'he' ? 'סמנה וסלתה' : 'Samna Salta'}
-          />
-          {language === 'he' ? 'סמנה וסלתה' : 'Samna Salta'}
-        </Logo>
+        {/* Logo removed */}
 
         <Nav>
           {(showAdminNav ? adminItems : navItems).map((item) => {
@@ -585,11 +556,13 @@ const Header: React.FC = () => {
           )}
         </UserSection>
 
-        {/* Cart aligned to left in mobile */}
-        <MobileCartButton to="/cart" aria-label={language === 'he' ? 'עגלה' : 'Cart'}>
-          🛒
-          {cartCount > 0 && <CartBadge style={{ right: -6, top: -6 }}>{cartCount}</CartBadge>}
-        </MobileCartButton>
+        {/* Cart aligned to left in mobile (customer view only) */}
+        {!showAdminNav && (
+          <MobileCartButton to="/cart" aria-label={language === 'he' ? 'עגלה' : 'Cart'}>
+            🛒
+            {cartCount > 0 && <CartBadge style={{ right: -6, top: -6 }}>{cartCount}</CartBadge>}
+          </MobileCartButton>
+        )}
 
         {/* Burger aligned to right in mobile */}
         <MobileMenuButton 

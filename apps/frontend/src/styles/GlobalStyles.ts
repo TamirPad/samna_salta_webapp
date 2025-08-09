@@ -544,28 +544,6 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  /* iPhone Touch Optimizations */
-  @media (max-width: 428px) {
-    /* Larger touch targets for iPhone */
-    button, a, input, select, textarea {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Prevent text selection on buttons */
-    button {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-    
-    /* Smooth scrolling for iPhone */
-    * {
-      -webkit-overflow-scrolling: touch;
-    }
-  }
-
   /* iPhone Landscape Optimizations */
   @media (max-width: 428px) and (orientation: landscape) {
     .main-content {
@@ -574,6 +552,16 @@ export const GlobalStyles = createGlobalStyle`
     
     .container {
       padding: 0 0.5rem;
+    }
+  }
+
+  /* Reduce motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
     }
   }
 

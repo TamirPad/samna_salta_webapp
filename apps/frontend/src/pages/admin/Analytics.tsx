@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../hooks/redux";
 import { selectAuth } from "../../features/auth/authSlice";
+import { selectLanguage } from "../../features/language/languageSlice";
 import { apiService } from "../../utils/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import {
@@ -191,6 +192,7 @@ const Td = styled.td`
 const AdminAnalytics: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAppSelector(selectAuth);
+  const language = useAppSelector(selectLanguage);
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "sales" | "products" | "customers"
   >("dashboard");
@@ -212,6 +214,78 @@ const AdminAnalytics: React.FC = () => {
   });
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
   const [rangeDays, setRangeDays] = useState<number>(30);
+
+  // Local translations
+  const translations = useMemo(
+    () => ({
+      he: {
+        title: "דשבורד ניתוחים",
+        unauthPrompt: "אנא התחבר כדי לגשת לניתוחים.",
+        unauthCta: "התחבר כדי לגשת לניתוחים",
+        tabs: { dashboard: "דשבורד", sales: "מכירות", products: "מוצרים", customers: "לקוחות" },
+        autoRefresh: "רענון אוטומטי (דקה)",
+        stats: {
+          todaysOrders: "הזמנות היום",
+          todaysRevenue: "הכנסות היום",
+          totalCustomers: "סה\"כ לקוחות",
+          pendingOrders: "הזמנות ממתינות",
+        },
+        charts: {
+          revenue: "הכנסות",
+          orders: "הזמנות",
+          aov: "שווי הזמנה ממוצע",
+          range: "טווח:",
+          topByRevenue: "המובילים לפי הכנסות",
+        },
+        tables: {
+          topSellingProducts: "המוצרים הנמכרים ביותר",
+          product: "מוצר",
+          orders: "הזמנות",
+          revenue: "הכנסות",
+          topCustomers: "לקוחות מובילים",
+          name: "שם",
+          email: "אימייל",
+          newThisPeriod: "חדשים בתקופה",
+        },
+      },
+      en: {
+        title: "Analytics Dashboard",
+        unauthPrompt: "Please login to access analytics.",
+        unauthCta: "Login to Access Analytics",
+        tabs: { dashboard: "Dashboard", sales: "Sales", products: "Products", customers: "Customers" },
+        autoRefresh: "Auto-refresh (1m)",
+        stats: {
+          todaysOrders: "Today's Orders",
+          todaysRevenue: "Today's Revenue",
+          totalCustomers: "Total Customers",
+          pendingOrders: "Pending Orders",
+        },
+        charts: {
+          revenue: "Revenue",
+          orders: "Orders",
+          aov: "Avg Order Value",
+          range: "Range:",
+          topByRevenue: "Top by revenue",
+        },
+        tables: {
+          topSellingProducts: "Top Selling Products",
+          product: "Product",
+          orders: "Orders",
+          revenue: "Revenue",
+          topCustomers: "Top Customers",
+          name: "Name",
+          email: "Email",
+          newThisPeriod: "New This Period",
+        },
+      },
+    }),
+    [],
+  );
+
+  const t = useMemo(
+    () => translations[language as keyof typeof translations],
+    [translations, language],
+  );
 
   const revenueSeries = useMemo(() => {
     const items = Array.isArray(dashboardData?.revenue_by_day) ? dashboardData.revenue_by_day : [];
@@ -365,7 +439,7 @@ const AdminAnalytics: React.FC = () => {
   };
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("he-IL", {
+    return new Intl.NumberFormat(language === "he" ? "he-IL" : "en-US", {
       style: "currency",
       currency: "ILS",
     }).format(amount);
@@ -373,18 +447,16 @@ const AdminAnalytics: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString("he-IL");
+    return new Date(dateString).toLocaleDateString(language === "he" ? "he-IL" : "en-US");
   };
 
   if (!isAuthenticated) {
     return (
       <AuthContainer>
-        <Title>Analytics Dashboard</Title>
-        <p style={{ margin: "1rem 0" }}>Please login to access analytics.</p>
+        <Title>{t.title}</Title>
+        <p style={{ margin: "1rem 0" }}>{t.unauthPrompt}</p>
         <ButtonGroup>
-          <AuthButton onClick={() => navigate("/login")}>
-            Login to Access Analytics
-          </AuthButton>
+          <AuthButton onClick={() => navigate("/login")}>{t.unauthCta}</AuthButton>
         </ButtonGroup>
       </AuthContainer>
     );
@@ -393,7 +465,7 @@ const AdminAnalytics: React.FC = () => {
   return (
     <AnalyticsContainer>
       <Header>
-        <Title>Analytics Dashboard</Title>
+        <Title>{t.title}</Title>
       </Header>
 
       <TabContainer>
@@ -401,25 +473,25 @@ const AdminAnalytics: React.FC = () => {
           $active={activeTab === "dashboard"}
           onClick={() => handleTabChange("dashboard")}
         >
-          Dashboard
+          {t.tabs.dashboard}
         </Tab>
         <Tab
           $active={activeTab === "sales"}
           onClick={() => handleTabChange("sales")}
         >
-          Sales
+          {t.tabs.sales}
         </Tab>
         <Tab
           $active={activeTab === "products"}
           onClick={() => handleTabChange("products")}
         >
-          Products
+          {t.tabs.products}
         </Tab>
         <Tab
           $active={activeTab === "customers"}
           onClick={() => handleTabChange("customers")}
         >
-          Customers
+          {t.tabs.customers}
         </Tab>
       </TabContainer>
 
@@ -433,27 +505,27 @@ const AdminAnalytics: React.FC = () => {
                 <ControlsRow>
                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#666', fontSize: 13 }}>
                     <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
-                    Auto-refresh (1m)
+                    {t.autoRefresh}
                   </label>
                 </ControlsRow>
                 <StatsGrid>
                   <StatCard>
                     <StatValue>{dashboardData?.today?.orders || dashboardData?.today?.count || 0}</StatValue>
-                    <StatLabel>Today&apos;s Orders</StatLabel>
+                    <StatLabel>{t.stats.todaysOrders}</StatLabel>
                   </StatCard>
                   <StatCard>
                     <StatValue>
                       {formatCurrency(dashboardData?.today?.revenue || 0)}
                     </StatValue>
-                    <StatLabel>Today&apos;s Revenue</StatLabel>
+                    <StatLabel>{t.stats.todaysRevenue}</StatLabel>
                   </StatCard>
                   <StatCard>
                     <StatValue>{dashboardData?.customers || dashboardData?.total_customers || 0}</StatValue>
-                    <StatLabel>Total Customers</StatLabel>
+                    <StatLabel>{t.stats.totalCustomers}</StatLabel>
                   </StatCard>
                   <StatCard>
                     <StatValue>{dashboardData?.pendingOrders || dashboardData?.pending_orders || 0}</StatValue>
-                    <StatLabel>Pending Orders</StatLabel>
+                    <StatLabel>{t.stats.pendingOrders}</StatLabel>
                   </StatCard>
                 </StatsGrid>
 
@@ -467,8 +539,8 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={false} name="Revenue" />
-                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name="Orders" />
+                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={false} name={t.charts.revenue} />
+                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name={t.charts.orders} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -482,7 +554,7 @@ const AdminAnalytics: React.FC = () => {
                         <XAxis dataKey="status" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#2563EB" name="Orders" />
+                        <Bar dataKey="count" fill="#2563EB" name={t.charts.orders} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -491,13 +563,13 @@ const AdminAnalytics: React.FC = () => {
                 {dashboardData?.top_products &&
                   dashboardData.top_products.length > 0 && (
                     <TableContainer>
-                      <h3>Top Selling Products</h3>
+                      <h3>{t.tables.topSellingProducts}</h3>
                       <Table>
                         <thead>
                           <tr>
-                            <Th>Product</Th>
-                            <Th>Orders</Th>
-                            <Th>Revenue</Th>
+                            <Th>{t.tables.product}</Th>
+                            <Th>{t.tables.orders}</Th>
+                            <Th>{t.tables.revenue}</Th>
                           </tr>
                         </thead>
                         <tbody>
@@ -514,7 +586,7 @@ const AdminAnalytics: React.FC = () => {
                               <tr key={`product-${index}`}>
                                 <Td>{product.name}</Td>
                                 <Td>{product.order_count}</Td>
-                                <Td>{formatCurrency(product.total_revenue)}</Td>
+                                <Td>{formatCurrency(Number(product.total_revenue || 0))}</Td>
                               </tr>
                             ),
                           )}
@@ -534,7 +606,7 @@ const AdminAnalytics: React.FC = () => {
             ) : (
               <>
                 <ControlsRow>
-                  <span style={{ color: '#666', fontSize: 13 }}>Range:</span>
+                  <span style={{ color: '#666', fontSize: 13 }}>{t.charts.range}</span>
                   <SmallButton $active={rangeDays === 7} onClick={() => setRangeDays(7)}>7d</SmallButton>
                   <SmallButton $active={rangeDays === 30} onClick={() => setRangeDays(30)}>30d</SmallButton>
                   <SmallButton $active={rangeDays === 90} onClick={() => setRangeDays(90)}>90d</SmallButton>
@@ -549,8 +621,8 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={false} name="Revenue" />
-                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name="Orders" />
+                        <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={false} name={t.charts.revenue} />
+                        <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#28a745" strokeWidth={2} dot={false} name={t.charts.orders} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -564,7 +636,7 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="aov" fill="#ff7f50" name="Avg Order Value" />
+                        <Bar dataKey="aov" fill="#ff7f50" name={t.charts.aov} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -581,7 +653,7 @@ const AdminAnalytics: React.FC = () => {
             ) : (
               <>
                 <ControlsRow>
-                  <span style={{ color: '#666', fontSize: 13 }}>Top by revenue</span>
+                  <span style={{ color: '#666', fontSize: 13 }}>{t.charts.topByRevenue}</span>
                 </ControlsRow>
                 <ChartContainer>
                   <div style={{ width: '100%', height: 320 }}>
@@ -592,7 +664,7 @@ const AdminAnalytics: React.FC = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip formatter={(v: any) => formatCurrency(Number(v) || 0)} />
                         <Legend />
-                        <Bar dataKey="total_revenue" fill="#3B82F6" name="Revenue" />
+                        <Bar dataKey="total_revenue" fill="#3B82F6" name={t.charts.revenue} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -626,23 +698,23 @@ const AdminAnalytics: React.FC = () => {
                 <StatsGrid>
                   <StatCard>
                     <StatValue>{customerSummary?.total_customers || 0}</StatValue>
-                    <StatLabel>Total Customers</StatLabel>
+                    <StatLabel>{t.stats.totalCustomers}</StatLabel>
                   </StatCard>
                   <StatCard>
                     <StatValue>{customerSummary?.new_customers || 0}</StatValue>
-                    <StatLabel>New This Period</StatLabel>
+                    <StatLabel>{t.tables.newThisPeriod}</StatLabel>
                   </StatCard>
                 </StatsGrid>
                 {topCustomers && topCustomers.length > 0 && (
                   <TableContainer>
-                    <h3>Top Customers</h3>
+                    <h3>{t.tables.topCustomers}</h3>
                     <Table>
                       <thead>
                         <tr>
-                          <Th>Name</Th>
-                          <Th>Email</Th>
-                          <Th>Orders</Th>
-                          <Th>Revenue</Th>
+                          <Th>{t.tables.name}</Th>
+                          <Th>{t.tables.email}</Th>
+                          <Th>{t.tables.orders}</Th>
+                          <Th>{t.tables.revenue}</Th>
                         </tr>
                       </thead>
                       <tbody>
