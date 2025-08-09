@@ -249,7 +249,6 @@ const LoginPage: React.FC = () => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isAuthenticated, user } = useAppSelector(selectAuth);
   const language = useAppSelector(selectLanguage);
 
@@ -295,6 +294,13 @@ const LoginPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Guest-only guard: redirect authenticated users away from login
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.isAdmin ? '/admin' : '/home', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleDemoAdmin = () => {
     setEmail('admin@sammasalta.com');
@@ -402,6 +408,13 @@ const LoginPage: React.FC = () => {
                 content.login
               )}
             </LoginButton>
+
+            <ActionsRow>
+              <span />
+              <SmallLink type="button" onClick={() => navigate('/register')}>
+                {language === 'he' ? 'אין לך חשבון? הרשמה' : "Don't have an account? Register"}
+              </SmallLink>
+            </ActionsRow>
 
             <DemoButtonsRow>
               <DemoButton type="button" onClick={handleDemoAdmin} disabled={loading}>

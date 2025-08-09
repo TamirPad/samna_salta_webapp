@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../hooks/redux';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { selectLanguage } from '../features/language/languageSlice';
 import { apiService } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { t } from '../utils/i18n';
+import { loginStart, loginSuccess, loginFailure, selectAuth } from '../features/auth/authSlice';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -43,24 +44,76 @@ const Submit = styled.button`
   border-radius: ${({ theme }) => theme.borderRadius.medium};
 `;
 
+const ActionsRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+`;
+
+const SmallLink = styled.button`
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.textLight};
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+`;
+
 const RegisterPage: React.FC = () => {
   const language = useAppSelector(selectLanguage);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector(selectAuth);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Redirect authenticated users away from register (guest-only guard)
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.isAdmin ? '/admin' : '/home', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      await apiService.register({ name, email, password });
-      navigate('/login');
+      dispatch(loginStart());
+      const response = await apiService.register({ name, email, password, phone: phone || undefined });
+      const payload = (response as any)?.data?.data || (response as any)?.data;
+
+      if (payload && payload.user && payload.token) {
+        const { user, token } = payload;
+
+        // Persist auth state
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        // Prime profile (creates if missing)
+        try { await apiService.getProfile(); } catch (_) {}
+
+        dispatch(loginSuccess(user));
+
+        // Redirect based on role
+        if (user.isAdmin) {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/home', { replace: true });
+        }
+      } else {
+        throw new Error((response as any)?.data?.message || 'Registration failed');
+      }
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Registration failed');
+      const errorMessage = err?.response?.data?.error || err?.message || 'Registration failed';
+      setError(errorMessage);
+      dispatch(loginFailure(errorMessage));
     } finally {
       setLoading(false);
     }
@@ -81,12 +134,21 @@ const RegisterPage: React.FC = () => {
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div>
+            <Label htmlFor="phone">{language === 'he' ? 'טלפון (אופציונלי)' : 'Phone (optional)'}</Label>
+            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div>
             <Label htmlFor="password">{t('password', language)}</Label>
             <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <Submit type="submit" disabled={loading}>
             {loading ? <LoadingSpinner size="small" text="" /> : t('register', language)}
           </Submit>
+          <ActionsRow>
+            <SmallLink type="button" onClick={() => navigate('/login')}>
+              {language === 'he' ? 'כבר יש לך חשבון? התחבר/י' : 'Already have an account? Sign in'}
+            </SmallLink>
+          </ActionsRow>
         </Form>
       </Card>
     </Container>

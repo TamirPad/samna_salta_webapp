@@ -12,7 +12,7 @@ import styled from 'styled-components';
 const HeaderContainer = styled.header`
   background: ${({ theme }) => theme.gradients.primary};
   color: white;
-  padding: 0.5rem 0; /* tighter header for mobile */
+  padding: 0; /* remove vertical padding so inner content can center perfectly */
   box-shadow: ${({ theme }) => theme.shadows.small};
   position: sticky;
   top: 0;
@@ -27,8 +27,9 @@ const HeaderContent = styled.div`
   margin: 0 auto;
   padding-left: max(0.75rem, env(safe-area-inset-left));
   padding-right: max(0.75rem, env(safe-area-inset-right));
+  min-height: 56px; /* vertically center children within header */
   display: grid;
-  grid-template-columns: auto 1fr auto; /* burger | center | cart */
+  grid-template-columns: auto 1fr auto; /* cart | center | burger */
   align-items: center;
   gap: 0.5rem;
   position: relative;
@@ -228,8 +229,8 @@ const MobileMenuButton = styled.button`
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
-  grid-column: 1;
-  justify-self: start;
+  grid-column: 3;
+  justify-self: end;
 
   &:hover {
     background: rgba(255, 255, 255, 0.18);
@@ -259,8 +260,8 @@ const MobileCartButton = styled(Link)`
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
-  grid-column: 3;
-  justify-self: end;
+  grid-column: 1;
+  justify-self: start;
 
   &:hover {
     background: rgba(255, 255, 255, 0.18);
@@ -584,13 +585,13 @@ const Header: React.FC = () => {
           )}
         </UserSection>
 
-        {/* Cart aligned to right in mobile */}
+        {/* Cart aligned to left in mobile */}
         <MobileCartButton to="/cart" aria-label={language === 'he' ? 'עגלה' : 'Cart'}>
           🛒
           {cartCount > 0 && <CartBadge style={{ right: -6, top: -6 }}>{cartCount}</CartBadge>}
         </MobileCartButton>
 
-        {/* Burger aligned to left in mobile */}
+        {/* Burger aligned to right in mobile */}
         <MobileMenuButton 
           onClick={toggleMobileMenu}
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
