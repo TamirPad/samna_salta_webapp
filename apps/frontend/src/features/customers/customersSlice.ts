@@ -65,7 +65,7 @@ export const fetchCustomers = createAsyncThunk(
   ) => {
     try {
       const response = await apiService.getCustomers(params);
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -82,7 +82,7 @@ export const fetchCustomerDetails = createAsyncThunk(
   async (customerId: string, { rejectWithValue }) => {
     try {
       const response = await apiService.getCustomer(parseInt(customerId));
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -105,7 +105,7 @@ export const updateCustomer = createAsyncThunk(
         parseInt(id),
         customerData,
       );
-      return response.data;
+      return (response as any)?.data ?? response;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error && "response" in error
@@ -164,8 +164,9 @@ const customersSlice = createSlice({
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.customers = action.payload.data;
-        state.pagination = action.payload.pagination;
+        const payload = (action.payload as any) ?? {};
+        state.customers = payload.data || [];
+        state.pagination = payload.pagination || state.pagination;
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
         state.isLoading = false;
@@ -178,7 +179,8 @@ const customersSlice = createSlice({
       })
       .addCase(fetchCustomerDetails.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.selectedCustomer = action.payload.data;
+        const payload = (action.payload as any) ?? {};
+        state.selectedCustomer = payload.data || null;
       })
       .addCase(fetchCustomerDetails.rejected, (state, action) => {
         state.isLoading = false;
@@ -192,7 +194,7 @@ const customersSlice = createSlice({
       .addCase(updateCustomer.fulfilled, (state, action) => {
         state.isLoading = false;
         // Update the customer in the list
-        const updatedCustomer = action.payload.data;
+        const updatedCustomer = (action.payload as any)?.data ?? action.payload;
         const index = state.customers.findIndex(
           (c) => c.id === updatedCustomer.id,
         );

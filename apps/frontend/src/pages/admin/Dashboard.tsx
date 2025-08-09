@@ -74,6 +74,10 @@ const RecentActivity = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const ActivityTitle = styled.h2`
@@ -92,41 +96,71 @@ const ActivityList = styled.div`
 const ActivityItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 0.875rem;
   background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #00C2FF;
+  border-radius: 12px;
+  border-inline-start: 4px solid #00C2FF;
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  /* RTL: move the accent border to the other side */
+  [dir='rtl'] & {
+    border-inline-start: none;
+    border-inline-end: 4px solid #00C2FF;
+  }
 `;
 
 const ActivityIcon = styled.div`
   font-size: 1.5rem;
+  flex-shrink: 0;
+  min-width: 1.5rem;
+  text-align: center;
 `;
 
 const ActivityContent = styled.div`
   flex: 1;
+  min-width: 0; /* allow ellipsis */
 `;
 
 const ActivityItemTitle = styled.div`
-  font-weight: 600;
+  font-weight: 700;
   color: #2c3e50;
   margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ActivityDescription = styled.div`
   color: #666;
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ActivityTime = styled.div`
   color: #999;
   font-size: 0.8rem;
+  white-space: nowrap;
+  margin-inline-start: auto;
+  flex-shrink: 0;
 `;
 
 const QuickActions = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const ActionButton = styled.button`
@@ -143,6 +177,7 @@ const ActionButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: 48px;
   
   &:hover {
     background: #0077CC;

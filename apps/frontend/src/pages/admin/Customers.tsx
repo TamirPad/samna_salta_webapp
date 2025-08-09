@@ -438,32 +438,11 @@ const AdminCustomers: React.FC = () => {
     [translations, language],
   );
 
-  // Load customers
+  // Load customers via thunk to ensure consistent state shape and loading flags
   useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        // Fetch customers data directly and dispatch to Redux
-        const response = await apiService.getCustomers({ 
-          page: currentPage, 
-          limit: 20, 
-          search: searchTerm 
-        });
-        
-        if (response.success) {
-          // Dispatch to Redux store with the response data
-          dispatch(fetchCustomers.fulfilled(response, 'customers', { 
-            page: currentPage, 
-            limit: 20, 
-            search: searchTerm 
-          }));
-        }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error loading customers:', error);
-      }
-    };
-
-    loadCustomers();
+    dispatch(
+      fetchCustomers({ page: currentPage, limit: 20, search: searchTerm }) as any,
+    );
   }, [currentPage, searchTerm, dispatch]);
 
   // Clear error when component unmounts
