@@ -13,6 +13,7 @@ import {
 } from "../features/products/productsSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { debounce } from "../utils/performance";
+import { apiService } from "../utils/api";
 import { Product, Category } from "../types";
 import { toast } from "react-toastify";
 
@@ -360,6 +361,7 @@ const MenuPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [lastAddedId, setLastAddedId] = useState<number | null>(null);
+  const [optionsByProduct, setOptionsByProduct] = useState<Record<number, any[]>>({});
 
   // Fetch products and categories on component mount
   useEffect(() => {
@@ -482,7 +484,30 @@ const MenuPage: React.FC = () => {
 
   // Memoized handlers
   const handleAddToCart = useCallback(
-    (product: Product) => {
+    async (product: Product) => {
+      // Fetch options if available, pick defaults (first available per option)
+      let description: string | undefined;
+      try {
+        const cached = optionsByProduct[product.id];
+        const respData = cached
+          ? cached
+          : (((await apiService.getProductOptions(product.id)) as any)?.data?.data || []);
+        if (!cached) {
+          setOptionsByProduct((prev) => ({ ...prev, [product.id]: respData }));
+        }
+        if (Array.isArray(respData) && respData.length > 0) {
+          const parts: string[] = [];
+          for (const o of respData) {
+            const values = (o.values || []).filter((v: any) => v.is_available !== false);
+            const picked = values.slice(0, o.max_selections || 1);
+            if (picked.length > 0) {
+              parts.push(`${o.name}: ${picked.map((v: any) => v.name).join(', ')}`);
+            }
+          }
+          if (parts.length > 0) description = parts.join(' | ');
+        }
+      } catch {}
+
       dispatch(
         addToCart({
           id: product.id.toString(),
@@ -490,23 +515,22 @@ const MenuPage: React.FC = () => {
             language === "he"
               ? product.name_he || product.name
               : product.name_en || product.name,
-          price: product.price,
+          price: Number(product.price),
           quantity: 1,
           image: product.image_url || product.image || "",
           category: product.category?.name || "",
+          description,
         }),
       );
 
-      // Visual feedback on button
       setLastAddedId(product.id);
       window.setTimeout(() => setLastAddedId((prev) => (prev === product.id ? null : prev)), 900);
 
-      // Toast feedback
       const addedText = language === "he" ? "נוסף לעגלה" : "Added to cart";
       const nameText = language === "he" ? (product.name_he || product.name) : (product.name_en || product.name);
       toast.success(`${nameText} — ${addedText}`, { autoClose: 1200 });
     },
-    [dispatch, language],
+    [dispatch, language, optionsByProduct],
   );
 
   const handleCategoryChange = useCallback((categoryId: number) => {

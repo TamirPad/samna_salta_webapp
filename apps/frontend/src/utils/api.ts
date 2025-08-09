@@ -400,6 +400,7 @@ export const apiService: ApiService = {
     }),
 
   getProduct: (id: number) => api.get(`/products/${id}`),
+  getProductOptions: (id: number) => api.get(`/products/${id}/options`),
 
   createProduct: (productData: unknown) => api.post("/products", productData),
 
