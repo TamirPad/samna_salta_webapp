@@ -162,9 +162,9 @@ router.get('/', [
     try {
       const cacheKey = `products:${category || 'all'}:${search || 'none'}:${page}:${limit}`;
       await setCache(cacheKey, result.rows, 300);
+      res.setHeader('Cache-Control', 'public, max-age=120');
     } catch (error) {
       // Cache not available, continue without it
-      console.log('💡 Cache not available, skipping cache set');
       logger.debug('Cache not available, skipping cache set');
     }
 

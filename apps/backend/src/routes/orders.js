@@ -433,7 +433,16 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
   body('status').isIn(['pending', 'confirmed', 'preparing', 'ready', 'delivering', 'delivered', 'cancelled']).withMessage('Invalid status'),
   body('description').optional().isString()
 ], async (req, res) => {
-  const client = await getClient();
+  let client;
+  try {
+    client = await getClient();
+  } catch (e) {
+    return res.status(503).json({
+      success: false,
+      error: 'Database unavailable',
+      message: 'Cannot update order status while database is unavailable'
+    });
+  }
 
   try {
     const errors = validationResult(req);
@@ -503,7 +512,7 @@ router.patch('/:id/status', authenticateToken, requireAdmin, [
       message: 'Internal server error'
     });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
@@ -584,7 +593,16 @@ router.post('/:id/confirm-payment', async (req, res) => {
 router.post('/:id/cancel', authenticateToken, requireAdmin, [
   body('reason').optional().isString()
 ], async (req, res) => {
-  const client = await getClient();
+  let client;
+  try {
+    client = await getClient();
+  } catch (e) {
+    return res.status(503).json({
+      success: false,
+      error: 'Database unavailable',
+      message: 'Cannot cancel order while database is unavailable'
+    });
+  }
 
   try {
     const {id} = req.params;
@@ -658,7 +676,7 @@ router.post('/:id/cancel', authenticateToken, requireAdmin, [
       message: 'Internal server error'
     });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
