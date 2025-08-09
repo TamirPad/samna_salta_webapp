@@ -38,6 +38,8 @@ export interface ApiServiceInterface {
   getCustomer: (id: number) => Promise<any>;
   updateCustomer: (id: number, customerData: any) => Promise<any>;
   deleteCustomer: (id: number) => Promise<any>;
+  // Product options
+  getProductOptions: (id: number) => Promise<any>;
 
   // Analytics
   getDashboardAnalytics: () => Promise<any>;
@@ -154,6 +156,11 @@ export class EnhancedApiService implements ApiServiceInterface {
 
   async deleteCustomer(id: number) {
     return apiService.deleteCustomer(id);
+  }
+
+  // Product options
+  async getProductOptions(id: number) {
+    return apiService.get(`/products/${id}/options` as any);
   }
 
   // Analytics methods

@@ -8,12 +8,55 @@ if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, {recursive: true});
 }
 
+// Redaction helper
+const redact = (value) => {
+  if (typeof value !== 'string') return value;
+  // Mask emails
+  const emailMasked = value.replace(/([\w._%+-])([\w._%+-]*)(@[^\s]+)/g, (_, a, b, c) => `${a}${b ? '***' : ''}${c}`);
+  // Mask long tokens
+  const tokenMasked = emailMasked.replace(/(Bearer\s+)?([A-Za-z0-9-_]{10,})/g, (m, p1, p2) => `${p1 || ''}${p2.slice(0,4)}***`);
+  return tokenMasked;
+};
+
+const sanitizeMeta = (meta) => {
+  try {
+    const clone = JSON.parse(JSON.stringify(meta));
+    const keysToMask = ['password', 'token', 'authorization', 'auth', 'jwt', 'secret'];
+    for (const key of Object.keys(clone)) {
+      if (keysToMask.includes(key.toLowerCase())) {
+        clone[key] = '***';
+      } else if (typeof clone[key] === 'string') {
+        clone[key] = redact(clone[key]);
+      }
+    }
+    if (clone.headers) {
+      for (const hk of Object.keys(clone.headers)) {
+        if (['authorization', 'cookie', 'set-cookie'].includes(hk.toLowerCase())) {
+          clone.headers[hk] = '***';
+        } else if (typeof clone.headers[hk] === 'string') {
+          clone.headers[hk] = redact(clone.headers[hk]);
+        }
+      }
+    }
+    return clone;
+  } catch {
+    return meta;
+  }
+};
+
 // Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({
     format: 'YYYY-MM-DD HH:mm:ss'
   }),
   winston.format.errors({stack: true}),
+  winston.format((info) => {
+    const { message, stack, ...rest } = info;
+    info.message = typeof message === 'string' ? redact(message) : message;
+    if (stack) info.stack = redact(stack);
+    Object.assign(info, sanitizeMeta(rest));
+    return info;
+  })(),
   winston.format.json()
 );
 

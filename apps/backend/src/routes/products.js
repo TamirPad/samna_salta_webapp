@@ -709,3 +709,35 @@ router.post('/upload', authenticateToken, requireAdmin, upload.single('image'), 
     return res.status(500).json({ success: false, error: 'Upload failed' });
   }
 });
+
+// Get product options and values (public)
+router.get('/:id/options', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const optionsResult = await dbQuery(
+      `SELECT id, name, name_en, name_he, is_required, max_selections, display_order
+         FROM product_options WHERE product_id = $1 ORDER BY display_order ASC, id ASC`,
+      [id]
+    );
+    const optionIds = optionsResult.rows.map(o => o.id);
+    let values = [];
+    if (optionIds.length > 0) {
+      const valuesResult = await dbQuery(
+        `SELECT id, option_id, name, name_en, name_he, price_adjustment, is_available, display_order
+           FROM product_option_values WHERE option_id = ANY($1::int[]) ORDER BY display_order ASC, id ASC`,
+        [optionIds]
+      );
+      values = valuesResult.rows;
+    }
+    const byOption = new Map(optionsResult.rows.map(o => [o.id, []]));
+    for (const v of values) {
+      if (!byOption.has(v.option_id)) byOption.set(v.option_id, []);
+      byOption.get(v.option_id).push(v);
+    }
+    const payload = optionsResult.rows.map(o => ({ ...o, values: byOption.get(o.id) || [] }));
+    return res.json({ success: true, data: payload });
+  } catch (error) {
+    logger.error('Get product options error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch product options' });
+  }
+});

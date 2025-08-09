@@ -416,7 +416,7 @@ const MenuPage: React.FC = () => {
     if (!products || !Array.isArray(products) || products.length === 0) {
       return [];
     }
-    return products;
+    return products.map((p: any) => ({ ...p, price: Number(p.price) }));
   }, [products]);
 
   const displayCategories = useMemo((): Category[] => {

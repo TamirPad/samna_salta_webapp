@@ -53,12 +53,16 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = error.statusCode || err.statusCode || err.status || 500;
   const message = error.message || 'Server Error';
 
-  // Send error response
-  res.status(statusCode).json({
+  // Send standardized error response
+  const response = {
     success: false,
     error: message,
-    timestamp: new Date().toISOString()
-  });
+    timestamp: new Date().toISOString(),
+  };
+  if (process.env.NODE_ENV !== 'production') {
+    response.details = err.details || undefined;
+  }
+  res.status(statusCode).json(response);
 };
 
 module.exports = {errorHandler};
