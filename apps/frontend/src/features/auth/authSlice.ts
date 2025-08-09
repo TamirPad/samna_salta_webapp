@@ -47,18 +47,9 @@ export const initializeAuth = createAsyncThunk(
         return { user: null, isAuthenticated: false };
       }
 
-      // Check if we already have valid user data in localStorage
-      try {
-        const parsedUser = JSON.parse(userData);
-        if (parsedUser && parsedUser.isAdmin) {
-          // eslint-disable-next-line no-console
-          console.log("🔍 Using cached admin user data:", parsedUser);
-          return { user: parsedUser, isAuthenticated: true };
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log("🔍 Failed to parse cached user data, validating with backend");
-      }
+      // Always validate with backend to prevent stale roles/users
+      // eslint-disable-next-line no-console
+      console.log("🔍 Validating token with backend (no local admin shortcut)...");
 
       // eslint-disable-next-line no-console
       console.log("🔍 Attempting to validate token with backend...");

@@ -711,19 +711,28 @@ router.get('/my', authenticateToken, async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
 
+    // Resolve customer by user or email
+    let customerId = null;
+    try {
+      const c = await dbQuery('SELECT id FROM customers WHERE email = (SELECT email FROM users WHERE id = $1) OR id = $2', [req.user.id, req.user.id]);
+      if (c.rows.length > 0) customerId = c.rows[0].id;
+    } catch {}
+
     const result = await dbQuery(
       `SELECT o.*
        FROM orders o
-       WHERE o.customer_id = $1 OR o.customer_email = (SELECT email FROM users WHERE id = $1)
+       WHERE ($1::int IS NOT NULL AND o.customer_id = $1)
+          OR ($2::text IS NOT NULL AND o.customer_email = $2)
        ORDER BY o.created_at DESC
-       LIMIT $2 OFFSET $3`,
-      [req.user.id, limit, offset]
+       LIMIT $3 OFFSET $4`,
+      [customerId, req.user.email || null, limit, offset]
     );
 
     const countResult = await dbQuery(
       `SELECT COUNT(*) as total FROM orders
-       WHERE customer_id = $1 OR customer_email = (SELECT email FROM users WHERE id = $1)`,
-      [req.user.id]
+       WHERE ($1::int IS NOT NULL AND customer_id = $1)
+          OR ($2::text IS NOT NULL AND customer_email = $2)`,
+      [customerId, req.user.email || null]
     );
 
     res.json({
@@ -732,8 +741,8 @@ router.get('/my', authenticateToken, async (req, res) => {
       pagination: {
         page,
         limit,
-        total: parseInt(countResult.rows[0].total),
-        pages: Math.ceil(parseInt(countResult.rows[0].total) / limit)
+        total: parseInt(countResult.rows[0].total || 0),
+        pages: Math.ceil(parseInt(countResult.rows[0].total || 0) / limit)
       }
     });
   } catch (error) {
