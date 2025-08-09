@@ -6,6 +6,7 @@ import { apiService } from '../../utils/api';
 import { selectLanguage } from '../../features/language/languageSlice';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 interface Order {
   id: number;
@@ -53,22 +54,7 @@ const OrdersSubtitle = styled.p`
   font-size: 1.1rem;
 `;
 
-const HeaderActions = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.75rem;
-`;
-
-const SmallBtn = styled.button`
-  padding: 0.45rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #e1e5e9;
-  background: white;
-  color: #333;
-  cursor: pointer;
-  font-size: 0.9rem;
-`;
+// Removed Export CSV button and related header actions
 
 const FiltersContainer = styled.div`
   display: flex;
@@ -106,6 +92,7 @@ const OrderCard = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.3s;
+  cursor: pointer;
   
   &:hover {
     transform: translateY(-2px);
@@ -319,6 +306,7 @@ const EmptyIcon = styled.div`
 const Orders: React.FC = () => {
   const language = useAppSelector(selectLanguage);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   
   // Use Redux selectors instead of local state
   const reduxOrders = useAppSelector(selectOrders);
@@ -450,15 +438,6 @@ const Orders: React.FC = () => {
       <OrdersHeader>
         <OrdersTitle>{content.title}</OrdersTitle>
         <OrdersSubtitle>{content.subtitle}</OrdersSubtitle>
-        <HeaderActions>
-          <SmallBtn onClick={() => {
-            const base = (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : (window.location.origin + '/api'));
-            const params = new URLSearchParams();
-            if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
-            const url = `${base}/orders/export.csv?${params.toString()}`;
-            window.open(url, '_blank');
-          }}>Export CSV</SmallBtn>
-        </HeaderActions>
       </OrdersHeader>
 
       <FiltersContainer>
@@ -481,7 +460,17 @@ const Orders: React.FC = () => {
       ) : (
         <OrdersGrid>
           {filteredOrders.map((order) => (
-            <OrderCard key={order.id}>
+            <OrderCard
+              key={order.id}
+              onClick={() => navigate(`/order/${order.id}`)}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/order/${order.id}`);
+                }
+              }}
+            >
               <OrderHeader>
                 <OrderInfo>
                   <OrderId>#{order.id || order.order_number}</OrderId>
@@ -527,7 +516,7 @@ const Orders: React.FC = () => {
                 {order.status === 'pending' && (
                   <ActionButton
                     $variant="primary"
-                    onClick={() => handleStatusChange(order.id, 'confirmed')}
+                    onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, 'confirmed'); }}
                   >
                     {content.actions.confirm}
                   </ActionButton>
@@ -535,7 +524,7 @@ const Orders: React.FC = () => {
                 {order.status === 'confirmed' && (
                   <ActionButton
                     $variant="primary"
-                    onClick={() => handleStatusChange(order.id, 'preparing')}
+                    onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, 'preparing'); }}
                   >
                     {content.actions.prepare}
                   </ActionButton>
@@ -543,7 +532,7 @@ const Orders: React.FC = () => {
                 {order.status === 'preparing' && (
                   <ActionButton
                     $variant="primary"
-                    onClick={() => handleStatusChange(order.id, 'ready')}
+                    onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, 'ready'); }}
                   >
                     {content.actions.ready}
                   </ActionButton>
@@ -551,7 +540,7 @@ const Orders: React.FC = () => {
                 {order.status === 'ready' && (
                   <ActionButton
                     $variant="primary"
-                    onClick={() => handleStatusChange(order.id, 'delivering')}
+                    onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, 'delivering'); }}
                   >
                     {content.actions.outForDelivery}
                   </ActionButton>
@@ -559,7 +548,7 @@ const Orders: React.FC = () => {
                 {order.status === 'delivering' && (
                   <ActionButton
                     $variant="primary"
-                    onClick={() => handleStatusChange(order.id, 'delivered')}
+                    onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, 'delivered'); }}
                   >
                     {content.actions.deliver}
                   </ActionButton>
@@ -567,7 +556,7 @@ const Orders: React.FC = () => {
                 {order.status !== 'delivered' && order.status !== 'cancelled' && (
                   <ActionButton
                     $variant="danger"
-                    onClick={() => handleStatusChange(order.id, 'cancelled')}
+                    onClick={(e) => { e.stopPropagation(); handleStatusChange(order.id, 'cancelled'); }}
                   >
                     {content.actions.cancel}
                   </ActionButton>
