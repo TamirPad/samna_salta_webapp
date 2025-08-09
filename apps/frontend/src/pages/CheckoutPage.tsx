@@ -426,6 +426,7 @@ const CheckoutPage: React.FC = () => {
         ...prev,
         customer_name: user.name || prev.customer_name,
         customer_email: user.email || prev.customer_email,
+        customer_phone: user.phone || prev.customer_phone,
       }));
     }
   }, [user]);
@@ -694,6 +695,7 @@ const CheckoutPage: React.FC = () => {
                         handleInputChange("customer_phone", e.target.value)
                       }
                       className={errors["customer_phone"] ? "error" : ""}
+                      disabled={Boolean(isAuthenticated && user?.phone)}
                     />
                     {errors["customer_phone"] && (
                       <ErrorMessage>{errors["customer_phone"]}</ErrorMessage>
