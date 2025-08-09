@@ -36,7 +36,7 @@ async function issueTokens(res, user) {
   const refreshToken = generateRefreshToken({ userId: user.id, sessionId, jti: refreshJti });
 
   try {
-    await setSession(`user:${user.id}:session:${sessionId}`, { userId: user.id }, REFRESH_TOKEN_TTL_SEC);
+    await setSession(sessionId, { userId: user.id }, REFRESH_TOKEN_TTL_SEC);
     await setCache(`refresh:${user.id}:${sessionId}:${refreshJti}`, true, REFRESH_TOKEN_TTL_SEC);
   } catch {}
 

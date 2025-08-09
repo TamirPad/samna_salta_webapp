@@ -27,8 +27,7 @@ const authenticateToken = async (req, res, next) => {
 
     // Optional: session validation if present in store
     try {
-      const key = `user:${req.user.id}:session:${req.user.sessionId}`;
-      const active = await getSession(key);
+      const active = await getSession(req.user.sessionId);
       if (!active) {
         return res.status(401).json({ success: false, error: 'Session revoked', message: 'Please login again' });
       }
