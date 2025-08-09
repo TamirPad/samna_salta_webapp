@@ -6,7 +6,7 @@ const {v4: uuidv4} = require('uuid');
 const rateLimit = require('express-rate-limit');
 
 const {query} = require('../config/database');
-const { setSession, deleteSession, setCache, getCache, deleteCache } = require('../config/redis');
+const { setSession, getSession, deleteSession, setCache, getCache, deleteCache } = require('../config/redis');
 const {authenticateToken} = require('../middleware/auth');
 const logger = require('../utils/logger');
 
@@ -392,7 +392,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
     logger.info('User logged out successfully:', {userId: req.user.id});
     // Revoke session
     if (req.user && req.user.sessionId) {
-      try { await deleteSession(`user:${req.user.id}:session:${req.user.sessionId}`); } catch {}
+      try { await deleteSession(req.user.sessionId); } catch {}
     }
     // Revoke current refresh token if present
     try {
@@ -510,7 +510,7 @@ router.post('/refresh', async (req, res) => {
     }
     // Validate session still active
     try {
-      const sess = await getCache(`user:${userId}:session:${sessionId}`);
+      const sess = await getSession(sessionId);
       if (!sess) {
         return res.status(401).json({ success: false, error: 'Session expired' });
       }
