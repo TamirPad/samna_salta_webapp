@@ -1,6 +1,8 @@
 const express = require('express');
 const {body, validationResult, query} = require('express-validator');
 const {authenticateToken, requireAdmin, optionalAuth} = require('../middleware/auth');
+// Fallback no-op middleware if optionalAuth is undefined (e.g., tests may mock only subset)
+const optionalAuthSafe = typeof optionalAuth === 'function' ? optionalAuth : (_req, _res, next) => next();
 const {query: dbQuery, getClient, isInDevelopmentMode} = require('../config/database');
 const logger = require('../utils/logger');
 
@@ -115,7 +117,7 @@ const buildInvoiceHtml = (order, items, options = {}) => {
 };
 
 // Create order (public)
-router.post('/', optionalAuth, validateOrder, async (req, res) => {
+router.post('/', optionalAuthSafe, validateOrder, async (req, res) => {
   try {
     // Reject creation if DB is not available; do not generate non-DB IDs
     if (isInDevelopmentMode && typeof isInDevelopmentMode === 'function' && isInDevelopmentMode()) {
@@ -245,14 +247,14 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
     // Create order
     const orderResult = await client.query(
       `INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_email,
-       order_type, delivery_address, delivery_instructions, payment_method,
-       subtotal, delivery_charge, total, created_at, updated_at)
+       order_type, delivery_address, delivery_instructions, subtotal, delivery_charge, payment_method, total,
+       created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
        RETURNING *`,
       [
         orderNumber, customerId, customer_name, customer_phone, customer_email,
-        resolvedOrderType, delivery_address, delivery_instructions, payment_method,
-        computedSubtotal, deliveryCharge, computedTotal
+        resolvedOrderType, delivery_address, delivery_instructions, computedSubtotal, deliveryCharge,
+        payment_method, computedTotal
       ]
     );
 

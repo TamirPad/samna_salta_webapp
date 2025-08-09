@@ -27,6 +27,14 @@ const handleWebhook = async (req, res) => {
   }
 
   try {
+    // Idempotency: skip if event already processed
+    const { getCache, setCache } = require('../config/redis');
+    const processedKey = `stripe:event:${event.id}`;
+    const processed = await getCache(processedKey);
+    if (processed) {
+      return res.status(200).send('ok');
+    }
+
     switch (event.type) {
       case 'payment_intent.succeeded':
       case 'charge.succeeded': {
@@ -72,6 +80,8 @@ const handleWebhook = async (req, res) => {
       default:
         break;
     }
+    // Mark event processed for 24h
+    try { await setCache(processedKey, true, 24 * 60 * 60); } catch (_) {}
     res.status(200).send('ok');
   } catch (e) {
     logger.error('Stripe webhook handling error', { message: e.message });

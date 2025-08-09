@@ -445,10 +445,21 @@ router.post('/refresh', async (req, res) => {
     if (!userId || !sessionId || !jti) {
       return res.status(401).json({ success: false, error: 'Invalid refresh token' });
     }
-    // Validate session still active
+    // Validate session still active (support both session store and legacy cache key)
     try {
-      const sess = await getSession(sessionId);
-      if (!sess) {
+      let active = null;
+      try {
+        active = await getSession(sessionId);
+      } catch (_) {}
+      if (!active) {
+        // Legacy cache pattern fallback
+        const legacyKey = `user:${userId}:session:${sessionId}`;
+        const { getCache } = require('../config/redis');
+        try {
+          active = await getCache(legacyKey);
+        } catch (_) {}
+      }
+      if (!active) {
         return res.status(401).json({ success: false, error: 'Session expired' });
       }
     } catch {}

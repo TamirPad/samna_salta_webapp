@@ -30,6 +30,20 @@ const getDatabaseConfig = () => {
 };
 
 let pool = null;
+if (process.env.NODE_ENV === 'test') {
+  // Provide a test-friendly stub so tests can monkey-patch methods
+  pool = {
+    connect: async () => ({ release: () => {} }),
+    query: async () => ({ rows: [], rowCount: 0 }),
+    end: async () => {},
+    options: {
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+      ssl: { rejectUnauthorized: false }
+    }
+  };
+}
 let isConnected = false;
 let isDevelopmentMode = false;
 
@@ -149,3 +163,6 @@ module.exports = {
   isInDevelopmentMode,
   closePool
 };
+
+// Also expose pool for tests
+module.exports.pool = pool;

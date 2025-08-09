@@ -28,15 +28,15 @@ const errorHandler = (err, req, res, next) => {
     error = {message: 'Resource not found', statusCode: 404};
   } else if (err.code === 11000) {
     error = {message: 'Duplicate field value entered', statusCode: 400};
-  } else if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = {message, statusCode: 400};
+  } else if (err.name === 'ValidationError' || err.statusCode === 422) {
+    const message = err.message || 'Validation failed';
+    error = {message, statusCode: 422};
   } else if (err.name === 'JsonWebTokenError') {
     error = {message: 'Invalid token', statusCode: 401};
   } else if (err.name === 'TokenExpiredError') {
     error = {message: 'Token expired', statusCode: 401};
   } else if (err.code === '23505') {
-    error = {message: 'Duplicate entry', statusCode: 400};
+    error = {message: 'Resource already exists', statusCode: 409};
   } else if (err.code === '23503') {
     error = {message: 'Referenced record does not exist', statusCode: 400};
   } else if (err.code === '23502') {

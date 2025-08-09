@@ -42,6 +42,14 @@ if (process.env.NODE_ENV === 'production') {
     console.error('❌ JWT_SECRET is required in production');
     process.exit(1);
   }
+  if (!process.env.REFRESH_TOKEN_SECRET) {
+    console.error('❌ REFRESH_TOKEN_SECRET is required in production');
+    process.exit(1);
+  }
+  if (process.env.REFRESH_TOKEN_SECRET === process.env.JWT_SECRET) {
+    console.error('❌ REFRESH_TOKEN_SECRET must differ from JWT_SECRET in production');
+    process.exit(1);
+  }
   if (!process.env.DATABASE_URL) {
     console.error('❌ DATABASE_URL is required in production');
     process.exit(1);
@@ -155,6 +163,13 @@ app.use((req, res, next) => {
   next();
 });
 app.get('/metrics', async (req, res) => {
+  // Protect metrics in production with a simple token
+  if (process.env.NODE_ENV === 'production') {
+    const token = req.get('X-Metrics-Token');
+    if (!process.env.METRICS_TOKEN || token !== process.env.METRICS_TOKEN) {
+      return res.status(404).type('text/plain').send('Not Found');
+    }
+  }
   res.set('Content-Type', client.register.contentType);
   res.end(await client.register.metrics());
 });

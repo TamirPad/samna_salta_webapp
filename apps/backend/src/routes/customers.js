@@ -236,11 +236,31 @@ module.exports = router;
 // Get/update current user profile
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const result = await dbQuery('SELECT id, name, email, phone, delivery_address, language FROM customers WHERE id = $1', [req.user.id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Profile not found' });
+    // Get the authenticated user's email to link with customers
+    const userResult = await dbQuery('SELECT id, name, email, phone FROM users WHERE id = $1', [req.user.id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
-    return res.json({ success: true, data: result.rows[0] });
+    const { email, name: userName, phone: userPhone } = userResult.rows[0];
+
+    // Find an existing customer by email or by id (legacy mapping)
+    const existing = await dbQuery(
+      'SELECT id, name, email, phone, delivery_address, language FROM customers WHERE email = $1 OR id = $2 LIMIT 1',
+      [email, req.user.id]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.json({ success: true, data: existing.rows[0] });
+    }
+
+    // If no customer exists yet, create one based on the user's info
+    const created = await dbQuery(
+      `INSERT INTO customers (name, email, phone, language, delivery_address, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+       RETURNING id, name, email, phone, delivery_address, language`,
+      [userName || (email && email.split('@')[0]) || 'User', email, userPhone || null, 'en', null]
+    );
+    return res.json({ success: true, data: created.rows[0] });
   } catch (error) {
     logger.error('Get profile error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch profile' });
@@ -253,14 +273,36 @@ router.put('/me', authenticateToken, validateCustomer, async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
     }
+
+    // Resolve the customer record for the authenticated user (by email or legacy id)
+    const userResult = await dbQuery('SELECT id, name, email, phone FROM users WHERE id = $1', [req.user.id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    const { email: userEmail } = userResult.rows[0];
+
+    let customer = await dbQuery(
+      'SELECT id FROM customers WHERE email = $1 OR id = $2 LIMIT 1',
+      [userEmail, req.user.id]
+    );
+
+    if (customer.rows.length === 0) {
+      // Create the profile if it doesn't exist yet
+      const created = await dbQuery(
+        `INSERT INTO customers (name, email, phone, language, delivery_address, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+         RETURNING id`,
+        [req.body.name, req.body.email || userEmail, req.body.phone || null, req.body.language || 'en', req.body.delivery_address || null]
+      );
+      customer = { rows: [{ id: created.rows[0].id }] };
+    }
+
     const { name, email, phone, delivery_address, language } = req.body;
     const result = await dbQuery(
       `UPDATE customers SET name = $1, email = $2, phone = $3, delivery_address = $4, language = $5, updated_at = NOW() WHERE id = $6 RETURNING id, name, email, phone, delivery_address, language`,
-      [name, email, phone, delivery_address, language, req.user.id]
+      [name, email, phone, delivery_address, language, customer.rows[0].id]
     );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Profile not found' });
-    }
+
     return res.json({ success: true, message: 'Profile updated', data: result.rows[0] });
   } catch (error) {
     logger.error('Update profile error:', error);
