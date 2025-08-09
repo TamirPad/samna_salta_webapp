@@ -4,6 +4,7 @@ const {authenticateToken, requireAdmin} = require('../middleware/auth');
 const {query: dbQuery} = require('../config/database');
 const {getCache, setCache} = require('../config/redis');
 const logger = require('../utils/logger');
+const crypto = require('crypto');
 const multer = require('multer');
 const upload = multer({ limits: { fileSize: (parseInt(process.env.MAX_FILE_SIZE, 10) || 5 * 1024 * 1024) } });
 let cloudinary;
@@ -162,11 +163,16 @@ router.get('/', [
       });
     }
 
-    // Cache the result for 5 minutes (optional)
+    // Cache the result for 5 minutes (optional) + ETag for conditional GET
     try {
       const cacheKey = `products:${category || 'all'}:${search || 'none'}:${page}:${limit}`;
       await setCache(cacheKey, result.rows, 300);
       res.setHeader('Cache-Control', 'public, max-age=120');
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({count: result.rows.length, first: result.rows[0]?.id, last: result.rows[result.rows.length-1]?.id})).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
     } catch (error) {
       // Cache not available, continue without it
       logger.debug('Cache not available, skipping cache set');
@@ -259,12 +265,18 @@ router.get('/test-db', async (req, res) => {
 // Get all categories (public)
 router.get('/categories', async (req, res) => {
   try {
-    // Try to get from cache first (optional)
+    // Try to get from cache first (optional) + conditional GET
     let cached = null;
     try {
       const cacheKey = 'categories:all';
       cached = await getCache(cacheKey);
       if (cached) {
+        const etagCached = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({count: cached.length, first: cached[0]?.id, last: cached[cached.length-1]?.id})).digest('hex') + '"';
+        if (req.headers['if-none-match'] === etagCached) {
+          return res.status(304).end();
+        }
+        res.setHeader('ETag', etagCached);
+        res.setHeader('Cache-Control', 'public, max-age=1800');
         return res.json({
           success: true,
           data: cached
@@ -298,10 +310,16 @@ router.get('/categories', async (req, res) => {
       );
     }
 
-    // Cache the result for 30 minutes (optional)
+    // Cache the result for 30 minutes (optional) + ETag
     try {
       const cacheKey = 'categories:all';
       await setCache(cacheKey, result.rows, 1800);
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({count: result.rows.length, first: result.rows[0]?.id, last: result.rows[result.rows.length-1]?.id})).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
+      res.setHeader('Cache-Control', 'public, max-age=1800');
     } catch (error) {
       // Cache not available, continue without it
       logger.debug('Cache not available, skipping cache set');
@@ -360,6 +378,14 @@ router.get('/:id', async (req, res) => {
     }
 
     const product = result.rows[0];
+    try {
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({id: product.id, updated_at: product.updated_at})).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
+      res.setHeader('Cache-Control', 'public, max-age=600');
+    } catch {}
 
     // Cache the result for 10 minutes (optional)
     try {
