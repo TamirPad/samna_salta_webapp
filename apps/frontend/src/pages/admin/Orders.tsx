@@ -80,6 +80,7 @@ const FilterButton = styled.button<{ $active: boolean }>`
 const OrdersGrid = styled.div`
   display: grid;
   gap: 1.5rem;
+  @media (max-width: 360px) { gap: 0.75rem; }
 `;
 
 const OrderCard = styled.div`

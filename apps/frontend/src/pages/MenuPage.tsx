@@ -179,6 +179,10 @@ const ProductsGrid = styled.div`
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+
+  @media (max-width: 360px) {
+    gap: 0.75rem;
+  }
 `;
 
 const ProductCard = styled(motion.div)`
@@ -250,6 +254,13 @@ const ProductName = styled.h3`
   margin: 0;
   flex: 1;
   line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (max-width: 375px) {
+    font-size: 1.1rem;
+  }
 `;
 
 const ProductPrice = styled.div`
@@ -257,12 +268,20 @@ const ProductPrice = styled.div`
   font-weight: 700;
   color: #00C2FF;
   margin-left: 1rem;
+
+  @media (max-width: 375px) {
+    font-size: 1.25rem;
+  }
 `;
 
 const ProductDescription = styled.p`
   color: #666;
   margin-bottom: 1rem;
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const ProductMeta = styled.div`

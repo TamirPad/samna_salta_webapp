@@ -107,6 +107,10 @@ const CheckoutLayout = styled.div`
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 375px) {
+    gap: 1rem;
+  }
 `;
 
 const CheckoutForm = styled.div`
@@ -306,6 +310,9 @@ const ItemName = styled.div`
   font-weight: 600;
   color: #2f2f2f;
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ItemQuantity = styled.div`

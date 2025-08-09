@@ -206,6 +206,9 @@ const ProductsGrid = styled.div`
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
+  @media (max-width: 360px) {
+    gap: 0.75rem;
+  }
 `;
 
 const ProductCard = styled.div`
@@ -277,6 +280,9 @@ const ProductName = styled.h3`
   margin: 0;
   flex: 1;
   line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ProductPrice = styled.div`
