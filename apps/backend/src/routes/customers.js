@@ -76,7 +76,8 @@ router.get('/', authenticateToken, requireAdmin, [
 });
 
 // Get customer by ID (admin only)
-router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
+// Match only numeric IDs so that '/me' does not get captured by this route
+router.get('/:id(\\d+)', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const {id} = req.params;
 
@@ -128,7 +129,7 @@ router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // Update customer (admin only)
-router.put('/:id', authenticateToken, requireAdmin, validateCustomer, async (req, res) => {
+router.put('/:id(\\d+)', authenticateToken, requireAdmin, validateCustomer, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -179,7 +180,7 @@ router.put('/:id', authenticateToken, requireAdmin, validateCustomer, async (req
 });
 
 // Delete customer (admin only)
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id(\\d+)', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const {id} = req.params;
 

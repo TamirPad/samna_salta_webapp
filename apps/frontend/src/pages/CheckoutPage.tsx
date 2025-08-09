@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { selectLanguage } from "../features/language/languageSlice";
+import { selectIsAuthenticated, selectUser } from "../features/auth/authSlice";
 import {
   selectCartItems,
   selectCartTotal,
@@ -180,6 +181,12 @@ const FormInput = styled.input`
 
   &.error {
     border-color: #ff6b6b;
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
   }
 `;
 
@@ -390,6 +397,8 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const language = useAppSelector(selectLanguage);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const user = useAppSelector(selectUser);
   const cartItems = useAppSelector(selectCartItems) as CartItem[];
 
   const cartTotal = useAppSelector(selectCartTotal);
@@ -409,6 +418,17 @@ const CheckoutPage: React.FC = () => {
     delivery_instructions: "",
     special_instructions: "",
   });
+
+  // Prefill name and email from authenticated user and lock the fields
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        customer_name: user.name || prev.customer_name,
+        customer_email: user.email || prev.customer_email,
+      }));
+    }
+  }, [user]);
 
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "card" | "online"
@@ -655,6 +675,7 @@ const CheckoutPage: React.FC = () => {
                         handleInputChange("customer_name", e.target.value)
                       }
                       className={errors["customer_name"] ? "error" : ""}
+                      disabled={Boolean(isAuthenticated)}
                     />
                     {errors["customer_name"] && (
                       <ErrorMessage>{errors["customer_name"]}</ErrorMessage>
@@ -680,7 +701,7 @@ const CheckoutPage: React.FC = () => {
                   </FormGroup>
                 </FormGrid>
 
-                <FormGroup style={{ marginTop: "1rem" }}>
+                  <FormGroup style={{ marginTop: "1rem" }}>
                   <FormLabel>
                     <Mail size={16} />
                     {t.email}
@@ -692,6 +713,7 @@ const CheckoutPage: React.FC = () => {
                       handleInputChange("customer_email", e.target.value)
                     }
                     className={errors["customer_email"] ? "error" : ""}
+                      disabled={Boolean(isAuthenticated)}
                   />
                   {errors["customer_email"] && (
                     <ErrorMessage>{errors["customer_email"]}</ErrorMessage>
