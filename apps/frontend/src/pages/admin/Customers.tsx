@@ -796,13 +796,11 @@ const AdminCustomers: React.FC = () => {
               <CustomerDetail>
                 <DetailLabel>{t.orders}</DetailLabel>
                 <DetailValue>
-                  {selectedCustomer.orders.map((order: unknown) => (
-                    <div key={(order as any).id}>
-                      Order #{(order as any).order_number} -{" "}
-                      {formatCurrency((order as any).total)} -{" "}
-                      {(order as any).status}
-                    </div>
-                  ))}
+                    {selectedCustomer.orders.map((order: unknown) => (
+                      <div key={(order as any).id}>
+                        Order #{String((order as any).id).padStart(6, '0')} - {formatCurrency((order as any).total)} - {(order as any).status}
+                      </div>
+                    ))}
                 </DetailValue>
               </CustomerDetail>
             )}

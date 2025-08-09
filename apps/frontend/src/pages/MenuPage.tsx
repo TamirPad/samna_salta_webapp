@@ -375,7 +375,7 @@ const MenuPage: React.FC = () => {
   const translations = useMemo(
     () => ({
       he: {
-        menuTitle: "תפריט סמנה סלטה",
+        menuTitle: "תפריט סמנה וסלתה",
         menuSubtitle: "גלה את המגוון הרחב שלנו של לחמים ומתוקים מסורתיים",
         allCategories: "כל הקטגוריות",
         searchPlaceholder: "חפש מוצרים...",

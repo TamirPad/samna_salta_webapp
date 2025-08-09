@@ -53,15 +53,21 @@ const Logo = styled(Link)`
   }
 `;
 
-const LogoIcon = styled.span`
-  font-size: 1.5rem;
+const LogoImage = styled.img`
+  height: 28px;
+  width: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: block;
   
   @media (max-width: 768px) {
-    font-size: 1.25rem;
+    height: 24px;
+    width: 24px;
   }
   
   @media (max-width: 480px) {
-    font-size: 1rem;
+    height: 20px;
+    width: 20px;
   }
 `;
 
@@ -133,6 +139,24 @@ const UserInfo = styled.div`
   
   @media (max-width: 768px) {
     display: none;
+  }
+`;
+
+const UserInfoButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  background: transparent;
+  color: inherit;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 6px;
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
   }
 `;
 
@@ -290,6 +314,33 @@ const MobileUserInfo = styled.div`
   border-radius: 4px;
 `;
 
+const MobileUserInfoButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+  }
+`;
+
 const MobileButton = styled.button`
   background: transparent;
   color: white;
@@ -433,8 +484,11 @@ const Header: React.FC = () => {
     <HeaderContainer>
       <HeaderContent>
         <Logo to="/home">
-          <LogoIcon>🍽️</LogoIcon>
-          {language === 'he' ? 'סמנה סלטה' : 'Samna Salta'}
+          <LogoImage
+            src={`${process.env.PUBLIC_URL ? process.env.PUBLIC_URL : ''}/logo.svg`}
+            alt={language === 'he' ? 'סמנה וסלתה' : 'Samna Salta'}
+          />
+          {language === 'he' ? 'סמנה וסלתה' : 'Samna Salta'}
         </Logo>
 
         <Nav>
@@ -469,10 +523,15 @@ const Header: React.FC = () => {
           {isAuthenticated ? (
             <>
               <UserInfo>
-                <UserAvatar>
-                  {user?.name?.charAt(0) || 'U'}
-                </UserAvatar>
-                <span>{user?.name || 'User'}</span>
+                <UserInfoButton
+                  onClick={() => navigate('/profile')}
+                  aria-label={language === 'he' ? 'פרופיל' : 'Profile'}
+                >
+                  <UserAvatar>
+                    {user?.name?.charAt(0) || 'U'}
+                  </UserAvatar>
+                  <span>{user?.name || 'User'}</span>
+                </UserInfoButton>
               </UserInfo>
               <Button onClick={handleLogout}>
                 {language === 'he' ? 'התנתק' : 'Logout'}
@@ -521,12 +580,15 @@ const Header: React.FC = () => {
           )}
           {isAuthenticated ? (
             <>
-              <MobileUserInfo>
+              <MobileUserInfoButton
+                onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }}
+                aria-label={language === 'he' ? 'פרופיל' : 'Profile'}
+              >
                 <UserAvatar>
                   {user?.name?.charAt(0) || 'U'}
                 </UserAvatar>
                 <span>{user?.name || 'User'}</span>
-              </MobileUserInfo>
+              </MobileUserInfoButton>
               <MobileButton onClick={handleLogout}>
                 {language === 'he' ? 'התנתק' : 'Logout'}
               </MobileButton>

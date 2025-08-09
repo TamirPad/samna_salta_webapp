@@ -592,6 +592,7 @@ const OrderTrackingPage: React.FC = () => {
           const data = (resp as any)?.data?.data || (resp as any)?.data;
           if (data) {
             setOrder({
+              id: data.id || data.order?.id || orderId,
               order_number: `#${String(data.id || data.order?.id || orderId).padStart(6, "0")}`,
               status: data.status || "placed",
               customer_name: data.customer_name,
@@ -780,7 +781,7 @@ const OrderTrackingPage: React.FC = () => {
             <ArrowLeft size={16} />
             {t.backToHome}
           </BackButton>
-          <OrderNumber>{order.order_number}</OrderNumber>
+          <OrderNumber>#{String(order.id ?? orderId).padStart(6, '0')}</OrderNumber>
           <OrderStatus>
             {getStatusSteps().find((step) => step.current)?.title ||
               t.orderPlaced}

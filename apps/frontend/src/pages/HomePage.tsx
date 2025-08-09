@@ -185,7 +185,7 @@ const HomePage: React.FC = () => {
     if (language === 'he') {
       return {
         hero: {
-          title: 'ברוכים הבאים לסמנה סלטה',
+          title: 'ברוכים הבאים לסמנה וסלתה',
           subtitle: 'גלה את הטעמים המסורתיים של המטבח התימני',
           cta: 'צפה בתפריט'
         },

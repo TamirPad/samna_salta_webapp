@@ -113,7 +113,7 @@ const Footer: React.FC = () => {
       return {
         about: {
           title: 'אודות',
-          description: 'סמנה סלטה - מסעדה מסורתית לתימנית עם טעמים אותנטיים ומנות מסורתיות.',
+          description: 'סמנה וסלתה - מסעדה מסורתית לתימנית עם טעמים אותנטיים ומנות מסורתיות.',
           address: 'רחוב הרצל 123, תל אביב',
           phone: '+972-3-123-4567',
           email: 'info@sammasalta.co.il'
@@ -132,7 +132,7 @@ const Footer: React.FC = () => {
           privacy: 'מדיניות פרטיות',
           terms: 'תנאי שימוש'
         },
-        copyright: `© ${currentYear} סמנה סלטה. כל הזכויות שמורות.`
+        copyright: `© ${currentYear} סמנה וסלתה. כל הזכויות שמורות.`
       };
     } else {
       return {

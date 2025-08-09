@@ -71,7 +71,7 @@ const MyOrdersPage: React.FC = () => {
       // Fallback to local last order id
       const lastOrderId = (window as any).__last_order_id__ || localStorage.getItem('lastOrderId');
       if (lastOrderId) {
-        setOrders([{ id: lastOrderId, order_number: `#${String(lastOrderId).padStart(6, '0')}`, total: '-', status: 'placed' }]);
+        setOrders([{ id: lastOrderId, total: '-', status: 'placed' }]);
       }
       setLoading(false);
     };
@@ -90,7 +90,7 @@ const MyOrdersPage: React.FC = () => {
           <OrderList>
             {orders.map((o) => (
               <OrderItem key={o.id}>
-                <span>{o.order_number || `#${String(o.id).padStart(6, '0')}`}</span>
+                <span>#{String(o.id).padStart(6, '0')}</span>
                 <Link to={`/order/${o.id}`}>View</Link>
               </OrderItem>
             ))}

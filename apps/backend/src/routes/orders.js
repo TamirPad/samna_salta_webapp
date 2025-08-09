@@ -65,7 +65,7 @@ const buildInvoiceHtml = (order, items, options = {}) => {
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
-  <title>Invoice #${order.order_number || order.id}</title>
+  <title>Invoice #${String(order.id).padStart(6, '0')}</title>
   <style>
     ${widthCss}
     body { font-family: Arial, Helvetica, sans-serif; color: #111; }
@@ -90,7 +90,7 @@ const buildInvoiceHtml = (order, items, options = {}) => {
   <div class="header">
     <h1>Samna Salta</h1>
     <div class="meta">Invoice • ${createdAt}</div>
-    <div class="meta">Order #${order.order_number || order.id}</div>
+    <div class="meta">Order #${String(order.id).padStart(6, '0')}</div>
   </div>
   <div class="meta">
     <div><strong>Customer:</strong> ${order.customer_name || ''}</div>
@@ -117,34 +117,12 @@ const buildInvoiceHtml = (order, items, options = {}) => {
 // Create order (public)
 router.post('/', optionalAuth, validateOrder, async (req, res) => {
   try {
-    // If running without DB (development mode), return a mocked success response
+    // Reject creation if DB is not available; do not generate non-DB IDs
     if (isInDevelopmentMode && typeof isInDevelopmentMode === 'function' && isInDevelopmentMode()) {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        logger.warn('Validation failed (dev mode):', { details: errors.array() });
-        return res.status(400).json({
-          success: false,
-          error: 'Validation failed',
-          details: errors.array()
-        });
-      }
-
-      const { total } = req.body || {};
-      const orderId = `dev-${Date.now()}`;
-      const orderNumber = generateOrderNumber();
-      logger.info('Dev mode: creating mock order', { orderId, orderNumber });
-      return res.status(201).json({
-        success: true,
-        message: 'Order created successfully (dev mode)',
-        data: {
-          order: {
-            id: orderId,
-            order_number: orderNumber,
-            status: 'pending',
-            total: total || 0,
-          },
-          payment_intent: null,
-        },
+      return res.status(503).json({
+        success: false,
+        error: 'Database unavailable',
+        message: 'Cannot create order while database is unavailable'
       });
     }
 
@@ -152,23 +130,11 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
     try {
       client = await getClient();
     } catch (connErr) {
-      // DB unavailable: degrade gracefully with mock order (so checkout works during outages)
-      const { total } = req.body || {};
-      const orderId = `dev-${Date.now()}`;
-      const orderNumber = generateOrderNumber();
-      logger.warn('DB unavailable, returning mock order for create:', connErr.message);
-      return res.status(201).json({
-        success: true,
-        message: 'Order created successfully (fallback mode)',
-        data: {
-          order: {
-            id: orderId,
-            order_number: orderNumber,
-            status: 'pending',
-            total: total || 0,
-          },
-          payment_intent: null,
-        },
+      logger.warn('DB unavailable for create order:', connErr.message);
+      return res.status(503).json({
+        success: false,
+        error: 'Database unavailable',
+        message: 'Cannot create order while database is unavailable'
       });
     }
 
@@ -395,31 +361,7 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
     });
 
   } catch (error) {
-    // Fallback to mock order on DB connectivity issues
     const msg = (error && error.message) || '';
-    if (
-      msg.includes('Database not connected') ||
-      msg.includes('connection') ||
-      (error && (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND'))
-    ) {
-      const { total } = req.body || {};
-      const orderId = `dev-${Date.now()}`;
-      const orderNumber = generateOrderNumber();
-      logger.warn('Create order fallback due to DB error:', { message: msg });
-      return res.status(201).json({
-        success: true,
-        message: 'Order created successfully (fallback mode)',
-        data: {
-          order: {
-            id: orderId,
-            order_number: orderNumber,
-            status: 'pending',
-            total: total || 0,
-          },
-          payment_intent: null,
-        },
-      });
-    }
     logger.error('Create order error:', { message: msg, stack: error.stack, body: req.body });
     res.status(500).json({
       success: false,

@@ -61,9 +61,17 @@ const getCacheKey = (config: InternalAxiosRequestConfig): string => {
 };
 
 const isCacheable = (config: InternalAxiosRequestConfig): boolean => {
-  return (
-    config.method?.toLowerCase() === "get" && !config.url?.includes("/auth/")
-  );
+  // Only cache safe, public GET endpoints. Avoid caching auth-protected or
+  // user-specific data to prevent stale/incorrect UI states.
+  if (config.method?.toLowerCase() !== "get") return false;
+  const url = config.url || "";
+  const nonCacheableSegments = [
+    "/auth/", // auth endpoints
+    "/orders", // admin and user-specific orders
+    "/customers", // user/customer-specific data
+    "/analytics", // admin analytics
+  ];
+  return !nonCacheableSegments.some((seg) => url.includes(seg));
 };
 
 const getCachedResponse = (cacheKey: string): unknown | null => {

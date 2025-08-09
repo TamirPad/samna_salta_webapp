@@ -8,11 +8,8 @@
   <path d="M35 15 L35 45 M32 18 L38 18 M32 22 L38 22 M32 26 L38 26" 
         stroke="white" stroke-width="3" stroke-linecap="round"/>
   
-  <!-- Text -->
-  <text x="70" y="25" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#8B4513">
-    SAMNA SALTA
-  </text>
-  <text x="70" y="40" font-family="Arial, sans-serif" font-size="10" fill="#D2691E">
-    RESTAURANT
+  <!-- Text (Hebrew brand) -->
+  <text x="70" y="33" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#8B4513" direction="rtl">
+    סמנה וסלתה
   </text>
 </svg> 
