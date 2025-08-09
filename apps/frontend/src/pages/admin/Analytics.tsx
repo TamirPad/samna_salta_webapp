@@ -78,6 +78,24 @@ const ContentContainer = styled.div`
   @media (max-width: 768px) { padding: 1rem; }
 `;
 
+const ControlsRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const SmallButton = styled.button<{ $active?: boolean }>`
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid ${({ $active }) => ($active ? '#00C2FF' : '#e1e5e9')};
+  background: ${({ $active }) => ($active ? '#E6F7FF' : 'white')};
+  color: #333;
+  cursor: pointer;
+  font-size: 0.85rem;
+`;
+
 const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -192,6 +210,7 @@ const AdminAnalytics: React.FC = () => {
     ordersByStatus: [],
     revenueByDay: []
   });
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
 
   const revenueSeries = useMemo(() => {
     const items = Array.isArray(dashboardData?.revenue_by_day) ? dashboardData.revenue_by_day : [];
@@ -238,7 +257,17 @@ const AdminAnalytics: React.FC = () => {
     if (isAuthenticated) {
       loadDashboardData();
     }
-  }, [isAuthenticated]);
+    // Auto-refresh
+    let interval: number | undefined;
+    if (isAuthenticated && autoRefresh) {
+      interval = window.setInterval(() => {
+        loadDashboardData();
+      }, 60000);
+    }
+    return () => {
+      if (interval) window.clearInterval(interval);
+    };
+  }, [isAuthenticated, autoRefresh]);
 
   useEffect(() => {
     const loadCustomerAnalytics = async () => {
@@ -497,6 +526,10 @@ const AdminAnalytics: React.FC = () => {
               <LoadingSpinner />
             ) : (
               <>
+                <ControlsRow>
+                  <span style={{ color: '#666', fontSize: 13 }}>Range:</span>
+                  {/* Controlled via state below */}
+                </ControlsRow>
                 <ChartContainer>
                   <div style={{ width: '100%', height: 320 }}>
                     <ResponsiveContainer>
@@ -538,6 +571,9 @@ const AdminAnalytics: React.FC = () => {
               <LoadingSpinner />
             ) : (
               <>
+                <ControlsRow>
+                  <span style={{ color: '#666', fontSize: 13 }}>Top by revenue</span>
+                </ControlsRow>
                 <ChartContainer>
                   <div style={{ width: '100%', height: 320 }}>
                     <ResponsiveContainer>
