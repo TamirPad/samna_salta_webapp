@@ -26,13 +26,15 @@ const HeaderContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 0.75rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* burger | center | cart */
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
   position: relative;
-  
+
   @media (min-width: 768px) {
+    display: flex;
+    justify-content: space-between;
     padding: 0 1rem;
     gap: 1rem;
   }
@@ -47,6 +49,8 @@ const Logo = styled(Link)`
   align-items: center;
   gap: 0.4rem;
   letter-spacing: 0.2px;
+  grid-column: 2; /* center on mobile */
+  justify-self: center;
   
   &:hover {
     opacity: 0.95;
@@ -222,6 +226,8 @@ const MobileMenuButton = styled.button`
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
+  grid-column: 1;
+  justify-self: start;
 
   &:hover {
     background: rgba(255, 255, 255, 0.18);
@@ -251,6 +257,8 @@ const MobileCartButton = styled(Link)`
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
+  grid-column: 3;
+  justify-self: end;
 
   &:hover {
     background: rgba(255, 255, 255, 0.18);
@@ -512,6 +520,7 @@ const Header: React.FC = () => {
   return (
     <HeaderContainer>
       <HeaderContent>
+        {/* Centered brand on mobile between burger and cart */}
         <Logo to="/home">
           <LogoImage
             src={`${process.env.PUBLIC_URL ? process.env.PUBLIC_URL : ''}/logo.svg`}
@@ -573,11 +582,13 @@ const Header: React.FC = () => {
           )}
         </UserSection>
 
+        {/* Cart aligned to right in mobile */}
         <MobileCartButton to="/cart" aria-label={language === 'he' ? 'עגלה' : 'Cart'}>
           🛒
           {cartCount > 0 && <CartBadge style={{ right: -6, top: -6 }}>{cartCount}</CartBadge>}
         </MobileCartButton>
 
+        {/* Burger aligned to left in mobile */}
         <MobileMenuButton 
           onClick={toggleMobileMenu}
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
