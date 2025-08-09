@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -402,6 +402,7 @@ const OrderTrackingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const socketRef = useRef<any>(null);
 
   const translations = useMemo(
     () => ({
@@ -638,6 +639,49 @@ const OrderTrackingPage: React.FC = () => {
       fetchOrder();
     }
   }, [orderId, fetchOrder]);
+
+  // Optional realtime updates via Socket.IO (load client from server script)
+  useEffect(() => {
+    let isMounted = true;
+    const baseUrl = process.env.NODE_ENV === 'production' ? window.location.origin.replace(/\/$/, '') : 'http://localhost:3001';
+    const script = document.createElement('script');
+    script.src = `${baseUrl}/socket.io/socket.io.js`;
+    script.async = true;
+    script.onload = () => {
+      try {
+        // @ts-ignore
+        const ioClient = (window as any).io;
+        if (!ioClient) return;
+        const socket = ioClient(baseUrl, { withCredentials: true, transports: ['websocket', 'polling'] });
+        socketRef.current = socket;
+        if (orderId) socket.emit('join-order', orderId);
+        socket.on('order-update', (payload: any) => {
+          if (!isMounted) return;
+          if (payload && payload.orderId && String(payload.orderId) === String(orderId)) {
+            setOrder((prev: any) => (prev ? { ...prev, status: payload.status } : prev));
+          }
+        });
+      } catch {}
+    };
+    script.onerror = () => {
+      // Skip realtime if script fails
+    };
+    document.head.appendChild(script);
+    return () => {
+      isMounted = false;
+      try {
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+          socketRef.current = null;
+        }
+      } catch {}
+      try {
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      } catch {}
+    };
+  }, [orderId]);
 
   const getStatusSteps = () => {
     const steps = [

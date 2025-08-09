@@ -399,7 +399,29 @@ const LoginPage: React.FC = () => {
               </PasswordField>
               <ActionsRow>
                 <span />
-                <SmallLink type="button" onClick={() => alert('Not implemented')}>
+                <SmallLink
+                  type="button"
+                  onClick={async () => {
+                    setError('');
+                    setSuccess('');
+                    const emailTrimmed = email.trim();
+                    const isValidEmail = /.+@.+\..+/.test(emailTrimmed);
+                    if (!emailTrimmed || !isValidEmail) {
+                      setError(language === 'he' ? 'הכנס אימייל תקין כדי לאפס סיסמה' : 'Enter a valid email to reset password');
+                      return;
+                    }
+                    try {
+                      setLoading(true);
+                      await apiService.requestPasswordReset(emailTrimmed);
+                      setSuccess(language === 'he' ? 'אם החשבון קיים, נשלח קישור לאיפוס סיסמה' : 'If the account exists, a reset link has been sent');
+                    } catch (_) {
+                      // Backend always returns success to avoid enumeration; still show generic success
+                      setSuccess(language === 'he' ? 'אם החשבון קיים, נשלח קישור לאיפוס סיסמה' : 'If the account exists, a reset link has been sent');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
                   {content.forgot}
                 </SmallLink>
               </ActionsRow>

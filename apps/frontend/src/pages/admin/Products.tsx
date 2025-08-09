@@ -238,7 +238,7 @@ const ProductImage = styled.div<{ $imageUrl?: string; $emoji?: string }>`
   height: 200px;
   border-radius: 12px 12px 0 0;
   background: ${({ $imageUrl, theme }) =>
-    $imageUrl ? `url(${$imageUrl}) center/cover` : theme.gradients.primary};
+    $imageUrl ? `url("${$imageUrl}") center/cover no-repeat` : theme.gradients.primary};
   display: flex;
   align-items: center;
   justify-content: center;

@@ -326,6 +326,7 @@ export interface ApiService {
   register: (userData: any) => Promise<any>;
   logout: () => Promise<any>;
   getCurrentUser: () => Promise<any>;
+  requestPasswordReset: (email: string) => Promise<any>;
 
   // Product methods
   getProducts: (params?: any) => Promise<any>;
@@ -395,6 +396,9 @@ export const apiService: ApiService = {
   },
 
   getCurrentUser: () => api.get("/auth/me"),
+
+  requestPasswordReset: (email: string) =>
+    api.post('/auth/forgot-password', { email }),
 
   // Products with caching
   getProducts: (params?: {

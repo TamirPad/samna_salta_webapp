@@ -2,7 +2,7 @@ const express = require('express');
 const {body, validationResult, query} = require('express-validator');
 const {authenticateToken, requireAdmin} = require('../middleware/auth');
 const {query: dbQuery} = require('../config/database');
-const {getCache, setCache} = require('../config/redis');
+const {getCache, setCache, clearCache} = require('../config/redis');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 const multer = require('multer');
@@ -446,6 +446,9 @@ router.post('/', authenticateToken, requireAdmin, validateProduct, async (req, r
 
     const product = result.rows[0];
 
+    // Invalidate cached listings/categories so updates are visible immediately
+    try { await clearCache(); } catch {}
+
     logger.info('Product created:', {productId: product.id, name: product.name});
 
     res.status(201).json({
@@ -507,6 +510,9 @@ router.put('/:id', authenticateToken, requireAdmin, validateProduct, async (req,
 
     const product = result.rows[0];
 
+    // Invalidate cached listings/categories so updates are visible immediately
+    try { await clearCache(); } catch {}
+
     logger.info('Product updated:', {productId: product.id, name: product.name});
 
     res.json({
@@ -544,6 +550,9 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     const product = result.rows[0];
+
+    // Invalidate cached listings/categories so deletions are visible immediately
+    try { await clearCache(); } catch {}
 
     logger.info('Product deleted:', {productId: product.id, name: product.name});
 
@@ -588,6 +597,9 @@ router.post('/categories', authenticateToken, requireAdmin, validateCategory, as
     );
 
     const category = result.rows[0];
+
+    // Invalidate cached categories
+    try { await clearCache(); } catch {}
 
     logger.info('Category created:', {categoryId: category.id, name: category.name});
 
@@ -641,6 +653,9 @@ router.put('/categories/:id', authenticateToken, requireAdmin, validateCategory,
 
     const category = result.rows[0];
 
+    // Invalidate cached categories
+    try { await clearCache(); } catch {}
+
     logger.info('Category updated:', {categoryId: category.id, name: category.name});
 
     res.json({
@@ -692,6 +707,9 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
     }
 
     const category = result.rows[0];
+
+    // Invalidate cached categories
+    try { await clearCache(); } catch {}
 
     logger.info('Category deleted:', {categoryId: category.id, name: category.name});
 
