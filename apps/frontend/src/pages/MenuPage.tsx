@@ -682,7 +682,7 @@ const MenuPage: React.FC = () => {
 
                       <AddToCartButton
                         $added={lastAddedId === product.id}
-                        onClick={(): void => handleAddToCart(product)}
+                        onClick={(): void => { void handleAddToCart(product); }}
                         disabled={!product.is_active}
                         aria-label={`Add ${getProductName(product)} to cart`}
                       >
