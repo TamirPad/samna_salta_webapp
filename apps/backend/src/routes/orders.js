@@ -27,8 +27,13 @@ const validateOrder = [
   body('order_items').isArray({min: 1}).withMessage('Order must contain at least one item'),
   body('order_items.*.product_id').isInt({min: 1}).withMessage('Product ID must be a positive integer'),
   body('order_items.*.quantity').isInt({min: 1}).withMessage('Quantity must be at least 1'),
-  body('subtotal').isFloat({min: 0}).withMessage('Subtotal must be a positive number'),
-  body('total').isFloat({min: 0}).withMessage('Total must be a positive number')
+  body('subtotal').optional().isFloat({min: 0}).withMessage('Subtotal must be a positive number'),
+  body('total').optional().isFloat({min: 0}).withMessage('Total must be a positive number'),
+  // Optional selected options structure
+  body('order_items.*.selected_options').optional().isArray(),
+  body('order_items.*.selected_options.*.option_id').optional().isInt({ min: 1 }),
+  body('order_items.*.selected_options.*.values').optional().isArray(),
+  body('order_items.*.selected_options.*.values.*.id').optional().isInt({ min: 1 })
 ];
 
 // Generate order number
@@ -194,6 +199,29 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
     );
     const productById = new Map(productsResult.rows.map((p) => [p.id, p]));
     let computedSubtotal = 0;
+    // Collect option value ids
+    const optionValueIdSet = new Set();
+    for (const item of order_items) {
+      if (Array.isArray(item.selected_options)) {
+        for (const opt of item.selected_options) {
+          if (opt && Array.isArray(opt.values)) {
+            for (const v of opt.values) {
+              const vid = parseInt(v.id, 10);
+              if (!Number.isNaN(vid)) optionValueIdSet.add(vid);
+            }
+          }
+        }
+      }
+    }
+    let optionValueById = new Map();
+    if (optionValueIdSet.size > 0) {
+      const valuesResult = await client.query(
+        `SELECT id, name, price_adjustment FROM product_option_values WHERE id = ANY($1::int[])`,
+        [Array.from(optionValueIdSet)]
+      );
+      optionValueById = new Map(valuesResult.rows.map((r) => [r.id, r]));
+    }
+
     const normalizedItems = [];
     for (const item of order_items) {
       const product = productById.get(item.product_id);
@@ -203,9 +231,21 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
       }
       const quantity = Math.max(1, parseInt(item.quantity, 10) || 1);
       const unitPrice = Number(product.price);
-      const lineTotal = unitPrice * quantity;
+      // Sum adjustments per unit for selected options
+      let addOnPerUnit = 0;
+      if (Array.isArray(item.selected_options)) {
+        for (const opt of item.selected_options) {
+          if (opt && Array.isArray(opt.values)) {
+            for (const v of opt.values) {
+              const row = optionValueById.get(parseInt(v.id, 10));
+              if (row) addOnPerUnit += Number(row.price_adjustment || 0);
+            }
+          }
+        }
+      }
+      const lineTotal = (unitPrice + addOnPerUnit) * quantity;
       computedSubtotal += lineTotal;
-      normalizedItems.push({ product_id: product.id, product_name: product.name, quantity, unit_price: unitPrice, total_price: lineTotal });
+      normalizedItems.push({ product_id: product.id, product_name: product.name, quantity, unit_price: unitPrice + addOnPerUnit, total_price: lineTotal, selected_options: Array.isArray(item.selected_options) ? item.selected_options : [] });
     }
     // Delivery charge can be derived from environment or default 0
     const deliveryCharge = (order_type === 'delivery' || delivery_method === 'delivery') ? Number(process.env.DELIVERY_CHARGE || 0) : 0;
@@ -258,15 +298,31 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
 
     const order = orderResult.rows[0];
 
-    // Create order items
+    // Create order items and option selections
     for (const item of normalizedItems) {
-      await client.query(
+      const itemResult = await client.query(
         `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [
-          order.id, item.product_id, item.product_name, item.quantity, item.unit_price, item.total_price,
-        ]
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [order.id, item.product_id, item.product_name, item.quantity, item.unit_price, item.total_price]
       );
+      const orderItemId = itemResult.rows[0].id;
+      if (Array.isArray(item.selected_options)) {
+        for (const opt of item.selected_options) {
+          const optionId = opt.option_id || null;
+          const optionName = opt.option_name || '';
+          const values = Array.isArray(opt.values) ? opt.values : [];
+          for (const v of values) {
+            const valRow = optionValueById.get(parseInt(v.id, 10));
+            const valName = (v && v.name) || (valRow && valRow.name) || '';
+            const padj = valRow ? Number(valRow.price_adjustment || 0) : 0;
+            await client.query(
+              `INSERT INTO order_item_options (order_item_id, option_id, option_value_id, option_name, option_value_name, price_adjustment)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [orderItemId, optionId, v.id, optionName, valName, padj]
+            );
+          }
+        }
+      }
     }
 
     // Create initial status update
