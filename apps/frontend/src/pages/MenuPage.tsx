@@ -519,6 +519,26 @@ const MenuPage: React.FC = () => {
     [dispatch, language, optionsByProduct],
   );
 
+  // Prefetch options for visible products to make modal instant
+  useEffect(() => {
+    const controller = new AbortController();
+    const run = async () => {
+      try {
+        const toFetch = (filteredProducts || []).slice(0, 8) // prefetch first page/visible chunk
+          .filter(p => !optionsByProduct[p.id]);
+        await Promise.all(toFetch.map(async (p) => {
+          try {
+            const resp = await apiService.getProductOptions(p.id);
+            const data = (resp as any)?.data?.data || (resp as any)?.data || [];
+            setOptionsByProduct(prev => ({ ...prev, [p.id]: data }));
+          } catch {}
+        }));
+      } catch {}
+    };
+    run();
+    return () => controller.abort();
+  }, [filteredProducts]);
+
   const handleConfirmOptions = useCallback((result: { selections: any[]; description?: string; totalAdjustment: number }) => {
     if (!modalProduct) return;
     dispatch(

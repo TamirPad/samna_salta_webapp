@@ -211,6 +211,7 @@ const AdminAnalytics: React.FC = () => {
     revenueByDay: []
   });
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+  const [rangeDays, setRangeDays] = useState<number>(30);
 
   const revenueSeries = useMemo(() => {
     const items = Array.isArray(dashboardData?.revenue_by_day) ? dashboardData.revenue_by_day : [];
@@ -298,9 +299,9 @@ const AdminAnalytics: React.FC = () => {
         setLoading(true);
         const end = new Date();
         const start = new Date();
-        start.setDate(end.getDate() - 29);
+        start.setDate(end.getDate() - (rangeDays - 1));
         const resp = await apiService.getSalesReport({
-          start_date: end.toISOString().slice(0, 10),
+          start_date: start.toISOString().slice(0, 10),
           end_date: end.toISOString().slice(0, 10),
           group_by: 'day',
         });
@@ -322,7 +323,7 @@ const AdminAnalytics: React.FC = () => {
     if (isAuthenticated && activeTab === 'sales') {
       loadSales();
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated, activeTab, rangeDays]);
 
   // Load Product analytics on tab open
   useEffect(() => {
@@ -331,7 +332,7 @@ const AdminAnalytics: React.FC = () => {
         setLoading(true);
         const end = new Date();
         const start = new Date();
-        start.setDate(end.getDate() - 29);
+        start.setDate(end.getDate() - (rangeDays - 1));
         const resp = await apiService.getProductAnalytics({
           start_date: start.toISOString().slice(0, 10),
           end_date: end.toISOString().slice(0, 10),
@@ -355,7 +356,7 @@ const AdminAnalytics: React.FC = () => {
     if (isAuthenticated && activeTab === 'products') {
       loadProducts();
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated, activeTab, rangeDays]);
 
   const handleTabChange = (
     tab: "dashboard" | "sales" | "products" | "customers",
@@ -429,6 +430,12 @@ const AdminAnalytics: React.FC = () => {
               <LoadingSpinner />
             ) : (
               <>
+                <ControlsRow>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#666', fontSize: 13 }}>
+                    <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
+                    Auto-refresh (1m)
+                  </label>
+                </ControlsRow>
                 <StatsGrid>
                   <StatCard>
                     <StatValue>{dashboardData?.today?.orders || dashboardData?.today?.count || 0}</StatValue>
@@ -528,7 +535,9 @@ const AdminAnalytics: React.FC = () => {
               <>
                 <ControlsRow>
                   <span style={{ color: '#666', fontSize: 13 }}>Range:</span>
-                  {/* Controlled via state below */}
+                  <SmallButton $active={rangeDays === 7} onClick={() => setRangeDays(7)}>7d</SmallButton>
+                  <SmallButton $active={rangeDays === 30} onClick={() => setRangeDays(30)}>30d</SmallButton>
+                  <SmallButton $active={rangeDays === 90} onClick={() => setRangeDays(90)}>90d</SmallButton>
                 </ControlsRow>
                 <ChartContainer>
                   <div style={{ width: '100%', height: 320 }}>

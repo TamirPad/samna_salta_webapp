@@ -327,9 +327,9 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
 
     // Create initial status update
     await client.query(
-      `INSERT INTO order_status_updates (order_id, status, description)
-       VALUES ($1, $2, $3)`,
-      [order.id, 'pending', 'Order placed successfully']
+      `INSERT INTO order_status_updates (order_id, status, description, created_by_user_id, created_by_name)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [order.id, 'pending', 'Order placed successfully', req.user?.id || null, req.user?.email || null]
     );
 
     // Process payment if online
@@ -648,6 +648,63 @@ router.get('/', authenticateToken, requireAdmin, [
   }
 });
 
+// Export orders as CSV (admin only)
+router.get('/export.csv', authenticateToken, requireAdmin, [
+  query('status').optional().isString(),
+  query('start_date').optional().isString(),
+  query('end_date').optional().isString()
+], async (req, res) => {
+  try {
+    const { status, start_date, end_date } = req.query;
+    const clauses = [];
+    const params = [];
+    let idx = 1;
+    if (status && status !== 'all') {
+      clauses.push(`o.status = $${idx++}`);
+      params.push(status);
+    }
+    if (start_date) {
+      clauses.push(`o.created_at >= $${idx++}`);
+      params.push(new Date(start_date));
+    }
+    if (end_date) {
+      clauses.push(`o.created_at <= $${idx++}`);
+      params.push(new Date(end_date));
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const sql = `
+      SELECT o.id, o.order_number, o.status, o.payment_status, o.order_type,
+             o.customer_name, o.customer_phone, o.customer_email,
+             o.subtotal, o.delivery_charge, o.total,
+             to_char(o.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at,
+             to_char(o.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at
+        FROM orders o
+       ${where}
+       ORDER BY o.created_at DESC
+    `;
+    const result = await dbQuery(sql, params);
+    const header = [
+      'id','order_number','status','payment_status','order_type','customer_name','customer_phone','customer_email','subtotal','delivery_charge','total','created_at','updated_at'
+    ];
+    const escape = (v) => {
+      if (v === null || typeof v === 'undefined') return '';
+      const s = String(v);
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    };
+    const rows = result.rows.map(r => header.map(k => escape(r[k])));
+    const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="orders-${Date.now()}.csv"`);
+    return res.status(200).send(csv);
+  } catch (error) {
+    logger.error('Export orders CSV error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to export CSV' });
+  }
+});
+
 // Get current user's orders (requires auth)
 router.get('/my', authenticateToken, async (req, res) => {
   try {
@@ -737,9 +794,9 @@ router.get('/my', authenticateToken, async (req, res) => {
 
     // Add status update
     await client.query(
-      `INSERT INTO order_status_updates (order_id, status, description)
-       VALUES ($1, $2, $3)`,
-      [id, status, description || `Order status updated to ${status}`]
+      `INSERT INTO order_status_updates (order_id, status, description, created_by_user_id, created_by_name)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, status, description || `Order status updated to ${status}`, req.user?.id || null, req.user?.email || null]
     );
 
     await client.query('COMMIT');
@@ -760,9 +817,9 @@ router.get('/my', authenticateToken, async (req, res) => {
     if (status === 'delivered') {
       try {
         await dbQuery(
-          `INSERT INTO order_status_updates (order_id, status, description)
-           VALUES ($1, $2, $3)`,
-          [id, 'delivered', 'Order marked as delivered']
+          `INSERT INTO order_status_updates (order_id, status, description, created_by_user_id, created_by_name)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [id, 'delivered', 'Order marked as delivered', req.user?.id || null, req.user?.email || null]
         );
       } catch {}
     }
@@ -829,9 +886,9 @@ router.post('/:id/confirm-payment', async (req, res) => {
 
     // Add status update
     await dbQuery(
-      `INSERT INTO order_status_updates (order_id, status, description)
-       VALUES ($1, $2, $3)`,
-      [id, 'confirmed', 'Payment confirmed and order confirmed']
+      `INSERT INTO order_status_updates (order_id, status, description, created_by_user_id, created_by_name)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, 'confirmed', 'Payment confirmed and order confirmed', null, 'stripe-webhook']
     );
 
     // Send real-time update

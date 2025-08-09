@@ -1,4 +1,6 @@
 const { query } = require('./database');
+let bcrypt;
+try { bcrypt = require('bcryptjs'); } catch { bcrypt = null; }
 const logger = require('../utils/logger');
 
 async function runMigrations() {
@@ -114,7 +116,60 @@ async function runMigrations() {
       logger.error('❌ Migration 5 failed:', error.message);
     }
 
+    // Migration 6: Ensure order_status_updates audit columns
+    try {
+      await query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'samna_salta_webapp'
+              AND table_name = 'order_status_updates'
+              AND column_name = 'created_by_user_id'
+          ) THEN
+            ALTER TABLE samna_salta_webapp.order_status_updates ADD COLUMN created_by_user_id INT NULL;
+          END IF;
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'samna_salta_webapp'
+              AND table_name = 'order_status_updates'
+              AND column_name = 'created_by_name'
+          ) THEN
+            ALTER TABLE samna_salta_webapp.order_status_updates ADD COLUMN created_by_name VARCHAR(100) NULL;
+          END IF;
+        END $$;
+      `);
+      logger.info('✅ Migration 6 completed: audit columns ensured on order_status_updates');
+    } catch (error) {
+      logger.error('❌ Migration 6 failed:', error.message);
+    }
+
     logger.info('✅ All migrations completed successfully');
+
+    // Development/demo seed: ensure demo accounts exist with known credentials
+    try {
+      if (process.env.NODE_ENV !== 'production' && bcrypt) {
+        const adminEmail = 'admin@sammasalta.com';
+        const customerEmail = 'customer@sammasalta.com';
+        const adminHash = await bcrypt.hash('admin123', 12);
+        const customerHash = await bcrypt.hash('customer123', 12);
+        await query(
+          `INSERT INTO samna_salta_webapp.users (name, email, password_hash, phone, is_admin, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+           ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_admin = EXCLUDED.is_admin, updated_at = NOW()`,
+          ['Admin User', adminEmail, adminHash, '+972500000001', true]
+        );
+        await query(
+          `INSERT INTO samna_salta_webapp.users (name, email, password_hash, phone, is_admin, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+           ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_admin = EXCLUDED.is_admin, updated_at = NOW()`,
+          ['Demo Customer', customerEmail, customerHash, '+972500000002', false]
+        );
+        logger.info('✅ Demo users ensured (dev only)');
+      }
+    } catch (seedError) {
+      logger.warn('⚠️ Demo user seed skipped/failed:', seedError.message);
+    }
   } catch (error) {
     logger.error('❌ Migration process failed:', error);
     throw error;

@@ -53,6 +53,23 @@ const OrdersSubtitle = styled.p`
   font-size: 1.1rem;
 `;
 
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+`;
+
+const SmallBtn = styled.button`
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e1e5e9;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 0.9rem;
+`;
+
 const FiltersContainer = styled.div`
   display: flex;
   gap: 1rem;
@@ -433,6 +450,15 @@ const Orders: React.FC = () => {
       <OrdersHeader>
         <OrdersTitle>{content.title}</OrdersTitle>
         <OrdersSubtitle>{content.subtitle}</OrdersSubtitle>
+        <HeaderActions>
+          <SmallBtn onClick={() => {
+            const base = (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : (window.location.origin + '/api'));
+            const params = new URLSearchParams();
+            if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+            const url = `${base}/orders/export.csv?${params.toString()}`;
+            window.open(url, '_blank');
+          }}>Export CSV</SmallBtn>
+        </HeaderActions>
       </OrdersHeader>
 
       <FiltersContainer>
