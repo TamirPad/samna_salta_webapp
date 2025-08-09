@@ -1,6 +1,12 @@
 const logger = require('../utils/logger');
+let Redis;
+try { Redis = require('ioredis'); } catch (_) { Redis = null; }
 
-// Simple in-memory storage for sessions and cache
+// Use Redis if REDIS_URL is set and ioredis is available; otherwise fallback to in-memory
+const useRedis = !!(process.env.REDIS_URL && Redis);
+let redisClient = null;
+
+// Simple in-memory storage fallback
 const memoryStore = new Map();
 const sessionStore = new Map();
 
@@ -28,17 +34,28 @@ process.on('exit', () => {
   clearInterval(cleanupInterval);
 });
 
-// Initialize Redis (in-memory only)
+// Initialize storage (Redis or in-memory)
 const initializeRedis = async () => {
+  if (useRedis) {
+    redisClient = new Redis(process.env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 5 });
+    try {
+      await redisClient.connect();
+      logger.info('Connected to Redis');
+      return true;
+    } catch (error) {
+      logger.error('Redis connection failed, falling back to in-memory', error);
+      redisClient = null;
+    }
+  }
   logger.info('Using in-memory storage for sessions and cache');
   return true;
 };
 
-// Connect to Redis (in-memory only)
+// Connect to Redis or fallback
 const connectRedis = async () => {
   try {
     await initializeRedis();
-    logger.info('In-memory storage initialized successfully');
+    logger.info(useRedis ? 'Redis initialized successfully' : 'In-memory storage initialized successfully');
   } catch (error) {
     logger.error('Storage initialization failed:', error);
     throw error;
@@ -47,12 +64,16 @@ const connectRedis = async () => {
 
 // Check if storage is connected
 const isRedisConnected = () => {
-  return true; // In-memory is always "connected"
+  return !!redisClient && redisClient.status === 'ready';
 };
 
 // Cache operations
 const setCache = async (key, value, expireTime = 3600) => {
   try {
+    if (redisClient) {
+      await redisClient.set(key, JSON.stringify(value), 'EX', expireTime);
+      return true;
+    }
     const expiresAt = Date.now() + (expireTime * 1000);
     memoryStore.set(key, {value, expiresAt});
     return true;
@@ -64,16 +85,18 @@ const setCache = async (key, value, expireTime = 3600) => {
 
 const getCache = async (key) => {
   try {
+    if (redisClient) {
+      const raw = await redisClient.get(key);
+      return raw ? JSON.parse(raw) : null;
+    }
     const item = memoryStore.get(key);
     if (!item) {
       return null;
     }
-
     if (item.expiresAt && item.expiresAt < Date.now()) {
       memoryStore.delete(key);
       return null;
     }
-
     return item.value;
   } catch (error) {
     logger.error('Failed to get cache:', error);
@@ -83,6 +106,10 @@ const getCache = async (key) => {
 
 const deleteCache = async (key) => {
   try {
+    if (redisClient) {
+      await redisClient.del(key);
+      return true;
+    }
     return memoryStore.delete(key);
   } catch (error) {
     logger.error('Failed to delete cache:', error);
@@ -92,6 +119,10 @@ const deleteCache = async (key) => {
 
 const clearCache = async () => {
   try {
+    if (redisClient) {
+      await redisClient.flushdb();
+      return true;
+    }
     memoryStore.clear();
     return true;
   } catch (error) {
@@ -103,6 +134,10 @@ const clearCache = async () => {
 // Session operations
 const setSession = async (sessionId, userData, expireTime = 86400) => {
   try {
+    if (redisClient) {
+      await redisClient.set(`sess:${sessionId}`, JSON.stringify(userData), 'EX', expireTime);
+      return true;
+    }
     const expiresAt = Date.now() + (expireTime * 1000);
     sessionStore.set(sessionId, {userData, expiresAt});
     return true;
@@ -114,16 +149,18 @@ const setSession = async (sessionId, userData, expireTime = 86400) => {
 
 const getSession = async (sessionId) => {
   try {
+    if (redisClient) {
+      const raw = await redisClient.get(`sess:${sessionId}`);
+      return raw ? JSON.parse(raw) : null;
+    }
     const item = sessionStore.get(sessionId);
     if (!item) {
       return null;
     }
-
     if (item.expiresAt && item.expiresAt < Date.now()) {
       sessionStore.delete(sessionId);
       return null;
     }
-
     return item.userData;
   } catch (error) {
     logger.error('Failed to get session:', error);
@@ -133,6 +170,10 @@ const getSession = async (sessionId) => {
 
 const deleteSession = async (sessionId) => {
   try {
+    if (redisClient) {
+      await redisClient.del(`sess:${sessionId}`);
+      return true;
+    }
     return sessionStore.delete(sessionId);
   } catch (error) {
     logger.error('Failed to delete session:', error);
@@ -146,6 +187,9 @@ const closeRedis = async () => {
     clearInterval(cleanupInterval);
     memoryStore.clear();
     sessionStore.clear();
+    if (redisClient) {
+      try { await redisClient.quit(); } catch (_) {}
+    }
     logger.info('Storage cleaned up successfully');
   } catch (error) {
     logger.error('Failed to close storage:', error);

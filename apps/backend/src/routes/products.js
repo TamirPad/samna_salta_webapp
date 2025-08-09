@@ -4,6 +4,10 @@ const {authenticateToken, requireAdmin} = require('../middleware/auth');
 const {query: dbQuery} = require('../config/database');
 const {getCache, setCache} = require('../config/redis');
 const logger = require('../utils/logger');
+const multer = require('multer');
+const upload = multer({ limits: { fileSize: (parseInt(process.env.MAX_FILE_SIZE, 10) || 5 * 1024 * 1024) } });
+let cloudinary;
+try { cloudinary = require('cloudinary').v2; cloudinary.config({ cloud_name: process.env.CLOUDINARY_CLOUD_NAME, api_key: process.env.CLOUDINARY_API_KEY, api_secret: process.env.CLOUDINARY_API_SECRET }); } catch { cloudinary = null; }
 
 const router = express.Router();
 
@@ -682,3 +686,26 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, async (req, re
 });
 
 module.exports = router;
+
+// Upload product image (admin only)
+router.post('/upload', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
+  try {
+    if (!cloudinary) {
+      return res.status(503).json({ success: false, error: 'Image service unavailable' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image provided' });
+    }
+    const result = await cloudinary.uploader.upload_stream({ folder: 'products' }, (err, data) => {
+      if (err) {
+        return res.status(500).json({ success: false, error: 'Upload failed' });
+      }
+      return res.json({ success: true, data: { url: data.secure_url } });
+    });
+    // Write file buffer to stream
+    result.end(req.file.buffer);
+  } catch (error) {
+    logger.error('Image upload error:', error);
+    return res.status(500).json({ success: false, error: 'Upload failed' });
+  }
+});

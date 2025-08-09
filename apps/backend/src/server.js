@@ -6,6 +6,8 @@ const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const client = require('prom-client');
 
 // Import logger
 const logger = require('./utils/logger');
@@ -22,9 +24,10 @@ const {authenticateToken} = require('./middleware/auth');
 const {errorHandler} = require('./middleware/errorHandler');
 
 // Import database connection
-const {connectDB, closePool} = require('./config/database');
+const {connectDB, closePool, isConnectedToDB} = require('./config/database');
 const {connectRedis, closeRedis} = require('./config/redis');
 const {runMigrations} = require('./config/migration');
+let io = null;
 
 const app = express();
 
@@ -32,6 +35,18 @@ const app = express();
 app.set('trust proxy', 1);
 
 const PORT = process.env.PORT || 3001;
+
+// Fail fast on missing critical env in production
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET) {
+    console.error('❌ JWT_SECRET is required in production');
+    process.exit(1);
+  }
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL is required in production');
+    process.exit(1);
+  }
+}
 
 // Security middleware
 app.use(helmet({
@@ -57,7 +72,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(compression());
+app.use(cookieParser());
 app.use(morgan('combined'));
+// Stripe webhook must read raw body; mount placeholder route before JSON parser
+app.post('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }), (req, res, next) => next());
 app.use(express.json({limit: '10mb'}));
 
 // Serve static files from public directory
@@ -100,12 +118,61 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Liveness and readiness probes
+app.get('/liveness', (req, res) => {
+  res.json({ status: 'alive', timestamp: new Date() });
+});
+app.get('/readiness', async (req, res) => {
+  try {
+    const dbReady = isConnectedToDB();
+    const { isRedisConnected } = require('./config/redis');
+    const cacheReady = isRedisConnected();
+    const ok = dbReady; // DB is critical; cache is optional
+    res.status(ok ? 200 : 503).json({
+      status: ok ? 'ready' : 'degraded',
+      db: dbReady ? 'ok' : 'down',
+      cache: cacheReady ? 'ok' : 'down',
+      timestamp: new Date()
+    });
+  } catch (e) {
+    res.status(503).json({ status: 'error', message: e.message });
+  }
+});
+
+// Prometheus metrics
+client.collectDefaultMetrics();
+const httpRequestDurationSeconds = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'code'],
+});
+app.use((req, res, next) => {
+  const end = httpRequestDurationSeconds.startTimer();
+  res.on('finish', () => {
+    const route = req.route && req.route.path ? req.route.path : req.path;
+    end({ method: req.method, route, code: res.statusCode });
+  });
+  next();
+});
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/customers', authenticateToken, customerRoutes);
 app.use('/api/analytics', authenticateToken, analyticsRoutes);
+
+// Stripe webhook handler (after routes setup, but uses raw body)
+try {
+  const stripeWebhook = require('./webhooks/stripe');
+  app.post('/api/payments/stripe/webhook', stripeWebhook.handleWebhook);
+} catch (_) {
+  console.warn('⚠️ Stripe webhook handler not available yet');
+}
 
 // Error handling
 app.use(errorHandler);
@@ -203,8 +270,8 @@ const startServer = async () => {
       console.log('⚠️ Redis connection failed, using in-memory storage');
     }
     
-    // Start server
-    app.listen(PORT, () => {
+    // Start server + optional Socket.IO
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 Health check: http://localhost:${PORT}/health`);
       if (process.env.NODE_ENV === 'production') {
@@ -213,6 +280,18 @@ const startServer = async () => {
         console.log(`📱 Frontend: http://localhost:3000`);
       }
     });
+    try {
+      const { Server } = require('socket.io');
+      io = new Server(server, { cors: { origin: process.env.FRONTEND_URL || 'http://localhost:3000', credentials: true } });
+      app.set('io', io);
+      io.on('connection', (socket) => {
+        socket.on('join-order', (orderId) => socket.join(`order-${orderId}`));
+        socket.on('disconnect', () => {});
+      });
+      console.log('🔌 Socket.IO initialized');
+    } catch {
+      console.log('ℹ️ Socket.IO not available');
+    }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     console.error('Error details:', error.message);

@@ -26,6 +26,8 @@ const CartPage = lazy(() => import("./pages/CartPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Orders = lazy(() => import("./pages/admin/Orders"));
 const Products = lazy(() => import("./pages/admin/Products"));
@@ -142,6 +144,8 @@ const App: React.FC = (): JSX.Element => {
         { path: "/order/:orderId", component: OrderTrackingPage },
         { path: "/orders", component: MyOrdersPage },
         { path: "/login", component: LoginPage },
+        { path: "/register", component: RegisterPage },
+        { path: "/reset-password", component: ResetPasswordPage },
         {
           path: "/admin",
           component: Dashboard,

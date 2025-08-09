@@ -177,11 +177,39 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
       });
     }
 
-    const {
+  const {
       customer_name, customer_phone, customer_email,
       delivery_method, order_type, delivery_address, delivery_instructions, special_instructions,
-      payment_method, order_items, subtotal, delivery_charge, total
+      payment_method, order_items
     } = req.body;
+
+    // Fetch authoritative product prices and compute totals server-side
+    const productIdSet = new Set((order_items || []).map((it) => it.product_id).filter(Boolean));
+    if (!order_items || !Array.isArray(order_items) || order_items.length === 0) {
+      return res.status(400).json({ success: false, error: 'Validation failed', message: 'Order must contain items' });
+    }
+    const productsResult = await client.query(
+      `SELECT id, name, price FROM products WHERE id = ANY($1::int[]) AND is_active IS NOT FALSE`,
+      [Array.from(productIdSet)]
+    );
+    const productById = new Map(productsResult.rows.map((p) => [p.id, p]));
+    let computedSubtotal = 0;
+    const normalizedItems = [];
+    for (const item of order_items) {
+      const product = productById.get(item.product_id);
+      if (!product) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, error: 'Invalid product', message: `Product ${item.product_id} not available` });
+      }
+      const quantity = Math.max(1, parseInt(item.quantity, 10) || 1);
+      const unitPrice = Number(product.price);
+      const lineTotal = unitPrice * quantity;
+      computedSubtotal += lineTotal;
+      normalizedItems.push({ product_id: product.id, product_name: product.name, quantity, unit_price: unitPrice, total_price: lineTotal });
+    }
+    // Delivery charge can be derived from environment or default 0
+    const deliveryCharge = (order_type === 'delivery' || delivery_method === 'delivery') ? Number(process.env.DELIVERY_CHARGE || 0) : 0;
+    const computedTotal = computedSubtotal + deliveryCharge;
 
     // Map to schema column name
     const resolvedOrderType = order_type || delivery_method || 'pickup';
@@ -224,14 +252,14 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
       [
         orderNumber, customerId, customer_name, customer_phone, customer_email,
         resolvedOrderType, delivery_address, delivery_instructions, payment_method,
-        subtotal, delivery_charge || 0, total
+        computedSubtotal, deliveryCharge, computedTotal
       ]
     );
 
     const order = orderResult.rows[0];
 
     // Create order items
-    for (const item of order_items) {
+    for (const item of normalizedItems) {
       await client.query(
         `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
          VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -261,7 +289,7 @@ router.post('/', optionalAuth, validateOrder, async (req, res) => {
       }
       try {
         paymentIntent = await stripe.paymentIntents.create({
-          amount: Math.round(total * 100), // Convert to cents
+          amount: Math.round(computedTotal * 100), // Convert to cents
           currency: 'ils',
           metadata: {
             order_id: order.id,

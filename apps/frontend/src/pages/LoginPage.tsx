@@ -5,6 +5,7 @@ import { loginStart, loginSuccess, loginFailure, selectAuth } from '../features/
 import { apiService } from '../utils/api';
 import { selectLanguage } from '../features/language/languageSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { t } from '../utils/i18n';
 import styled from 'styled-components';
 
 const Page = styled.div`
@@ -293,37 +294,19 @@ const LoginPage: React.FC = () => {
     setPassword('admin123');
   };
 
-  const getContent = () => {
-    if (language === 'he') {
-      return {
-        title: 'ברוכים הבאים',
-        subtitle: 'התחבר לחשבון שלך',
-        email: 'אימייל',
-        password: 'סיסמה',
-        login: 'התחבר',
-        demo: 'התחבר עם חשבון דמו',
-        show: 'הצג',
-        hide: 'הסתר',
-        forgot: 'שכחת סיסמה?',
-        error: 'שגיאה בהתחברות',
-        success: 'התחברות מוצלחת!'
-      };
-    } else {
-      return {
-        title: 'Welcome Back',
-        subtitle: 'Sign in to your account',
-        email: 'Email',
-        password: 'Password',
-        login: 'Sign In',
-        demo: 'Login with Demo Account',
-        show: 'Show',
-        hide: 'Hide',
-        forgot: 'Forgot password?',
-        error: 'Login failed',
-        success: 'Login successful!'
-      };
-    }
-  };
+  const getContent = () => ({
+    title: t('login_title', language),
+    subtitle: t('login_subtitle', language),
+    email: t('email', language),
+    password: t('password', language),
+    login: t('sign_in', language),
+    demo: t('login_demo', language),
+    show: language === 'he' ? 'הצג' : 'Show',
+    hide: language === 'he' ? 'הסתר' : 'Hide',
+    forgot: t('forgot_password', language),
+    error: language === 'he' ? 'שגיאה בהתחברות' : 'Login failed',
+    success: language === 'he' ? 'התחברות מוצלחת!' : 'Login successful!'
+  });
 
   const content = getContent();
 

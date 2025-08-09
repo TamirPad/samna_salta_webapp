@@ -3,12 +3,70 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {body, validationResult} = require('express-validator');
 const {v4: uuidv4} = require('uuid');
+const rateLimit = require('express-rate-limit');
 
 const {query} = require('../config/database');
+const { setSession, deleteSession, setCache, getCache, deleteCache } = require('../config/redis');
 const {authenticateToken} = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 const router = express.Router();
+
+// Token issuance helpers
+const ACCESS_TOKEN_TTL = process.env.JWT_EXPIRES_IN || '7d';
+const REFRESH_TOKEN_TTL_SEC = 30 * 24 * 60 * 60; // 30 days
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: REFRESH_TOKEN_TTL_SEC * 1000,
+  path: '/api/auth'
+});
+
+const generateAccessToken = (payload) =>
+  jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
+
+const generateRefreshToken = (payload) =>
+  jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET, { expiresIn: `${REFRESH_TOKEN_TTL_SEC}s` });
+
+async function issueTokens(res, user) {
+  const sessionId = uuidv4();
+  const accessToken = generateAccessToken({ userId: user.id, email: user.email, isAdmin: !!user.is_admin || !!user.isAdmin, sessionId });
+  const refreshJti = uuidv4();
+  const refreshToken = generateRefreshToken({ userId: user.id, sessionId, jti: refreshJti });
+
+  try {
+    await setSession(`user:${user.id}:session:${sessionId}`, { userId: user.id }, REFRESH_TOKEN_TTL_SEC);
+    await setCache(`refresh:${user.id}:${sessionId}:${refreshJti}`, true, REFRESH_TOKEN_TTL_SEC);
+  } catch {}
+
+  try {
+    res.cookie('rt', refreshToken, getCookieOptions());
+  } catch {}
+
+  return { accessToken, sessionId };
+}
+
+// Per-IP and per-identifier login limiter
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    try {
+      const email = (req.body && req.body.email) ? String(req.body.email).toLowerCase() : '';
+      return `${req.ip}:${email}`;
+    } catch (_) {
+      return req.ip;
+    }
+  },
+  message: {
+    success: false,
+    error: 'Too many login attempts',
+    message: 'Please try again later.'
+  }
+});
 
 // Validation middleware
 const validateRegistration = [
@@ -22,6 +80,22 @@ const validateLogin = [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('password').notEmpty().withMessage('Password is required')
 ];
+
+const validateForgot = [ body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email') ];
+const validateReset = [
+  body('token').isString().notEmpty(),
+  body('password').isLength({min: 6}).withMessage('Password must be at least 6 characters long')
+];
+
+// Helper: decode session from JWT (safe parsing)
+function getSessionIdFromToken(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    return payload.sessionId;
+  } catch (_) {
+    return undefined;
+  }
+}
 
 // Register new user
 router.post('/register', validateRegistration, async (req, res) => {
@@ -66,17 +140,8 @@ router.post('/register', validateRegistration, async (req, res) => {
 
     const user = result.rows[0];
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        isAdmin: user.is_admin,
-        sessionId: uuidv4()
-      },
-      process.env.JWT_SECRET,
-      {expiresIn: '7d'}
-    );
+    // Issue tokens (access + refresh cookie)
+    const { accessToken: token } = await issueTokens(res, user);
 
     logger.info('User registered successfully:', {userId: user.id, email});
 
@@ -106,7 +171,7 @@ router.post('/register', validateRegistration, async (req, res) => {
 });
 
 // Login user
-router.post('/login', validateLogin, async (req, res) => {
+router.post('/login', loginLimiter, validateLogin, async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -120,8 +185,8 @@ router.post('/login', validateLogin, async (req, res) => {
 
     const {email, password} = req.body;
 
-    // Development mode fallback - allow any login without database
-    if (process.env.NODE_ENV === 'development' || !process.env.DATABASE_URL) {
+    // Development mode fallback - allow any login without database (never in production)
+    if ((process.env.NODE_ENV !== 'production') && !process.env.DATABASE_URL) {
       console.log('🔧 Development mode: Using fallback login for any credentials');
 
       const testUser = {
@@ -132,17 +197,7 @@ router.post('/login', validateLogin, async (req, res) => {
         isAdmin: true
       };
 
-      // Generate JWT token
-      const token = jwt.sign(
-        {
-          userId: testUser.id,
-          email: testUser.email,
-          isAdmin: testUser.isAdmin,
-          sessionId: uuidv4()
-        },
-        process.env.JWT_SECRET || 'dev-secret-key',
-        {expiresIn: '7d'}
-      );
+      const { accessToken: token } = await issueTokens(res, testUser);
 
       console.log('✅ Development login successful:', {userId: testUser.id, email});
 
@@ -167,38 +222,47 @@ router.post('/login', validateLogin, async (req, res) => {
       console.error('❌ Database error during login:', dbError.message);
       logger.error('Database error during login:', dbError);
 
-      // Fallback to development mode for any database error
-      console.log('🔧 Falling back to development mode due to database error');
+      // Fallback to development mode only when NOT in production
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔧 Falling back to development mode due to database error');
 
-      const testUser = {
-        id: 1,
-        name: 'Test User',
-        email,
-        phone: '+1234567890',
-        isAdmin: true
-      };
+        const testUser = {
+          id: 1,
+          name: 'Test User',
+          email,
+          phone: '+1234567890',
+          isAdmin: true
+        };
 
-      // Generate JWT token
-      const token = jwt.sign(
-        {
-          userId: testUser.id,
-          email: testUser.email,
-          isAdmin: testUser.isAdmin,
-          sessionId: uuidv4()
-        },
-        process.env.JWT_SECRET || 'dev-secret-key',
-        {expiresIn: '7d'}
-      );
+        // Generate JWT token
+        const token = jwt.sign(
+          {
+            userId: testUser.id,
+            email: testUser.email,
+            isAdmin: testUser.isAdmin,
+            sessionId: uuidv4()
+          },
+          process.env.JWT_SECRET || 'dev-secret-key',
+          {expiresIn: '7d'}
+        );
 
-      console.log('✅ Development login successful (fallback):', {userId: testUser.id, email});
+        console.log('✅ Development login successful (fallback):', {userId: testUser.id, email});
 
-      return res.json({
-        success: true,
-        message: 'Login successful (development mode)',
-        data: {
-          user: testUser,
-          token
-        }
+        return res.json({
+          success: true,
+          message: 'Login successful (development mode)',
+          data: {
+            user: testUser,
+            token
+          }
+        });
+      }
+
+      // In production, return service unavailable on DB failure
+      return res.status(503).json({
+        success: false,
+        error: 'Service unavailable',
+        message: 'Authentication temporarily unavailable'
       });
     }
 
@@ -222,17 +286,7 @@ router.post('/login', validateLogin, async (req, res) => {
       });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        isAdmin: user.is_admin,
-        sessionId: uuidv4()
-      },
-      process.env.JWT_SECRET,
-      {expiresIn: '7d'}
-    );
+    const { accessToken: token } = await issueTokens(res, user);
 
     // Update last login (optional - don't fail if this fails)
     try {
@@ -336,6 +390,19 @@ router.get('/me', authenticateToken, async (req, res) => {
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
     logger.info('User logged out successfully:', {userId: req.user.id});
+    // Revoke session
+    if (req.user && req.user.sessionId) {
+      try { await deleteSession(`user:${req.user.id}:session:${req.user.sessionId}`); } catch {}
+    }
+    // Revoke current refresh token if present
+    try {
+      const rt = req.cookies && req.cookies.rt;
+      if (rt) {
+        const decoded = jwt.verify(rt, process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET);
+        await deleteCache(`refresh:${decoded.userId}:${decoded.sessionId}:${decoded.jti}`);
+      }
+      res.clearCookie('rt', getCookieOptions());
+    } catch {}
 
     res.json({
       success: true,
@@ -353,3 +420,116 @@ router.post('/logout', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
+// Forgot password - send reset email
+router.post('/forgot-password', validateForgot, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
+    }
+    const { email } = req.body;
+    const userResult = await query('SELECT id, email FROM users WHERE email = $1', [email]);
+    // Always respond success to avoid user enumeration
+    if (userResult.rows.length === 0) {
+      return res.json({ success: true, message: 'If an account exists, a reset link has been sent' });
+    }
+    const user = userResult.rows[0];
+    const token = uuidv4();
+    const ttl = 60 * 60; // 1 hour
+    await setCache(`pwreset:${user.id}:${token}`, true, ttl);
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${encodeURIComponent(token)}&uid=${user.id}`;
+    // Send email (log in dev)
+    try {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: false,
+        auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined
+      });
+      await transporter.sendMail({
+        from: process.env.MAIL_FROM || 'no-reply@samna-salta',
+        to: user.email,
+        subject: 'Password Reset',
+        text: `Reset your password: ${resetUrl}`,
+        html: `<p>Click to reset your password:</p><p><a href="${resetUrl}">Reset Password</a></p>`
+      });
+    } catch (e) {
+      console.log('ℹ️ Email not sent (dev or SMTP missing). Reset URL:', resetUrl);
+    }
+    return res.json({ success: true, message: 'If an account exists, a reset link has been sent' });
+  } catch (error) {
+    logger.error('Forgot password error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to start reset' });
+  }
+});
+
+// Reset password
+router.post('/reset-password', validateReset, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
+    }
+    const { token, password, uid } = { ...req.body, ...req.query };
+    if (!uid) {
+      return res.status(400).json({ success: false, error: 'Invalid reset request' });
+    }
+    const exists = await getCache(`pwreset:${uid}:${token}`);
+    if (!exists) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired token' });
+    }
+    const saltRounds = 12;
+    const hashed = await bcrypt.hash(password, saltRounds);
+    await query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [hashed, uid]);
+    await deleteCache(`pwreset:${uid}:${token}`);
+    return res.json({ success: true, message: 'Password updated' });
+  } catch (error) {
+    logger.error('Reset password error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to reset password' });
+  }
+});
+
+// Refresh access token
+router.post('/refresh', async (req, res) => {
+  try {
+    const token = (req.cookies && req.cookies.rt) || (req.body && req.body.refreshToken);
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Refresh token required' });
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ success: false, error: 'Invalid refresh token' });
+    }
+    const { userId, sessionId, jti } = decoded || {};
+    if (!userId || !sessionId || !jti) {
+      return res.status(401).json({ success: false, error: 'Invalid refresh token' });
+    }
+    // Validate session still active
+    try {
+      const sess = await getCache(`user:${userId}:session:${sessionId}`);
+      if (!sess) {
+        return res.status(401).json({ success: false, error: 'Session expired' });
+      }
+    } catch {}
+    // Enforce rotation: ensure current jti exists then rotate
+    const exists = await getCache(`refresh:${userId}:${sessionId}:${jti}`);
+    if (!exists) {
+      return res.status(401).json({ success: false, error: 'Refresh token rotated', message: 'Please login again' });
+    }
+    await deleteCache(`refresh:${userId}:${sessionId}:${jti}`);
+    const newJti = uuidv4();
+    const newRefresh = generateRefreshToken({ userId, sessionId, jti: newJti });
+    await setCache(`refresh:${userId}:${sessionId}:${newJti}`, true, REFRESH_TOKEN_TTL_SEC);
+    // New access token
+    const access = generateAccessToken({ userId, sessionId });
+    try { res.cookie('rt', newRefresh, getCookieOptions()); } catch {}
+    return res.json({ success: true, data: { token: access } });
+  } catch (error) {
+    logger.error('Refresh token error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to refresh token' });
+  }
+});

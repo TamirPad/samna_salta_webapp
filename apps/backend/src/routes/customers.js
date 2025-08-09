@@ -231,3 +231,38 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
+// Get/update current user profile
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const result = await dbQuery('SELECT id, name, email, phone, delivery_address, language FROM customers WHERE id = $1', [req.user.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Profile not found' });
+    }
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    logger.error('Get profile error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch profile' });
+  }
+});
+
+router.put('/me', authenticateToken, validateCustomer, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
+    }
+    const { name, email, phone, delivery_address, language } = req.body;
+    const result = await dbQuery(
+      `UPDATE customers SET name = $1, email = $2, phone = $3, delivery_address = $4, language = $5, updated_at = NOW() WHERE id = $6 RETURNING id, name, email, phone, delivery_address, language`,
+      [name, email, phone, delivery_address, language, req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Profile not found' });
+    }
+    return res.json({ success: true, message: 'Profile updated', data: result.rows[0] });
+  } catch (error) {
+    logger.error('Update profile error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update profile' });
+  }
+});

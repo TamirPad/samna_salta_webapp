@@ -253,19 +253,32 @@ router.get('/customers', authenticateToken, requireAdmin, [
 ], async (req, res) => {
   try {
     const {start_date, end_date} = req.query;
-
     const startDate = start_date ? new Date(start_date) : new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
     const endDate = end_date ? new Date(end_date) : new Date();
 
-    // For now, return a simple response to avoid database issues
-    const customerAnalyticsResult = {rows: []};
+    const customersSummary = await dbQuery(
+      `SELECT COUNT(*) as total_customers,
+              SUM(CASE WHEN created_at >= $1 AND created_at <= $2 THEN 1 ELSE 0 END) as new_customers
+         FROM customers`,
+      [startDate, endDate]
+    );
+    const topCustomers = await dbQuery(
+      `SELECT c.id, c.name, c.email, COUNT(o.id) as orders, COALESCE(SUM(o.total), 0) as revenue
+         FROM customers c
+         LEFT JOIN orders o ON o.customer_id = c.id AND o.created_at >= $1 AND o.created_at <= $2
+        GROUP BY c.id
+        ORDER BY revenue DESC
+        LIMIT 10`,
+      [startDate, endDate]
+    );
 
     res.json({
       success: true,
       data: {
         start_date: startDate,
         end_date: endDate,
-        customers: customerAnalyticsResult.rows
+        summary: customersSummary.rows[0],
+        top_customers: topCustomers.rows
       }
     });
 

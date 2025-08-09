@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
+const { getSession } = require('../config/redis');
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -16,13 +17,24 @@ const authenticateToken = async (req, res, next) => {
     // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Add user info to request (no session validation needed)
+    // Add user info to request
     req.user = {
       id: decoded.userId || decoded.id,
       email: decoded.email,
       isAdmin: decoded.isAdmin,
       sessionId: decoded.sessionId
     };
+
+    // Optional: session validation if present in store
+    try {
+      const key = `user:${req.user.id}:session:${req.user.sessionId}`;
+      const active = await getSession(key);
+      if (!active) {
+        return res.status(401).json({ success: false, error: 'Session revoked', message: 'Please login again' });
+      }
+    } catch (_) {
+      // If store unavailable, continue to avoid hard fails
+    }
 
     next();
   } catch (error) {

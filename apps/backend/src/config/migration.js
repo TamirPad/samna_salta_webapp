@@ -94,6 +94,26 @@ async function runMigrations() {
       logger.error('❌ Migration 4 failed:', error.message);
     }
 
+    // Migration 5: Ensure users.email_verified exists
+    try {
+      await query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'samna_salta_webapp'
+              AND table_name = 'users'
+              AND column_name = 'email_verified'
+          ) THEN
+            ALTER TABLE samna_salta_webapp.users ADD COLUMN email_verified BOOLEAN DEFAULT false;
+          END IF;
+        END $$;
+      `);
+      logger.info('✅ Migration 5 completed: email_verified column ensured on users');
+    } catch (error) {
+      logger.error('❌ Migration 5 failed:', error.message);
+    }
+
     logger.info('✅ All migrations completed successfully');
   } catch (error) {
     logger.error('❌ Migration process failed:', error);
