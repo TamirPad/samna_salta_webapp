@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const {query} = require('express-validator');
 const {authenticateToken, requireAdmin} = require('../middleware/auth');
 const {query: dbQuery} = require('../config/database');
@@ -124,8 +125,23 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
 
     console.log('📊 Final analytics object:', analytics);
 
-    // Cache for 5 minutes
-    await setCache(cacheKey, analytics, 300);
+    // Cache for 60 seconds for near-real-time dashboard
+    await setCache(cacheKey, analytics, 60);
+
+    // Conditional GET using ETag
+    try {
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({
+        today: analytics.today,
+        month: analytics.month,
+        customers: analytics.customers,
+        pending: analytics.pending_orders
+      })).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
+      res.setHeader('Cache-Control', 'public, max-age=60');
+    } catch {}
 
     res.json({
       success: true,
@@ -182,6 +198,18 @@ router.get('/sales', authenticateToken, requireAdmin, [
       [startDate, endDate]
     );
 
+    // Conditional GET - ETag with params and count
+    try {
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({
+        start: startDate.toISOString(), end: endDate.toISOString(), group: group_by, count: salesResult.rows.length
+      })).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
+      res.setHeader('Cache-Control', 'public, max-age=120');
+    } catch {}
+
     res.json({
       success: true,
       data: {
@@ -227,6 +255,17 @@ router.get('/products', authenticateToken, requireAdmin, [
       [startDate, endDate]
     );
 
+    try {
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({
+        start: startDate.toISOString(), end: endDate.toISOString(), count: productAnalyticsResult.rows.length
+      })).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
+      res.setHeader('Cache-Control', 'public, max-age=120');
+    } catch {}
+
     res.json({
       success: true,
       data: {
@@ -271,6 +310,17 @@ router.get('/customers', authenticateToken, requireAdmin, [
         LIMIT 10`,
       [startDate, endDate]
     );
+
+    try {
+      const etag = 'W/"' + crypto.createHash('sha1').update(JSON.stringify({
+        start: startDate.toISOString(), end: endDate.toISOString(), total: customersSummary.rows[0]?.total_customers, top: topCustomers.rows.length
+      })).digest('hex') + '"';
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      res.setHeader('ETag', etag);
+      res.setHeader('Cache-Control', 'public, max-age=120');
+    } catch {}
 
     res.json({
       success: true,

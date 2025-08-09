@@ -322,6 +322,7 @@ export interface ApiService {
   // Product methods
   getProducts: (params?: any) => Promise<any>;
   getProduct: (id: number) => Promise<any>;
+  getProductOptions: (id: number) => Promise<any>;
   createProduct: (productData: any) => Promise<any>;
   updateProduct: (id: number, productData: any) => Promise<any>;
   deleteProduct: (id: number) => Promise<any>;

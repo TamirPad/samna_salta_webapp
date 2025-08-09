@@ -160,7 +160,7 @@ export class EnhancedApiService implements ApiServiceInterface {
 
   // Product options
   async getProductOptions(id: number) {
-    return apiService.get(`/products/${id}/options` as any);
+    return apiService.getProductOptions(id);
   }
 
   // Analytics methods
