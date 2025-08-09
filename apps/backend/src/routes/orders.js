@@ -468,11 +468,35 @@ router.get('/:id', async (req, res) => {
 
     const order = orderResult.rows[0];
 
-    // Get order items
-    const itemsResult = await dbQuery(
-      'SELECT * FROM order_items WHERE order_id = $1',
-      [id]
-    );
+      // Get order items
+      const itemsResult = await dbQuery(
+        'SELECT * FROM order_items WHERE order_id = $1 ORDER BY id',
+        [id]
+      );
+
+      // Get order item options
+      let itemOptionsByItemId = new Map();
+      if (itemsResult.rows.length > 0) {
+        const optResult = await dbQuery(
+          'SELECT * FROM order_item_options WHERE order_id IS NULL AND order_item_id = ANY($1::int[]) ORDER BY id',
+          [itemsResult.rows.map(r => r.id)]
+        ).catch(async () => {
+          // Some DBs may not have order_id column in order_item_options; fallback to no filter
+          const r = await dbQuery('SELECT * FROM order_item_options WHERE order_item_id = ANY($1::int[]) ORDER BY id', [itemsResult.rows.map(r => r.id)]);
+          return r;
+        });
+        for (const row of optResult.rows) {
+          const list = itemOptionsByItemId.get(row.order_item_id) || [];
+          list.push({
+            option_id: row.option_id,
+            option_name: row.option_name,
+            option_value_id: row.option_value_id,
+            option_value_name: row.option_value_name,
+            price_adjustment: Number(row.price_adjustment || 0)
+          });
+          itemOptionsByItemId.set(row.order_item_id, list);
+        }
+      }
 
     // Get status updates
     const statusUpdatesResult = await dbQuery(
@@ -480,9 +504,9 @@ router.get('/:id', async (req, res) => {
       [id]
     );
 
-    const orderData = {
+      const orderData = {
       ...order,
-      order_items: itemsResult.rows,
+        order_items: itemsResult.rows.map(it => ({ ...it, options: itemOptionsByItemId.get(it.id) || [] })),
       status_updates: statusUpdatesResult.rows
     };
 

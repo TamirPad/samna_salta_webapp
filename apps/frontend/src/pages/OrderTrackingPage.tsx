@@ -909,6 +909,15 @@ const OrderTrackingPage: React.FC = () => {
                       <ItemDetails>
                         <ItemName>{item.product_name}</ItemName>
                         <ItemQuantity>Qty: {item.quantity}</ItemQuantity>
+                        {item.options && item.options.length > 0 && (
+                          <div style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                            {item.options.map((opt: any, idx: number) => (
+                              <div key={idx}>
+                                {opt.option_name}: {opt.option_value_name} {opt.price_adjustment ? `(₪${opt.price_adjustment})` : ''}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </ItemDetails>
                     </ItemInfo>
                     <ItemPrice>₪{item.total_price}</ItemPrice>

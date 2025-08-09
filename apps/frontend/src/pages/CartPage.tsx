@@ -676,6 +676,11 @@ const CartPage: React.FC = () => {
                       <ItemName>{item.name}</ItemName>
                       <ItemCategory>{item.category}</ItemCategory>
                       <ItemPrice>₪{item.price}</ItemPrice>
+                      {item.description && (
+                        <div style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                          {item.description}
+                        </div>
+                      )}
                     </ItemDetails>
 
                     <ItemControls>
