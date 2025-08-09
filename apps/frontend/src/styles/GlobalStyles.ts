@@ -30,6 +30,8 @@ export const GlobalStyles = createGlobalStyle`
     position: relative;
     /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
+    /* Ensure vertical scrolling available under sticky header */
+    overflow-y: auto;
     width: 100%;
   }
 

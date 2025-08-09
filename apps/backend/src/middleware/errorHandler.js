@@ -30,7 +30,11 @@ const errorHandler = (err, req, res, next) => {
     error = {message: 'Duplicate field value entered', statusCode: 400};
   } else if (err.name === 'ValidationError' || err.statusCode === 422) {
     const message = err.message || 'Validation failed';
-    error = {message, statusCode: 422};
+    if (Array.isArray(err.errors)) {
+      error = { message: 'Validation failed', statusCode: 422, details: err.errors.map(e => ({ field: e.param || e.field, message: e.msg || e.message })) };
+    } else {
+      error = {message, statusCode: 422};
+    }
   } else if (err.name === 'JsonWebTokenError') {
     error = {message: 'Invalid token', statusCode: 401};
   } else if (err.name === 'TokenExpiredError') {
@@ -38,7 +42,7 @@ const errorHandler = (err, req, res, next) => {
   } else if (err.code === '23505') {
     error = {message: 'Resource already exists', statusCode: 409};
   } else if (err.code === '23503') {
-    error = {message: 'Referenced record does not exist', statusCode: 400};
+    error = {message: 'Invalid reference', statusCode: 400};
   } else if (err.code === '23502') {
     error = {message: 'Required field missing', statusCode: 400};
   } else if (err.code === 'LIMIT_FILE_SIZE') {
@@ -57,9 +61,12 @@ const errorHandler = (err, req, res, next) => {
   const response = {
     success: false,
     error: message,
+    requestId: (req && (req.id || req.headers && (req.headers['x-request-id'] || req.headers['X-Request-ID']))) || undefined,
     timestamp: new Date().toISOString(),
   };
-  if (process.env.NODE_ENV !== 'production') {
+  if (error.details) {
+    response.details = error.details;
+  } else if (process.env.NODE_ENV !== 'production') {
     response.details = err.details || undefined;
   }
   res.status(statusCode).json(response);

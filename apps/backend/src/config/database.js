@@ -165,4 +165,8 @@ module.exports = {
 };
 
 // Also expose pool for tests
-module.exports.pool = pool;
+Object.defineProperty(module.exports, 'pool', {
+  enumerable: true,
+  get() { return pool; },
+  set(v) { pool = v; }
+});

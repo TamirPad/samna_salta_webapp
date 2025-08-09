@@ -52,6 +52,7 @@ interface CategoryOption {
 // Styled Components
 const ProductsContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: #f8f9fa;
   padding: 2rem 0;
 
@@ -387,6 +388,12 @@ const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 2000;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    align-items: flex-end;
+    padding: 0 env(safe-area-inset-right) max(env(safe-area-inset-bottom), 8px) env(safe-area-inset-left);
+  }
 `;
 
 const ModalContent = styled.div`
@@ -394,15 +401,30 @@ const ModalContent = styled.div`
   border-radius: 12px;
   width: 95%;
   max-width: 560px;
-  padding: 1.25rem;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+  }
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
 `;
 
 const ModalTitle = styled.h3`
@@ -414,6 +436,10 @@ const ModalBody = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
 `;
 
 const FormRow = styled.label`
@@ -446,10 +472,14 @@ const SelectInput = styled.select`
 `;
 
 const ModalFooter = styled.div`
-  margin-top: 0.75rem;
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #eee;
+  position: sticky;
+  bottom: 0;
+  background: white;
 `;
 
 const SecondaryBtn = styled.button`
@@ -908,7 +938,7 @@ const AdminProducts: React.FC = () => {
               </FormRow>
               <FormRow>
                 {language === 'he' ? 'תיאור' : 'Description'}
-                <TextArea name="description" value={(form.description as any) || ''} onChange={handleFormChange} />
+                <TextArea name="description" value={(form.description as any) || ''} onChange={handleFormChange} style={{ minHeight: 120 }} />
               </FormRow>
               <FormRow>
                 {language === 'he' ? 'תמונה (URL)' : 'Image URL'}

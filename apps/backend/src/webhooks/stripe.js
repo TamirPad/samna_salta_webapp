@@ -15,7 +15,12 @@ const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!whSecret) {
-    logger.warn('Stripe webhook secret missing; skipping verification');
+    const message = 'Stripe webhook secret missing';
+    if (process.env.NODE_ENV === 'production') {
+      logger.error(message);
+      return res.status(400).send('Webhook misconfigured');
+    }
+    logger.warn(message + '; skipping verification in non-production');
     return res.status(200).send('No webhook secret');
   }
   let event;

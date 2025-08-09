@@ -13,7 +13,7 @@ const logger = require('../utils/logger');
 const router = express.Router();
 
 // Token issuance helpers
-const ACCESS_TOKEN_TTL = process.env.JWT_EXPIRES_IN || '7d';
+const ACCESS_TOKEN_TTL = process.env.JWT_EXPIRES_IN || '30m';
 const REFRESH_TOKEN_TTL_SEC = 30 * 24 * 60 * 60; // 30 days
 const getCookieOptions = () => ({
   httpOnly: true,
