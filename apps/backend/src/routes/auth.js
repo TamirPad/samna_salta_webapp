@@ -185,33 +185,7 @@ router.post('/login', loginLimiter, validateLogin, async (req, res) => {
 
     const {email, password} = req.body;
 
-    // Development mode fallback - allow any login without database (never in production)
-    if ((process.env.NODE_ENV !== 'production') && !process.env.DATABASE_URL) {
-      console.log('🔧 Development mode: Using fallback login for any credentials');
-
-      const testUser = {
-        id: 1,
-        name: 'Test User',
-        email,
-        phone: '+1234567890',
-        isAdmin: true
-      };
-
-      const { accessToken: token } = await issueTokens(res, testUser);
-
-      console.log('✅ Development login successful:', {userId: testUser.id, email});
-
-      return res.json({
-        success: true,
-        message: 'Login successful (development mode)',
-        data: {
-          user: testUser,
-          token
-        }
-      });
-    }
-
-    // Try to use database, but fallback to development mode if it fails
+    // Try to use database; if DB unavailable, return service unavailable
     let result;
     try {
       result = await query(
@@ -221,44 +195,7 @@ router.post('/login', loginLimiter, validateLogin, async (req, res) => {
     } catch (dbError) {
       console.error('❌ Database error during login:', dbError.message);
       logger.error('Database error during login:', dbError);
-
-      // Fallback to development mode only when NOT in production
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('🔧 Falling back to development mode due to database error');
-
-        const testUser = {
-          id: 1,
-          name: 'Test User',
-          email,
-          phone: '+1234567890',
-          isAdmin: true
-        };
-
-        // Generate JWT token
-        const token = jwt.sign(
-          {
-            userId: testUser.id,
-            email: testUser.email,
-            isAdmin: testUser.isAdmin,
-            sessionId: uuidv4()
-          },
-          process.env.JWT_SECRET || 'dev-secret-key',
-          {expiresIn: '7d'}
-        );
-
-        console.log('✅ Development login successful (fallback):', {userId: testUser.id, email});
-
-        return res.json({
-          success: true,
-          message: 'Login successful (development mode)',
-          data: {
-            user: testUser,
-            token
-          }
-        });
-      }
-
-      // In production, return service unavailable on DB failure
+      // Return service unavailable on DB failure
       return res.status(503).json({
         success: false,
         error: 'Service unavailable',
