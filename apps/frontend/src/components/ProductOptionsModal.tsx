@@ -199,6 +199,14 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
     return { valid: ok, selections: picked, description: parts.length ? parts.join(' | ') : undefined, totalAdjustment: adj };
   }, [options, selected]);
 
+  // Autofocus first chip when options are loaded
+  useEffect(() => {
+    if (!loading && options && options.length > 0) {
+      const t = setTimeout(() => firstChipRef.current?.focus(), 50);
+      return () => clearTimeout(t);
+    }
+  }, [loading, options]);
+
   if (!options || loading) {
     // If no options (empty array), auto-confirm immediately
     if (!loading && Array.isArray(options) && options.length === 0) {
@@ -218,14 +226,6 @@ const ProductOptionsModal: React.FC<Props> = ({ product, language, onClose, onCo
       </Backdrop>
     );
   }
-
-  // Autofocus first chip when options are loaded
-  useEffect(() => {
-    if (!loading && options && options.length > 0) {
-      const t = setTimeout(() => firstChipRef.current?.focus(), 50);
-      return () => clearTimeout(t);
-    }
-  }, [loading, options]);
 
   // Swipe-to-close handlers
   const onTouchStart = (e: React.TouchEvent) => {

@@ -671,6 +671,9 @@ const CheckoutPage: React.FC = () => {
                     </FormLabel>
                     <FormInput
                       type="text"
+                      inputMode="text"
+                      autoComplete="name"
+                      enterKeyHint="next"
                       value={formData.customer_name}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         handleInputChange("customer_name", e.target.value)
@@ -690,6 +693,9 @@ const CheckoutPage: React.FC = () => {
                     </FormLabel>
                     <FormInput
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      enterKeyHint="next"
                       value={formData.customer_phone}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         handleInputChange("customer_phone", e.target.value)
@@ -710,6 +716,9 @@ const CheckoutPage: React.FC = () => {
                   </FormLabel>
                   <FormInput
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    enterKeyHint="next"
                     value={formData.customer_email}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       handleInputChange("customer_email", e.target.value)
@@ -808,6 +817,9 @@ const CheckoutPage: React.FC = () => {
                       </FormLabel>
                       <FormInput
                         type="text"
+                        inputMode="text"
+                        autoComplete="address-line1"
+                        enterKeyHint="next"
                         value={formData.delivery_address}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           handleInputChange("delivery_address", e.target.value)
