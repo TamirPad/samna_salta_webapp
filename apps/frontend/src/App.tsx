@@ -35,6 +35,7 @@ const Customers = lazy(() => import("./pages/admin/Customers"));
 const Analytics = lazy(() => import("./pages/admin/Analytics"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 // Types
 interface AnimatedRouteProps {
@@ -144,6 +145,7 @@ const App: React.FC = (): JSX.Element => {
         { path: "/order/:orderId", component: OrderTrackingPage },
         { path: "/orders", component: MyOrdersPage },
         { path: "/login", component: LoginPage },
+        { path: "/profile", component: ProfilePage, protected: true },
         { path: "/register", component: RegisterPage },
         { path: "/reset-password", component: ResetPasswordPage },
         {

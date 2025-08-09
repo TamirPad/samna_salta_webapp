@@ -117,6 +117,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 // Add request interceptor for headers
@@ -157,6 +158,30 @@ api.interceptors.request.use(
   },
 );
 
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (isRefreshing && refreshPromise) return refreshPromise;
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const resp = await api.post('/auth/refresh');
+      const newToken = (resp as any)?.data?.data?.token;
+      if (newToken) {
+        localStorage.setItem('token', newToken);
+        return newToken as string;
+      }
+    } catch (_) {
+      // ignore
+    } finally {
+      isRefreshing = false;
+    }
+    return null;
+  })();
+  return refreshPromise;
+}
+
 // Response interceptor with retry logic
 api.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -195,18 +220,23 @@ api.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // Unauthorized - clear token and redirect to login
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          clearCache(); // Clear cache on auth failure
-
-          // Only redirect if not already on login page to prevent infinite loops
-          if (
-            window.location.pathname !== "/" &&
-            window.location.pathname !== "/login"
-          ) {
-            window.location.href = "/login";
-            toast.error("Session expired. Please login again.");
+          // Try refresh once (avoid for refresh endpoint itself)
+          if (!(originalRequest && originalRequest._triedRefresh) && !(originalRequest && originalRequest.url && originalRequest.url.includes('/auth/refresh'))) {
+            originalRequest._triedRefresh = true;
+            const newToken = await refreshAccessToken();
+            if (newToken) {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              return api(originalRequest);
+            }
+          }
+          // Refresh failed - clear token and redirect
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          clearCache();
+          if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+            window.location.href = '/login';
+            toast.error('Session expired. Please login again.');
           }
           break;
 
@@ -319,6 +349,9 @@ export interface ApiService {
   getCustomer: (id: number) => Promise<any>;
   updateCustomer: (id: number, customerData: any) => Promise<any>;
   deleteCustomer: (id: number) => Promise<any>;
+  // Profile methods
+  getProfile: () => Promise<any>;
+  updateProfile: (profile: any) => Promise<any>;
 
   // Analytics methods
   getDashboardAnalytics: () => Promise<any>;
@@ -427,6 +460,10 @@ export const apiService: ApiService = {
     api.put(`/customers/${id}`, customerData),
 
   deleteCustomer: (id: number) => api.delete(`/customers/${id}`),
+
+  // Profile
+  getProfile: () => api.get('/customers/me'),
+  updateProfile: (profile: unknown) => api.put('/customers/me', profile),
 
   // Analytics
   getDashboardAnalytics: () => api.get("/analytics/dashboard"),

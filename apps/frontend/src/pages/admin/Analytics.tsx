@@ -164,6 +164,8 @@ const AdminAnalytics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
+  const [customerSummary, setCustomerSummary] = useState<any | null>(null);
+  const [topCustomers, setTopCustomers] = useState<any[]>([]);
 
   // Dashboard data
   const [dashboardData, setDashboardData] = useState<any>({
@@ -203,6 +205,28 @@ const AdminAnalytics: React.FC = () => {
       loadDashboardData();
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const loadCustomerAnalytics = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.getCustomerAnalytics();
+        const payload = (response as any)?.data?.data || (response as any)?.data;
+        if (payload) {
+          setCustomerSummary(payload.summary || null);
+          setTopCustomers(payload.top_customers || []);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load customer analytics', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (isAuthenticated && activeTab === 'customers') {
+      loadCustomerAnalytics();
+    }
+  }, [isAuthenticated, activeTab]);
 
   const handleTabChange = (
     tab: "dashboard" | "sales" | "products" | "customers",
@@ -356,10 +380,49 @@ const AdminAnalytics: React.FC = () => {
         )}
 
         {activeTab === "customers" && (
-          <ChartContainer>
-            <p>Customer Analytics</p>
-            <p>Customer behavior charts would be implemented here</p>
-          </ChartContainer>
+          <>
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <StatsGrid>
+                  <StatCard>
+                    <StatValue>{customerSummary?.total_customers || 0}</StatValue>
+                    <StatLabel>Total Customers</StatLabel>
+                  </StatCard>
+                  <StatCard>
+                    <StatValue>{customerSummary?.new_customers || 0}</StatValue>
+                    <StatLabel>New This Period</StatLabel>
+                  </StatCard>
+                </StatsGrid>
+                {topCustomers && topCustomers.length > 0 && (
+                  <TableContainer>
+                    <h3>Top Customers</h3>
+                    <Table>
+                      <thead>
+                        <tr>
+                          <Th>Name</Th>
+                          <Th>Email</Th>
+                          <Th>Orders</Th>
+                          <Th>Revenue</Th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topCustomers.map((c: any) => (
+                          <tr key={c.id}>
+                            <Td>{c.name}</Td>
+                            <Td>{c.email}</Td>
+                            <Td>{c.orders}</Td>
+                            <Td>{formatCurrency(c.revenue || 0)}</Td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </>
+            )}
+          </>
         )}
       </ContentContainer>
     </AnalyticsContainer>
